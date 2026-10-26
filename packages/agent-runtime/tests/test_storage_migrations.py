@@ -864,7 +864,13 @@ def test_head_revision_ignores_a_changed_live_catalog(schema, monkeypatch):
     assert "future_table" not in relation_snapshot(schema)
     # 0001's own snapshot is untouched by the successor revision too.
     initial = {table.name for table in load_snapshot("0001_initial_storage")}
-    assert initial | {"output_seal", "context_blob"} == frozen
+    assert initial | {
+        "output_seal",
+        "context_blob",
+        "credential_request",
+        "credential_audit",
+        "credential_service_binding",
+    } == frozen
     assert (
         scalar(
             "SELECT count(*) FROM information_schema.columns WHERE table_schema = :schema",
