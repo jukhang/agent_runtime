@@ -164,7 +164,8 @@ def test_deadline_race_preserves_audit_and_only_recovers_expired_children(pair, 
                 )
             await execute(
                 "UPDATE {t}capability_grant SET expires_at=:now,"
-                "issued_at=LEAST(issued_at,:now - interval '1 second') WHERE run_id=:id",
+                "issued_at=LEAST(issued_at,CAST(:now AS timestamptz) - interval '1 second') "
+                "WHERE run_id=:id",
                 now=expired,
                 id=child.run_id,
             )
@@ -192,7 +193,8 @@ def test_deadline_race_preserves_audit_and_only_recovers_expired_children(pair, 
                     )
                 await execute(
                     "UPDATE {t}capability_grant SET expires_at=:now,"
-                    "issued_at=LEAST(issued_at,:now - interval '1 second') WHERE run_id=:id",
+                    "issued_at=LEAST(issued_at,CAST(:now AS timestamptz) - interval '1 second') "
+                    "WHERE run_id=:id",
                     now=expired,
                     id=child.run_id,
                 )
