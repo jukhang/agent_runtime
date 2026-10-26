@@ -1,0 +1,65 @@
+{
+  "note": "One positive ProviderEvent sample per kind (DS-P01-03 fixture coverage). attemptId is fixed for validation; a streaming consumer injects its own attempt identity and sequence.",
+  "attemptId": "00000000-0000-0000-0000-0000000000aa",
+  "events": [
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "0",
+      "kind": "content.delta",
+      "text": "answer text"
+    },
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "1",
+      "kind": "analysis.delta",
+      "text": "public reasoning summary"
+    },
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "2",
+      "kind": "tool.arguments.delta",
+      "callId": "call-1",
+      "text": "{\"query\":"
+    },
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "3",
+      "kind": "tool.complete",
+      "callId": "call-1",
+      "name": "search",
+      "arguments": {
+        "query": "evidence"
+      }
+    },
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "4",
+      "kind": "usage",
+      "usage": {
+        "status": "complete",
+        "inputTokens": "10",
+        "outputTokens": "5",
+        "totalTokens": "15",
+        "reason": "provider_reported"
+      }
+    },
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "5",
+      "kind": "finish",
+      "reason": "stop",
+      "rawReason": "stop"
+    },
+    {
+      "attemptId": "00000000-0000-0000-0000-0000000000aa",
+      "sequence": "6",
+      "kind": "error",
+      "failure": {
+        "code": "PROVIDER_TIMEOUT",
+        "category": "provider",
+        "retryable": true,
+        "publicMessage": "The provider did not answer in time."
+      }
+    }
+  ]
+}

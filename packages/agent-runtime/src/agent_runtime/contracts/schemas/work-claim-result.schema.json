@@ -1,0 +1,585 @@
+{
+  "$defs": {
+    "ChildClaimedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "budgetAllocationId": {
+          "format": "uuid",
+          "title": "Budgetallocationid",
+          "type": "string"
+        },
+        "checkpointId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checkpointid"
+        },
+        "disposition": {
+          "const": "child_claimed",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/ChildLeaseToken"
+        },
+        "rootCancelVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Rootcancelversion",
+          "type": "string"
+        },
+        "rootRunId": {
+          "format": "uuid",
+          "title": "Rootrunid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "workspaceGeneration": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workspacegeneration",
+          "type": "string"
+        },
+        "workspaceRef": {
+          "$ref": "#/$defs/ResourceRef"
+        }
+      },
+      "required": [
+        "disposition",
+        "lease",
+        "rootRunId",
+        "rootCancelVersion",
+        "stateVersion",
+        "checkpointId",
+        "budgetAllocationId",
+        "workspaceRef",
+        "workspaceGeneration"
+      ],
+      "title": "ChildClaimedWork",
+      "type": "object"
+    },
+    "ChildLeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "ChildLeaseToken",
+      "type": "object"
+    },
+    "ClaimedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "budgetAllocationId": {
+          "format": "uuid",
+          "title": "Budgetallocationid",
+          "type": "string"
+        },
+        "checkpointId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checkpointid"
+        },
+        "disposition": {
+          "const": "claimed",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/LeaseToken"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "lease",
+        "stateVersion",
+        "checkpointId",
+        "budgetAllocationId"
+      ],
+      "title": "ClaimedWork",
+      "type": "object"
+    },
+    "ControlClaimedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "cancelVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Cancelversion",
+          "type": "string"
+        },
+        "checkpointId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checkpointid"
+        },
+        "commandId": {
+          "format": "uuid",
+          "title": "Commandid",
+          "type": "string"
+        },
+        "desiredControl": {
+          "enum": [
+            "pause",
+            "cancel"
+          ],
+          "title": "Desiredcontrol",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "control_claimed",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "lease": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LeaseToken"
+            },
+            {
+              "$ref": "#/$defs/ChildLeaseToken"
+            }
+          ],
+          "title": "Lease"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "running",
+            "waiting_tool",
+            "waiting_user",
+            "cancelling"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "lease",
+        "stateVersion",
+        "commandId",
+        "desiredControl",
+        "status",
+        "cancelVersion",
+        "checkpointId"
+      ],
+      "title": "ControlClaimedWork",
+      "type": "object"
+    },
+    "IdleWork": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "idle",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "no_work",
+            "capacity",
+            "capability_mismatch"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "retryAfterMs": {
+          "maximum": 60000,
+          "minimum": 1,
+          "title": "Retryafterms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "reason",
+        "retryAfterMs"
+      ],
+      "title": "IdleWork",
+      "type": "object"
+    },
+    "LeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "slotVersion",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "LeaseToken",
+      "type": "object"
+    },
+    "MaintenanceClaimedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "maintenance_claimed",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/MaintenanceKind"
+        },
+        "lease": {
+          "$ref": "#/$defs/MaintenanceLease"
+        },
+        "payloadRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Payloadref",
+          "type": "string"
+        },
+        "subjectRef": {
+          "$ref": "#/$defs/ResourceRef"
+        }
+      },
+      "required": [
+        "disposition",
+        "lease",
+        "kind",
+        "subjectRef",
+        "payloadRef"
+      ],
+      "title": "MaintenanceClaimedWork",
+      "type": "object"
+    },
+    "MaintenanceKind": {
+      "enum": [
+        "reconcile_execution",
+        "migrate_checkpoint",
+        "rebuild_projection",
+        "recover_scope",
+        "collect_garbage",
+        "evaluate",
+        "domain_job"
+      ],
+      "type": "string"
+    },
+    "MaintenanceLease": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "workId",
+        "ownerId",
+        "workEpoch",
+        "workLeaseUntil"
+      ],
+      "title": "MaintenanceLease",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "child_claimed": "#/$defs/ChildClaimedWork",
+      "claimed": "#/$defs/ClaimedWork",
+      "control_claimed": "#/$defs/ControlClaimedWork",
+      "idle": "#/$defs/IdleWork",
+      "maintenance_claimed": "#/$defs/MaintenanceClaimedWork"
+    },
+    "propertyName": "disposition"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ClaimedWork"
+    },
+    {
+      "$ref": "#/$defs/ChildClaimedWork"
+    },
+    {
+      "$ref": "#/$defs/MaintenanceClaimedWork"
+    },
+    {
+      "$ref": "#/$defs/ControlClaimedWork"
+    },
+    {
+      "$ref": "#/$defs/IdleWork"
+    }
+  ]
+}

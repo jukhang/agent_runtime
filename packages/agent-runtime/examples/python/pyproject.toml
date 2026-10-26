@@ -1,0 +1,28 @@
+[project]
+name = "centn-runtime-python-examples"
+version = "0.1.1"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = ["agent-runtime[provider,storage,mcp]>=0.1.0,<0.2"]
+
+[project.optional-dependencies]
+host = ["centn-runtime-example>=0.1.0,<0.2"]
+ecosystem = ["centn-runtime-example[ecosystem]>=0.1.0,<0.2"]
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["runtime_examples"]
+
+[tool.uv.sources]
+agent-runtime = { path = "../..", editable = true }
+centn-runtime-example = { path = "../standalone", editable = true }
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "pytest-asyncio>=1.2,<2", "ruff>=0.11,<1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

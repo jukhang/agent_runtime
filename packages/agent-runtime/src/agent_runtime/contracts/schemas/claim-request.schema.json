@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "WorkerCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "items": {
+            "$ref": "#/$defs/CapabilityRef"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "runtimeRevision": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "workerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Workerid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workerId",
+        "runtimeRevision",
+        "capabilities"
+      ],
+      "title": "WorkerCapabilities",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "leaseSeconds": {
+      "maximum": 3600,
+      "minimum": 1,
+      "title": "Leaseseconds",
+      "type": "integer"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "worker": {
+      "$ref": "#/$defs/WorkerCapabilities"
+    }
+  },
+  "required": [
+    "scopeId",
+    "worker",
+    "leaseSeconds"
+  ],
+  "title": "ClaimRequest",
+  "type": "object"
+}

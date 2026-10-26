@@ -1,0 +1,40 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "acceptedSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Acceptedseq",
+      "type": "string"
+    },
+    "assistantItemId": {
+      "format": "uuid",
+      "title": "Assistantitemid",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "turnId": {
+      "format": "uuid",
+      "title": "Turnid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sessionId",
+    "turnId",
+    "runId",
+    "assistantItemId",
+    "acceptedSeq"
+  ],
+  "title": "AcceptedTurn",
+  "type": "object"
+}

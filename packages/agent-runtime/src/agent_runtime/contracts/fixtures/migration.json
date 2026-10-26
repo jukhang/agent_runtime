@@ -1,0 +1,54 @@
+{
+  "note": "Positive migration outcomes (DS-P02-00): one sample per disposition.",
+  "outcomes": [
+    {
+      "disposition": "succeeded",
+      "planId": "00000000-0000-4000-8000-0000000000d1",
+      "planDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "deploymentId": "deployment-1",
+      "hostRevision": "host-r7",
+      "runtimeRevision": "runtime-r3",
+      "applied": [
+        {
+          "chain": "host",
+          "fromRevision": "host-r6",
+          "toRevision": "host-r7",
+          "idempotencyKey": "host-r7"
+        },
+        {
+          "chain": "runtime",
+          "fromRevision": "runtime-r2",
+          "toRevision": "runtime-r3",
+          "idempotencyKey": "runtime-r3"
+        }
+      ]
+    },
+    {
+      "disposition": "deferred",
+      "planId": "00000000-0000-4000-8000-0000000000d1",
+      "planDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "deploymentId": "deployment-1",
+      "reason": "runtime_failed",
+      "completed": [
+        {
+          "chain": "host",
+          "fromRevision": "host-r6",
+          "toRevision": "host-r7",
+          "idempotencyKey": "host-r7"
+        }
+      ],
+      "retryAfterSeconds": 30
+    },
+    {
+      "disposition": "rejected",
+      "planId": "00000000-0000-4000-8000-0000000000d1",
+      "deploymentId": "deployment-1",
+      "failure": {
+        "code": "VERSION_CONFLICT",
+        "category": "concurrency",
+        "retryable": false,
+        "publicMessage": "The requested migration does not continue the observed head."
+      }
+    }
+  ]
+}

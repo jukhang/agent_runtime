@@ -1,0 +1,70 @@
+{
+  "$defs": {
+    "RunStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_tool",
+        "waiting_user",
+        "paused",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "checkpointId": {
+      "format": "uuid",
+      "title": "Checkpointid",
+      "type": "string"
+    },
+    "committedSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Committedseq",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "stateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Stateversion",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "runId",
+    "stateVersion",
+    "checkpointId",
+    "status",
+    "committedSeq"
+  ],
+  "title": "UpdatedStateRef",
+  "type": "object"
+}

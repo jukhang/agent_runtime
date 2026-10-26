@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "AuditPurpose": {
+      "enum": [
+        "recovery",
+        "support",
+        "security",
+        "retention"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Explicit authorization context is mandatory; there is no anonymous audit read.",
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/ActorContext"
+    },
+    "afterSeq": {
+      "default": "0",
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Afterseq",
+      "type": "string"
+    },
+    "deadlineAt": {
+      "format": "date-time",
+      "title": "Deadlineat",
+      "type": "string"
+    },
+    "kinds": {
+      "items": {
+        "maxLength": 255,
+        "minLength": 1,
+        "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+        "type": "string"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Kinds",
+      "type": "array"
+    },
+    "limit": {
+      "default": 64,
+      "maximum": 256,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    },
+    "purpose": {
+      "$ref": "#/$defs/AuditPurpose"
+    },
+    "runId": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Runid"
+    },
+    "sessionId": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sessionid"
+    }
+  },
+  "required": [
+    "actor",
+    "purpose",
+    "kinds",
+    "deadlineAt"
+  ],
+  "title": "AuditQueryRequest",
+  "type": "object"
+}

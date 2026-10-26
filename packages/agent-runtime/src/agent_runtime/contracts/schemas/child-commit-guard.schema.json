@@ -1,0 +1,256 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "ChildLeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "ChildLeaseToken",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/ActorContext"
+    },
+    "expectedRootCancelVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedrootcancelversion",
+      "type": "string"
+    },
+    "expectedStateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedstateversion",
+      "type": "string"
+    },
+    "lease": {
+      "$ref": "#/$defs/ChildLeaseToken"
+    },
+    "rootRunId": {
+      "format": "uuid",
+      "title": "Rootrunid",
+      "type": "string"
+    },
+    "workspaceGeneration": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Workspacegeneration",
+      "type": "string"
+    },
+    "workspaceOwnerRunId": {
+      "format": "uuid",
+      "title": "Workspaceownerrunid",
+      "type": "string"
+    },
+    "workspaceRef": {
+      "$ref": "#/$defs/ResourceRef"
+    }
+  },
+  "required": [
+    "actor",
+    "lease",
+    "expectedStateVersion",
+    "rootRunId",
+    "expectedRootCancelVersion",
+    "workspaceRef",
+    "workspaceOwnerRunId",
+    "workspaceGeneration"
+  ],
+  "title": "ChildCommitGuard",
+  "type": "object"
+}

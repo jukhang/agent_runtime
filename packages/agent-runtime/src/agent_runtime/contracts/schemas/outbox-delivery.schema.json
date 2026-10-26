@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "claimToken": {
+      "format": "uuid",
+      "title": "Claimtoken",
+      "type": "string"
+    },
+    "eventIds": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Eventids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "claimToken",
+    "eventIds"
+  ],
+  "title": "OutboxDelivery",
+  "type": "object"
+}

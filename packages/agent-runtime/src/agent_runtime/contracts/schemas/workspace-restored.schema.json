@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "WorkspaceVersion": {
+      "additionalProperties": false,
+      "properties": {
+        "generation": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Generation",
+          "type": "string"
+        },
+        "ownerRunId": {
+          "format": "uuid",
+          "title": "Ownerrunid",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "workspaceId": {
+          "format": "uuid",
+          "title": "Workspaceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "workspaceId",
+        "ownerRunId",
+        "generation",
+        "revision"
+      ],
+      "title": "WorkspaceVersion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "checkpointId": {
+      "format": "uuid",
+      "title": "Checkpointid",
+      "type": "string"
+    },
+    "status": {
+      "const": "ready",
+      "title": "Status",
+      "type": "string"
+    },
+    "verificationRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Verificationref",
+      "type": "string"
+    },
+    "verifiedManifestDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Verifiedmanifestdigest",
+      "type": "string"
+    },
+    "workspace": {
+      "$ref": "#/$defs/WorkspaceVersion"
+    }
+  },
+  "required": [
+    "checkpointId",
+    "workspace",
+    "verifiedManifestDigest",
+    "verificationRef",
+    "status"
+  ],
+  "title": "RestoredWorkspaceRef",
+  "type": "object"
+}

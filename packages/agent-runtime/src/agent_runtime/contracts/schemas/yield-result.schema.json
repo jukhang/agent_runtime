@@ -1,0 +1,133 @@
+{
+  "$defs": {
+    "InputWatermark": {
+      "additionalProperties": false,
+      "properties": {
+        "appliedVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Appliedversion",
+          "type": "string"
+        },
+        "pendingVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Pendingversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pendingVersion",
+        "appliedVersion"
+      ],
+      "title": "InputWatermark",
+      "type": "object"
+    },
+    "RequeuedRun": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpointId": {
+          "format": "uuid",
+          "title": "Checkpointid",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "requeued",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputWatermark"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "stateVersion",
+        "checkpointId",
+        "inputs",
+        "disposition",
+        "workId"
+      ],
+      "title": "RequeuedRun",
+      "type": "object"
+    },
+    "WaitingRun": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpointId": {
+          "format": "uuid",
+          "title": "Checkpointid",
+          "type": "string"
+        },
+        "disposition": {
+          "const": "waiting",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputWatermark"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "waiting_tool",
+            "waiting_user"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "stateVersion",
+        "checkpointId",
+        "inputs",
+        "disposition",
+        "status"
+      ],
+      "title": "WaitingRun",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "requeued": "#/$defs/RequeuedRun",
+      "waiting": "#/$defs/WaitingRun"
+    },
+    "propertyName": "disposition"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/WaitingRun"
+    },
+    {
+      "$ref": "#/$defs/RequeuedRun"
+    }
+  ]
+}

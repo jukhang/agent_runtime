@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Which revisions of one capability key are currently resolvable.",
+  "properties": {
+    "activeRevision": {
+      "anyOf": [
+        {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Activerevision"
+    },
+    "key": {
+      "$ref": "#/$defs/CapabilityKey"
+    },
+    "revokedRevisions": {
+      "default": [],
+      "items": {
+        "maxLength": 19,
+        "pattern": "^(0|[1-9][0-9]*)$",
+        "type": "string"
+      },
+      "title": "Revokedrevisions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "key",
+    "activeRevision"
+  ],
+  "title": "CapabilityAvailability",
+  "type": "object"
+}

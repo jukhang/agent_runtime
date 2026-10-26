@@ -1,0 +1,948 @@
+{
+  "interfaces": [
+    {
+      "name": "Admission.accept",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.requests",
+          "symbol": "SubmitRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.requests",
+          "symbol": "AcceptedTurn"
+        },
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "ActorContext"
+        }
+      ],
+      "transactions": [
+        "T1"
+      ],
+      "gaps": [
+        "请求内容哈希与幂等冲突结果",
+        "持久接收事务"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Scheduler.claim/renew/yield",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "LeaseToken"
+        },
+        {
+          "module": "agent_runtime.contracts.tasks",
+          "symbol": "WaitSpec"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "WorkerCapabilities"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "ClaimRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "ClaimResult"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "RenewRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "RenewResult"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "YieldRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "YieldResult"
+        },
+        {
+          "module": "agent_runtime.contracts.work_claims",
+          "symbol": "WorkClaimRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.work_claims",
+          "symbol": "WorkClaimResult"
+        },
+        {
+          "module": "agent_runtime.contracts.work_claims",
+          "symbol": "ChildRenewResult"
+        },
+        {
+          "module": "agent_runtime.contracts.work_claims",
+          "symbol": "MaintenanceRenewResult"
+        }
+      ],
+      "transactions": [
+        "T2",
+        "T7"
+      ],
+      "gaps": [
+        "真实领取/续租/等待唤醒事务与身份交叉验证"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "AgentLoop.advance",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.loop",
+          "symbol": "RunState"
+        },
+        {
+          "module": "agent_runtime.contracts.loop",
+          "symbol": "AppliedInputs"
+        },
+        {
+          "module": "agent_runtime.contracts.loop",
+          "symbol": "BudgetView"
+        },
+        {
+          "module": "agent_runtime.contracts.decisions",
+          "symbol": "NextAction"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "循环推进实现"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Context.prepare",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.context",
+          "symbol": "ContextRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.context",
+          "symbol": "PreparedContext"
+        }
+      ],
+      "transactions": [
+        "T3"
+      ],
+      "gaps": [
+        "来源权限/工具配对与内容保留验证",
+        "实际 Context 构建/压缩/快照存储"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Provider.stream",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.model",
+          "symbol": "ProviderRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.provider",
+          "symbol": "ProviderEvent"
+        }
+      ],
+      "transactions": [
+        "T3",
+        "T4"
+      ],
+      "gaps": [
+        "取消接口与 HTTP 适配",
+        "think 归一及真实模型验证"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Journal.append",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.events",
+          "symbol": "EventEnvelope"
+        },
+        {
+          "module": "agent_runtime.contracts.journal",
+          "symbol": "ProducerBatch"
+        },
+        {
+          "module": "agent_runtime.contracts.journal",
+          "symbol": "CommittedBatch"
+        },
+        {
+          "module": "agent_runtime.contracts.journal",
+          "symbol": "FlushProof"
+        },
+        {
+          "module": "agent_runtime.contracts.state_events",
+          "symbol": "StateEventBatch"
+        },
+        {
+          "module": "agent_runtime.contracts.state_events",
+          "symbol": "StateEventReceipt"
+        }
+      ],
+      "transactions": [
+        "T4"
+      ],
+      "gaps": [
+        "状态事件与业务写入同一 UoW 的授权及原子性",
+        "真实生产者去重与序号分配",
+        "写入器封口与 flush proof 存储"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "ToolRuntime.execute",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.tools",
+          "symbol": "ToolInvocation"
+        },
+        {
+          "module": "agent_runtime.contracts.tools",
+          "symbol": "ToolOutcome"
+        }
+      ],
+      "transactions": [
+        "T6",
+        "T7",
+        "T8"
+      ],
+      "gaps": [
+        "ToolHost 及 Schema 执行",
+        "权限、审批、并发与 Ledger 事务"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Policy.evaluate",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.policy",
+          "symbol": "PolicyRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.tools",
+          "symbol": "ApprovalBinding"
+        },
+        {
+          "module": "agent_runtime.contracts.policy",
+          "symbol": "PolicyDecision"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "确定性评估、有效 grant 解析及审批 CAS"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "CredentialBroker.authorize/proxy",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.credentials",
+          "symbol": "ScopeRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.credentials",
+          "symbol": "GrantRef"
+        },
+        {
+          "module": "agent_runtime.contracts.credentials",
+          "symbol": "ProxyRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.credentials",
+          "symbol": "FilteredResponse"
+        },
+        {
+          "module": "agent_runtime.contracts.credentials",
+          "symbol": "EgressDestination"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "传输认证、实时撤销与响应过滤",
+        "受控出口与凭据代理"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "StateStore.commit",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "AdvanceCommitRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "ResumeCommitRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "ResumedRun"
+        },
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "CommitGuard"
+        },
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "DomainCommitRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "StateWriteGuard"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "PauseCommitRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "TerminalCommitRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "UpdatedStateRef"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "ChildCommitGuard"
+        },
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "ApplyInputRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.requests",
+          "symbol": "ControlRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "ControlOutcome"
+        },
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "CancelCommitRequest"
+        }
+      ],
+      "transactions": [
+        "T5",
+        "T6",
+        "T9",
+        "T10"
+      ],
+      "gaps": [
+        "实际控制/终态 CAS 与根取消版本复核",
+        "全量生产者与执行证据核验",
+        "T5 输入连续水位与 claimToken 的持久校验"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Mailbox.send/claim/apply",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.mailbox",
+          "symbol": "MailboxReceipt"
+        },
+        {
+          "module": "agent_runtime.contracts.mailbox",
+          "symbol": "MailboxClaimRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.mailbox",
+          "symbol": "ClaimedBatch"
+        },
+        {
+          "module": "agent_runtime.contracts.mailbox",
+          "symbol": "AppliedInputRef"
+        },
+        {
+          "module": "agent_runtime.contracts.messages",
+          "symbol": "AgentEnvelope"
+        },
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "ApplyInputRequest"
+        }
+      ],
+      "transactions": [
+        "T5",
+        "T8"
+      ],
+      "gaps": [
+        "持久领取、应用及输入水位"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Subagent.spawn/collect",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.subagents",
+          "symbol": "SpawnRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.subagents",
+          "symbol": "ChildRunRef"
+        },
+        {
+          "module": "agent_runtime.contracts.subagents",
+          "symbol": "CollectRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.subagents",
+          "symbol": "VerifiedResult"
+        },
+        {
+          "module": "agent_runtime.contracts.tasks",
+          "symbol": "TaskPackage"
+        },
+        {
+          "module": "agent_runtime.contracts.message_payloads",
+          "symbol": "ResultProposed"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "ChildProposalRequest"
+        }
+      ],
+      "transactions": [
+        "T8",
+        "T10"
+      ],
+      "gaps": [
+        "实际创建/收集、预算及提案归属校验"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Workspace.checkpoint/restore",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.workspace",
+          "symbol": "WorkspaceVersion"
+        },
+        {
+          "module": "agent_runtime.contracts.workspace",
+          "symbol": "ReadyCheckpoint"
+        },
+        {
+          "module": "agent_runtime.contracts.workspace",
+          "symbol": "WorkspaceCheckpointRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.workspace",
+          "symbol": "WorkspaceRestoreRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.workspace",
+          "symbol": "RestoredWorkspaceRef"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "实际快照与恢复"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Supervisor.reconcile/cancel",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "ExecutionCancelRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "ExecutionCancelResult"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "ExecutionReconcileRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "ExecutionObservation"
+        }
+      ],
+      "transactions": [
+        "T8"
+      ],
+      "gaps": [
+        "远端 generation fencing、状态真实性及实际进程控制"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Recovery.wake/reconcile",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "CheckpointMigrationRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "WakeInputRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "WakeResult"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "StaleRunRef"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "RecoveryRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.ownership",
+          "symbol": "RecoveryDisposition"
+        }
+      ],
+      "transactions": [
+        "T2",
+        "T8"
+      ],
+      "gaps": [
+        "实际接管/迁移事务与协议兼容校验",
+        "请求/裁决身份交叉校验",
+        "暂停与根取消传播"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Projection.snapshot",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.views",
+          "symbol": "SnapshotEnvelope"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "一致水位快照读取及授权",
+        "reducer 与恢复验证"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "SystemCapacity.reserve/release/observe",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityKey"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReserveRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReleaseRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityObserveRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReservation"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReleaseApplied"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReleaseReused"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReleaseRejected"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityReleaseResult"
+        },
+        {
+          "module": "agent_runtime.contracts.capacity",
+          "symbol": "CapacityView"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "真实容量表、reservation 事实与 CAS 并发在 DS-P02-02/DS-P04 实现",
+        "到期回收必须核对 holder 真实状态；实际许可需与宿主 Policy 取交集"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Audit.query",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.audit",
+          "symbol": "AuditQueryRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.audit",
+          "symbol": "AuditEntry"
+        },
+        {
+          "module": "agent_runtime.contracts.audit",
+          "symbol": "AuditQueryResult"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "restricted 查询与显式授权在 P02/P05 实现",
+        "公开订阅不得复用该端口"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Capability.registry",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.references",
+          "symbol": "CapabilityKey"
+        },
+        {
+          "module": "agent_runtime.contracts.references",
+          "symbol": "CapabilityRef"
+        },
+        {
+          "module": "agent_runtime.contracts.registry",
+          "symbol": "CapabilityManifest"
+        },
+        {
+          "module": "agent_runtime.contracts.registry",
+          "symbol": "CapabilityAvailability"
+        },
+        {
+          "module": "agent_runtime.contracts.registry",
+          "symbol": "CapabilitySpec"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "能力发布/撤销命令与注册表存储属 P05（DS-P04-03）",
+        "capability_revision.manifest 必须由 CapabilityManifest 契约写入"
+      ],
+      "status": "partial"
+    },
+    {
+      "name": "Migration.orchestrate",
+      "contracts": [
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationHeads"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationStep"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationStepRef"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationPlanRequest"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationSucceeded"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationDeferred"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationRejected"
+        },
+        {
+          "module": "agent_runtime.contracts.migration",
+          "symbol": "MigrationOutcome"
+        }
+      ],
+      "transactions": [],
+      "gaps": [
+        "双链编排作业与版本表隔离由部署/运维实现",
+        "后继校验依赖受信迁移注册表；契约只拒绝原地不动与非 upgrade 步骤"
+      ],
+      "status": "partial"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "T1",
+      "name": "admission",
+      "records": [
+        "Session",
+        "Turn",
+        "Run",
+        "Item",
+        "WorkItem",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.requests",
+          "symbol": "SubmitRequest"
+        }
+      ],
+      "events": [
+        "turn.accepted"
+      ],
+      "gaps": [
+        "请求 hash 冲突",
+        "并发唯一约束与提交后接收"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T2",
+      "name": "claim",
+      "records": [
+        "SessionSlot",
+        "Run",
+        "WorkItem",
+        "BudgetAllocation"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "ClaimRequest"
+        }
+      ],
+      "events": [],
+      "gaps": [
+        "锁顺序、双 epoch、slot CAS、租约与容量预留"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T3",
+      "name": "prepare_model",
+      "records": [
+        "Run",
+        "ModelAttempt",
+        "ContextSnapshot",
+        "BudgetAllocation",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "PrepareModelRequest"
+        }
+      ],
+      "events": [
+        "model.prepared"
+      ],
+      "gaps": [
+        "准备请求与 ProviderRequest 一致性",
+        "预算与未知请求状态处理"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T4",
+      "name": "append_output",
+      "records": [
+        "Run",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.journal",
+          "symbol": "ProducerBatch"
+        }
+      ],
+      "events": [
+        "assistant.delta",
+        "analysis.delta"
+      ],
+      "gaps": [
+        "主流之外的生产者权限",
+        "实际去重/序号/Outbox",
+        "写入完成证明与封口持久化"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T5",
+      "name": "apply_input",
+      "records": [
+        "Run",
+        "AgentMessage",
+        "Checkpoint",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "ApplyInputRequest"
+        }
+      ],
+      "events": [
+        "mailbox.applied"
+      ],
+      "gaps": [
+        "claimToken 与输入完整水位校验",
+        "checkpoint 和 applied 原子性"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T6",
+      "name": "domain_commit",
+      "records": [
+        "Run",
+        "Operation",
+        "ToolCall",
+        "Artifact",
+        "Checkpoint",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "DomainCommitRequest"
+        }
+      ],
+      "events": [
+        "tool.finished",
+        "artifact.created"
+      ],
+      "gaps": [
+        "真实授权/资源版本/执行权校验",
+        "外部副作用单独协议"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T7",
+      "name": "yield",
+      "records": [
+        "Run",
+        "WorkItem",
+        "Checkpoint",
+        "BudgetAllocation",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "YieldRequest"
+        }
+      ],
+      "events": [
+        "run.status",
+        "input.required"
+      ],
+      "gaps": [
+        "pending/applied 水位比较及续跑",
+        "取消/暂停收尾"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T8",
+      "name": "wake_result",
+      "records": [
+        "Run",
+        "WorkItem",
+        "AgentMessage",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.scheduler",
+          "symbol": "WakeInputRequest"
+        }
+      ],
+      "events": [
+        "run.status"
+      ],
+      "gaps": [
+        "与 T7 同锁防丢唤醒",
+        "已终态结果归档而非复活"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T9",
+      "name": "terminal",
+      "records": [
+        "Run",
+        "WorkItem",
+        "Item",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.transitions",
+          "symbol": "TerminalCommitRequest"
+        }
+      ],
+      "events": [
+        "run.completed",
+        "run.failed",
+        "run.cancelled"
+      ],
+      "gaps": [
+        "实际终态 CAS 与 flush proof 存储核验",
+        "取消优先和许可清理"
+      ],
+      "implementation": "not_implemented"
+    },
+    {
+      "id": "T10",
+      "name": "handoff",
+      "records": [
+        "SessionSlot",
+        "Run",
+        "Checkpoint",
+        "Handoff",
+        "WorkItem",
+        "Event",
+        "Outbox"
+      ],
+      "requests": [
+        {
+          "module": "agent_runtime.contracts.transactions",
+          "symbol": "HandoffRequest"
+        }
+      ],
+      "events": [
+        "handoff.committed"
+      ],
+      "gaps": [
+        "双 Run 安全点及 manifest 校验",
+        "slot 原子切换与续跑"
+      ],
+      "implementation": "not_implemented"
+    }
+  ]
+}

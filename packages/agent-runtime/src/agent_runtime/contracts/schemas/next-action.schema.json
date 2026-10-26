@@ -1,0 +1,660 @@
+{
+  "$defs": {
+    "AskUser": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ask_user",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/AskUserPayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "AskUser",
+      "type": "object"
+    },
+    "AskUserPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "requiredFacts": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Requiredfacts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "question",
+        "requiredFacts"
+      ],
+      "title": "AskUserPayload",
+      "type": "object"
+    },
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "Delegate": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "delegate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/DelegatePayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "Delegate",
+      "type": "object"
+    },
+    "DelegatePayload": {
+      "additionalProperties": false,
+      "properties": {
+        "taskPackage": {
+          "$ref": "#/$defs/TaskPackage"
+        }
+      },
+      "required": [
+        "taskPackage"
+      ],
+      "title": "DelegatePayload",
+      "type": "object"
+    },
+    "Finish": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "finish",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/FinishPayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "Finish",
+      "type": "object"
+    },
+    "FinishPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "finalItemIds": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Finalitemids",
+          "type": "array"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "partial"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "evidenceRefs",
+        "finalItemIds"
+      ],
+      "title": "FinishPayload",
+      "type": "object"
+    },
+    "InvokeTools": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "invoke_tools",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/InvokeToolsPayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "InvokeTools",
+      "type": "object"
+    },
+    "InvokeToolsPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "validatedCalls": {
+          "items": {
+            "$ref": "#/$defs/ToolCallRequest"
+          },
+          "minItems": 1,
+          "title": "Validatedcalls",
+          "type": "array"
+        }
+      },
+      "required": [
+        "validatedCalls"
+      ],
+      "title": "InvokeToolsPayload",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "PlanStep": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "parentStepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentstepid"
+        },
+        "runRefs": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Runrefs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "waiting",
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "parentStepId",
+        "label",
+        "status",
+        "evidenceRefs",
+        "runRefs"
+      ],
+      "title": "PlanStep",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    },
+    "Respond": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "respond",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RespondPayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "Respond",
+      "type": "object"
+    },
+    "RespondPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "answerRequestRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Answerrequestref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "answerRequestRef"
+      ],
+      "title": "RespondPayload",
+      "type": "object"
+    },
+    "TaskPackage": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptanceSpecRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Acceptancespecref",
+          "type": "string"
+        },
+        "budgetAllocationId": {
+          "format": "uuid",
+          "title": "Budgetallocationid",
+          "type": "string"
+        },
+        "constraints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "objective": {
+          "minLength": 1,
+          "title": "Objective",
+          "type": "string"
+        },
+        "outputSchemaRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Outputschemaref",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "targetAgent": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "taskId",
+        "targetAgent",
+        "objective",
+        "constraints",
+        "acceptanceSpecRef",
+        "outputSchemaRef",
+        "resourceRefs",
+        "budgetAllocationId",
+        "deadlineAt"
+      ],
+      "title": "TaskPackage",
+      "type": "object"
+    },
+    "ToolCallRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Arguments",
+          "type": "object"
+        },
+        "tool": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "toolCallId": {
+          "format": "uuid",
+          "title": "Toolcallid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "toolCallId",
+        "tool",
+        "arguments"
+      ],
+      "title": "ToolCallRequest",
+      "type": "object"
+    },
+    "UpdatePlan": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "update_plan",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/UpdatePlanPayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "UpdatePlan",
+      "type": "object"
+    },
+    "UpdatePlanPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "expectedRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Expectedrevision",
+          "type": "string"
+        },
+        "planId": {
+          "format": "uuid",
+          "title": "Planid",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/PlanStep"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "planId",
+        "expectedRevision",
+        "steps"
+      ],
+      "title": "UpdatePlanPayload",
+      "type": "object"
+    },
+    "Wait": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "wait",
+          "title": "Kind",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/WaitPayload"
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "title": "Wait",
+      "type": "object"
+    },
+    "WaitPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "waitSpec": {
+          "$ref": "#/$defs/WaitSpec"
+        }
+      },
+      "required": [
+        "waitSpec"
+      ],
+      "title": "WaitPayload",
+      "type": "object"
+    },
+    "WaitSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "tool",
+            "approval",
+            "message",
+            "timer",
+            "external"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "resumePredicate": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "subjectId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Subjectid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "subjectId",
+        "deadlineAt",
+        "resumePredicate"
+      ],
+      "title": "WaitSpec",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "ask_user": "#/$defs/AskUser",
+      "delegate": "#/$defs/Delegate",
+      "finish": "#/$defs/Finish",
+      "invoke_tools": "#/$defs/InvokeTools",
+      "respond": "#/$defs/Respond",
+      "update_plan": "#/$defs/UpdatePlan",
+      "wait": "#/$defs/Wait"
+    },
+    "propertyName": "kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Respond"
+    },
+    {
+      "$ref": "#/$defs/InvokeTools"
+    },
+    {
+      "$ref": "#/$defs/UpdatePlan"
+    },
+    {
+      "$ref": "#/$defs/Delegate"
+    },
+    {
+      "$ref": "#/$defs/AskUser"
+    },
+    {
+      "$ref": "#/$defs/Wait"
+    },
+    {
+      "$ref": "#/$defs/Finish"
+    }
+  ]
+}

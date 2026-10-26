@@ -1,0 +1,141 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "MaintenanceKind": {
+      "enum": [
+        "reconcile_execution",
+        "migrate_checkpoint",
+        "rebuild_projection",
+        "recover_scope",
+        "collect_garbage",
+        "evaluate",
+        "domain_job"
+      ],
+      "type": "string"
+    },
+    "WorkerCapabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "items": {
+            "$ref": "#/$defs/CapabilityRef"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "runtimeRevision": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "workerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Workerid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workerId",
+        "runtimeRevision",
+        "capabilities"
+      ],
+      "title": "WorkerCapabilities",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "lanes": {
+      "items": {
+        "enum": [
+          "main",
+          "child",
+          "control",
+          "maintenance"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Lanes",
+      "type": "array"
+    },
+    "leaseSeconds": {
+      "maximum": 3600,
+      "minimum": 1,
+      "title": "Leaseseconds",
+      "type": "integer"
+    },
+    "maintenanceKinds": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MaintenanceKind"
+      },
+      "title": "Maintenancekinds",
+      "type": "array"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "worker": {
+      "$ref": "#/$defs/WorkerCapabilities"
+    }
+  },
+  "required": [
+    "scopeId",
+    "worker",
+    "leaseSeconds",
+    "lanes"
+  ],
+  "title": "WorkClaimRequest",
+  "type": "object"
+}

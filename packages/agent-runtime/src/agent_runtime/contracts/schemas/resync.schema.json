@@ -1,0 +1,30 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "resync_required",
+      "title": "Kind",
+      "type": "string"
+    },
+    "reason": {
+      "enum": [
+        "cursor_expired",
+        "authorization_changed",
+        "projection_changed"
+      ],
+      "title": "Reason",
+      "type": "string"
+    },
+    "snapshotUrl": {
+      "title": "Snapshoturl",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "reason",
+    "snapshotUrl"
+  ],
+  "title": "ResyncFrame",
+  "type": "object"
+}

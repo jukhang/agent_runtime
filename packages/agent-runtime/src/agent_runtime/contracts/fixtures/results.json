@@ -1,0 +1,58 @@
+{
+  "note": "One positive terminal RunResult sample per status (DS-P01-03 fixture coverage). A failed result carries a FailureEnvelope; a cancelled result carries neither outcome nor failure.",
+  "results": [
+    {
+      "runId": "00000000-0000-0000-0000-0000000000b1",
+      "status": "completed",
+      "outcome": "success",
+      "failure": null,
+      "finalItems": [],
+      "artifactRefs": [],
+      "partialResults": [],
+      "usage": {
+        "status": "complete",
+        "inputTokens": "10",
+        "outputTokens": "5",
+        "totalTokens": "15",
+        "reason": "provider_reported"
+      }
+    },
+    {
+      "runId": "00000000-0000-0000-0000-0000000000b2",
+      "status": "failed",
+      "outcome": null,
+      "failure": {
+        "code": "TOOL_TIMEOUT",
+        "category": "tool",
+        "retryable": true,
+        "publicMessage": "A tool did not finish in time."
+      },
+      "finalItems": [],
+      "artifactRefs": [],
+      "partialResults": [],
+      "usage": {
+        "status": "unknown",
+        "inputTokens": null,
+        "outputTokens": null,
+        "totalTokens": null,
+        "reason": "provider_not_reported"
+      }
+    },
+    {
+      "runId": "00000000-0000-0000-0000-0000000000b3",
+      "status": "cancelled",
+      "outcome": null,
+      "failure": null,
+      "finalItems": [],
+      "artifactRefs": [],
+      "partialResults": [],
+      "usage": {
+        "status": "unknown",
+        "inputTokens": null,
+        "outputTokens": null,
+        "totalTokens": null,
+        "reason": "collection_failed"
+      }
+    }
+  ]
+}

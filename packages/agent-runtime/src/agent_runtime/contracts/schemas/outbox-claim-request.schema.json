@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "leaseSeconds": {
+      "default": 30,
+      "maximum": 300,
+      "minimum": 1,
+      "title": "Leaseseconds",
+      "type": "integer"
+    },
+    "limit": {
+      "default": 64,
+      "maximum": 256,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "title": "OutboxClaimRequest",
+  "type": "object"
+}

@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "CommittedEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "contentDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Contentdigest",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "created",
+            "reused"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "eventId": {
+          "format": "uuid",
+          "title": "Eventid",
+          "type": "string"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "sessionSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Sessionseq",
+          "type": "string"
+        }
+      },
+      "required": [
+        "producerKey",
+        "contentDigest",
+        "eventId",
+        "sessionSeq",
+        "disposition"
+      ],
+      "title": "CommittedEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attemptId": {
+      "format": "uuid",
+      "title": "Attemptid",
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/CommittedEntry"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Entries",
+      "type": "array"
+    },
+    "itemId": {
+      "format": "uuid",
+      "title": "Itemid",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "runId",
+    "attemptId",
+    "itemId",
+    "entries"
+  ],
+  "title": "CommittedBatch",
+  "type": "object"
+}

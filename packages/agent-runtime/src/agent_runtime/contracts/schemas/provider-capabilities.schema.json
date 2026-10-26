@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "PositiveInt": {
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "Support": {
+      "enum": [
+        "supported",
+        "unsupported",
+        "unknown"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "allowedOptionKeys": {
+      "items": {
+        "maxLength": 255,
+        "minLength": 1,
+        "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+        "type": "string"
+      },
+      "title": "Allowedoptionkeys",
+      "type": "array"
+    },
+    "cancellation": {
+      "$ref": "#/$defs/Support"
+    },
+    "contextWindow": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "maxOutputTokens": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "model": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "streaming": {
+      "$ref": "#/$defs/Support"
+    },
+    "structuredOutput": {
+      "$ref": "#/$defs/Support"
+    },
+    "thinkingControl": {
+      "$ref": "#/$defs/Support"
+    },
+    "toolCalls": {
+      "$ref": "#/$defs/Support"
+    },
+    "toolsWithStructuredOutput": {
+      "$ref": "#/$defs/Support"
+    },
+    "toolsWithThinking": {
+      "$ref": "#/$defs/Support"
+    },
+    "usage": {
+      "$ref": "#/$defs/Support"
+    }
+  },
+  "required": [
+    "model",
+    "streaming",
+    "toolCalls",
+    "structuredOutput",
+    "thinkingControl",
+    "toolsWithStructuredOutput",
+    "toolsWithThinking",
+    "usage",
+    "cancellation",
+    "contextWindow",
+    "maxOutputTokens",
+    "allowedOptionKeys"
+  ],
+  "title": "ProviderCapabilities",
+  "type": "object"
+}

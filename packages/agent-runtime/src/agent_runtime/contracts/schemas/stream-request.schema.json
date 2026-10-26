@@ -1,0 +1,36 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "afterSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Afterseq",
+      "type": "string"
+    },
+    "lastEventId": {
+      "anyOf": [
+        {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lasteventid"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sessionId",
+    "afterSeq",
+    "lastEventId"
+  ],
+  "title": "StreamRequest",
+  "type": "object"
+}

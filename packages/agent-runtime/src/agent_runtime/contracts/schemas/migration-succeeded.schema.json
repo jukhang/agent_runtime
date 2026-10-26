@@ -1,0 +1,121 @@
+{
+  "$defs": {
+    "MigrationChain": {
+      "enum": [
+        "host",
+        "runtime"
+      ],
+      "type": "string"
+    },
+    "MigrationStepRef": {
+      "additionalProperties": false,
+      "description": "Structured proof of one applied step; a bare key cannot prove ancestry.",
+      "properties": {
+        "chain": {
+          "$ref": "#/$defs/MigrationChain"
+        },
+        "fromRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Fromrevision",
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Idempotencykey",
+          "type": "string"
+        },
+        "toRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Torevision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chain",
+        "fromRevision",
+        "toRevision",
+        "idempotencyKey"
+      ],
+      "title": "MigrationStepRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "applied": {
+      "items": {
+        "$ref": "#/$defs/MigrationStepRef"
+      },
+      "minItems": 1,
+      "title": "Applied",
+      "type": "array"
+    },
+    "deploymentId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Deploymentid",
+      "type": "string"
+    },
+    "disposition": {
+      "const": "succeeded",
+      "title": "Disposition",
+      "type": "string"
+    },
+    "hostRevision": {
+      "anyOf": [
+        {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hostrevision"
+    },
+    "planDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plandigest",
+      "type": "string"
+    },
+    "planId": {
+      "format": "uuid",
+      "title": "Planid",
+      "type": "string"
+    },
+    "runtimeRevision": {
+      "anyOf": [
+        {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Runtimerevision"
+    }
+  },
+  "required": [
+    "disposition",
+    "planId",
+    "planDigest",
+    "deploymentId",
+    "hostRevision",
+    "runtimeRevision",
+    "applied"
+  ],
+  "title": "MigrationSucceeded",
+  "type": "object"
+}

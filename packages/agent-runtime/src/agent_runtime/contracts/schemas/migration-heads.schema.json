@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "description": "Live head of each chain, re-read by the orchestrator before executing.",
+  "properties": {
+    "hostRevision": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Hostrevision",
+      "type": "string"
+    },
+    "runtimeRevision": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Runtimerevision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "hostRevision",
+    "runtimeRevision"
+  ],
+  "title": "MigrationHeads",
+  "type": "object"
+}

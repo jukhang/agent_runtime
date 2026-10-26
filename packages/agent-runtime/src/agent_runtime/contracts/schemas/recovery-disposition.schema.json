@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "RecoveryDeferred": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "deferred",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "active_lease",
+            "paused",
+            "capacity",
+            "incompatible",
+            "state_changed"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "recheckAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Recheckat"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "runId",
+        "reason",
+        "recheckAt"
+      ],
+      "title": "RecoveryDeferred",
+      "type": "object"
+    },
+    "RecoveryScheduled": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "scheduled",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "queued",
+            "cancelling"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "wakeReason": {
+          "enum": [
+            "recovery",
+            "control"
+          ],
+          "title": "Wakereason",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "runId",
+        "workId",
+        "stateVersion",
+        "status",
+        "wakeReason"
+      ],
+      "title": "RecoveryScheduled",
+      "type": "object"
+    },
+    "RecoveryTerminal": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "terminal",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "runId",
+        "status",
+        "stateVersion"
+      ],
+      "title": "RecoveryTerminal",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "deferred": "#/$defs/RecoveryDeferred",
+      "scheduled": "#/$defs/RecoveryScheduled",
+      "terminal": "#/$defs/RecoveryTerminal"
+    },
+    "propertyName": "disposition"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/RecoveryScheduled"
+    },
+    {
+      "$ref": "#/$defs/RecoveryDeferred"
+    },
+    {
+      "$ref": "#/$defs/RecoveryTerminal"
+    }
+  ]
+}

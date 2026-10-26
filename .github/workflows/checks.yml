@@ -1,0 +1,66 @@
+name: SDK checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          version: '0.8.22'
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: uv sync --project packages/agent-runtime --locked
+      - run: uv run --project packages/agent-runtime --locked ruff check packages/agent-runtime
+      - run: >-
+          uv run --project packages/agent-runtime --locked mypy --strict
+          --config-file packages/agent-runtime/pyproject.toml packages/agent-runtime/src
+      - run: >-
+          uv run --project packages/agent-runtime --locked python -m pytest
+          packages/agent-runtime/tests -q
+      - run: node --test packages/agent-runtime/examples/standalone/tests/*.test.mjs
+      - working-directory: packages/agent-runtime/examples/python
+        run: uv run --locked --extra host python -m pytest tests -q
+      - working-directory: packages/agent-runtime/examples/standalone
+        run: >-
+          uv run --locked python -m pytest tests/test_ui_assets.py
+          tests/test_migration_command.py tests/test_transport_errors.py -q
+      - run: uv build packages/agent-runtime --out-dir dist
+      - run: >-
+          uv run --project packages/agent-runtime --locked python
+          packages/agent-runtime/scripts/verify_sdk_install.py
+          --wheel dist/agent_runtime-0.1.1-py3-none-any.whl
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agent_runtime_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 10
+    env:
+      AGENT_RUNTIME_TEST_DSN: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/agent_runtime_test
+      AGENT_RUNTIME_EXPECTED_DATABASE: agent_runtime_test
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          version: '0.8.22'
+          python-version: '3.12'
+      - run: uv sync --project packages/agent-runtime --locked
+      - run: >-
+          uv run --project packages/agent-runtime --locked python -m pytest
+          packages/agent-runtime/tests/test_storage_migrations.py
+          packages/agent-runtime/tests/test_storage_uow.py
+          packages/agent-runtime/tests/test_storage_model_attempts.py
+          packages/agent-runtime/tests/test_storage_sdk.py -q

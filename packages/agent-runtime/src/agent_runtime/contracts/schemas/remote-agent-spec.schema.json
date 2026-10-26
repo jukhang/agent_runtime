@@ -1,0 +1,100 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "canCancelTask": {
+      "title": "Cancanceltask",
+      "type": "boolean"
+    },
+    "canQueryTask": {
+      "title": "Canquerytask",
+      "type": "boolean"
+    },
+    "cardDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Carddigest",
+      "type": "string"
+    },
+    "credentialPolicy": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "endpoint": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "idempotency": {
+      "enum": [
+        "provider_key",
+        "query",
+        "unknown"
+      ],
+      "title": "Idempotency",
+      "type": "string"
+    },
+    "protocol": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "ref": {
+      "$ref": "#/$defs/CapabilityRef"
+    }
+  },
+  "required": [
+    "ref",
+    "endpoint",
+    "protocol",
+    "cardDigest",
+    "credentialPolicy",
+    "canQueryTask",
+    "canCancelTask",
+    "idempotency"
+  ],
+  "title": "RemoteAgentSpec",
+  "type": "object"
+}

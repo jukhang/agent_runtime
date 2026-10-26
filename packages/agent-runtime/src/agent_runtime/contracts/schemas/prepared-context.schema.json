@@ -1,0 +1,337 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "ContextBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "allocationId": {
+          "format": "uuid",
+          "title": "Allocationid",
+          "type": "string"
+        },
+        "maxInputTokens": {
+          "minimum": 1,
+          "title": "Maxinputtokens",
+          "type": "integer"
+        },
+        "reservedOutputTokens": {
+          "minimum": 1,
+          "title": "Reservedoutputtokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "allocationId",
+        "maxInputTokens",
+        "reservedOutputTokens"
+      ],
+      "title": "ContextBudget",
+      "type": "object"
+    },
+    "ContextSourceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "enum": [
+            "included",
+            "summarized",
+            "truncated",
+            "omitted"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "resource": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "sourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Sourceid",
+          "type": "string"
+        },
+        "summaryRef": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "summaryStatus": {
+          "anyOf": [
+            {
+              "const": "completed",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Summarystatus"
+        }
+      },
+      "required": [
+        "sourceId",
+        "resource",
+        "required",
+        "disposition",
+        "reason",
+        "summaryRef",
+        "summaryStatus"
+      ],
+      "title": "ContextSourceRecord",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "authRevision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Authrevision",
+      "type": "string"
+    },
+    "budget": {
+      "$ref": "#/$defs/ContextBudget"
+    },
+    "contentHash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Contenthash",
+      "type": "string"
+    },
+    "contextVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Contextversion",
+      "type": "string"
+    },
+    "estimatedInputTokens": {
+      "minimum": 0,
+      "title": "Estimatedinputtokens",
+      "type": "integer"
+    },
+    "model": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "payloadRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Payloadref",
+      "type": "string"
+    },
+    "prompt": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "snapshotId": {
+      "format": "uuid",
+      "title": "Snapshotid",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/ContextSourceRecord"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Tools",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "runId",
+    "authRevision",
+    "snapshotId",
+    "contextVersion",
+    "payloadRef",
+    "contentHash",
+    "model",
+    "prompt",
+    "tools",
+    "budget",
+    "estimatedInputTokens",
+    "sources"
+  ],
+  "title": "PreparedContext",
+  "type": "object"
+}

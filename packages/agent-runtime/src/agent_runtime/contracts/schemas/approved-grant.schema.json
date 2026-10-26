@@ -1,0 +1,244 @@
+{
+  "$defs": {
+    "ApprovalBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "argumentsDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Argumentsdigest",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "operationId": {
+          "format": "uuid",
+          "title": "Operationid",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "resources": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resources",
+          "type": "array"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "tool": {
+          "$ref": "#/$defs/CapabilityRef"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "sessionId",
+        "tool",
+        "operationId",
+        "argumentsDigest",
+        "policy",
+        "authRevision",
+        "resources"
+      ],
+      "title": "ApprovalBinding",
+      "type": "object"
+    },
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "approvalId": {
+      "format": "uuid",
+      "title": "Approvalid",
+      "type": "string"
+    },
+    "approvedAt": {
+      "format": "date-time",
+      "title": "Approvedat",
+      "type": "string"
+    },
+    "binding": {
+      "$ref": "#/$defs/ApprovalBinding"
+    },
+    "expiresAt": {
+      "format": "date-time",
+      "title": "Expiresat",
+      "type": "string"
+    },
+    "revision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Revision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "approvalId",
+    "revision",
+    "binding",
+    "approvedAt",
+    "expiresAt"
+  ],
+  "title": "ApprovedGrant",
+  "type": "object"
+}

@@ -1,0 +1,93 @@
+{
+  "note": "Shared Provider stream integrity cases (DS-P01-02). The test injects attemptId and defaults sequence to the event index; a case may override sequence explicitly. Limits are per single ModelAttempt.",
+  "limits": {"argument": 32, "content": 16, "analysis": 16, "calls": 2},
+  "cases": [
+    {
+      "name": "accept-tool-call",
+      "expect": "accept",
+      "events": [
+        {"kind": "tool.arguments.delta", "callId": "c", "text": "{\"x\": 1}"},
+        {"kind": "tool.complete", "callId": "c", "name": "search", "arguments": {"x": 1}},
+        {"kind": "finish", "reason": "tool_calls", "rawReason": "tool_calls"}
+      ]
+    },
+    {
+      "name": "accept-stop-with-content",
+      "expect": "accept",
+      "events": [
+        {"kind": "content.delta", "text": "answer"},
+        {"kind": "finish", "reason": "stop", "rawReason": "stop"}
+      ]
+    },
+    {
+      "name": "reject-typed-json-mismatch",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "tool.arguments.delta", "callId": "c", "text": "{\"x\": true}"},
+        {"kind": "tool.complete", "callId": "c", "name": "search", "arguments": {"x": 1}}
+      ]
+    },
+    {
+      "name": "accept-key-order-normalized",
+      "expect": "accept",
+      "events": [
+        {"kind": "tool.arguments.delta", "callId": "c", "text": "{\"a\": 1, \"b\": 2}"},
+        {"kind": "tool.complete", "callId": "c", "name": "search", "arguments": {"b": 2, "a": 1}},
+        {"kind": "finish", "reason": "tool_calls", "rawReason": "tool_calls"}
+      ]
+    },
+    {
+      "name": "reject-length-truncation",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "content.delta", "text": "partial"},
+        {"kind": "finish", "reason": "length", "rawReason": "length"}
+      ]
+    },
+    {
+      "name": "reject-missing-terminal",
+      "expect": "reject_terminal",
+      "events": [
+        {"kind": "content.delta", "text": "no finish"}
+      ]
+    },
+    {
+      "name": "reject-content-over-limit",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "content.delta", "text": "0123456789abcdefg"}
+      ]
+    },
+    {
+      "name": "reject-analysis-over-limit",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "analysis.delta", "text": "0123456789abcdefg"}
+      ]
+    },
+    {
+      "name": "reject-duplicate-tool-parameters",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "tool.complete", "callId": "c", "name": "search", "arguments": {}},
+        {"kind": "tool.complete", "callId": "c", "name": "search", "arguments": {}}
+      ]
+    },
+    {
+      "name": "reject-sequence-gap",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "content.delta", "text": "a"},
+        {"kind": "content.delta", "text": "b", "sequence": "5"}
+      ]
+    },
+    {
+      "name": "reject-tool-calls-without-completion",
+      "expect": "reject_feed",
+      "events": [
+        {"kind": "tool.arguments.delta", "callId": "c", "text": "{\"x\": 1}"},
+        {"kind": "finish", "reason": "tool_calls", "rawReason": "tool_calls"}
+      ]
+    }
+  ]
+}

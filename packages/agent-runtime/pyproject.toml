@@ -1,0 +1,76 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-runtime"
+version = "0.1.1"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+description = "Reusable Agent Runtime contracts for centn and independent hosts"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.11,<3", "tzdata>=2025.1; sys_platform == 'win32'"]
+
+[project.optional-dependencies]
+broker = [
+  "httpcore>=1.0.9,<2",
+  "anyio>=4.9,<5",
+]
+mcp = [
+  "jsonschema>=4.23,<5",
+]
+sandbox = [
+  "opensandbox==0.1.16",
+]
+provider = [
+  "httpx>=0.28.1,<1",
+]
+# Standard PostgreSQL storage adapter, migration chain and CLI (Q38). The core
+# contracts/ports modules never import these packages.
+storage = [
+  "sqlalchemy[asyncio]>=2.0.45,<3",
+  "alembic>=1.16.2,<2",
+  "asyncpg>=0.31.0,<1",
+]
+
+[project.scripts]
+agent-runtime-migrate = "agent_runtime.migrate_cli:main"
+
+[dependency-groups]
+# The storage libraries are dev/test dependencies so the package gate can lint, type
+# check and exercise them; the base *wheel* stays storage-free and is verified in a
+# dependency-free venv (Q38).
+dev = [
+  "pytest>=8,<10",
+  "pytest-asyncio>=1.2,<2",
+  "ruff>=0.11,<1",
+  "mypy>=1.15,<3",
+  "sqlalchemy[asyncio]>=2.0.45,<3",
+  "alembic>=1.16.2,<2",
+  "asyncpg>=0.31.0,<1",
+  "python-dotenv>=1.0,<2",
+  "httpx>=0.28.1,<1",
+  "jsonschema>=4.23,<5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_runtime"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_typed = true

@@ -1,0 +1,567 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "Channel": {
+      "enum": [
+        "content",
+        "analysis"
+      ],
+      "type": "string"
+    },
+    "DesiredControl": {
+      "enum": [
+        "pause",
+        "cancel"
+      ],
+      "title": "DesiredControl",
+      "type": "string"
+    },
+    "ExecutionResolution": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Evidenceref",
+          "type": "string"
+        },
+        "executionRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "generation": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Generation",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "stopped",
+            "isolated",
+            "unknown"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "supervisionWorkId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supervisionworkid"
+        }
+      },
+      "required": [
+        "executionRef",
+        "generation",
+        "state",
+        "evidenceRef",
+        "supervisionWorkId"
+      ],
+      "title": "ExecutionResolution",
+      "type": "object"
+    },
+    "FlushEvidence": {
+      "discriminator": {
+        "mapping": {
+          "no_producers": "#/$defs/NoProducersConfirmed",
+          "verified": "#/$defs/VerifiedEvidence"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/VerifiedEvidence"
+        },
+        {
+          "$ref": "#/$defs/NoProducersConfirmed"
+        }
+      ]
+    },
+    "FlushProof": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "format": "uuid",
+          "title": "Attemptid",
+          "type": "string"
+        },
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/FlushedChannel"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "durableSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Durableseq",
+          "type": "string"
+        },
+        "itemId": {
+          "format": "uuid",
+          "title": "Itemid",
+          "type": "string"
+        },
+        "proofId": {
+          "format": "uuid",
+          "title": "Proofid",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proofId",
+        "scopeId",
+        "sessionId",
+        "runId",
+        "attemptId",
+        "itemId",
+        "durableSeq",
+        "channels"
+      ],
+      "title": "FlushProof",
+      "type": "object"
+    },
+    "FlushedChannel": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        },
+        "lastSessionSeq": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastsessionseq"
+        }
+      },
+      "required": [
+        "channel",
+        "lastDeltaIndex",
+        "lastSessionSeq",
+        "digest"
+      ],
+      "title": "FlushedChannel",
+      "type": "object"
+    },
+    "LeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "slotVersion",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "LeaseToken",
+      "type": "object"
+    },
+    "NoProducersConfirmed": {
+      "additionalProperties": false,
+      "description": "The storage transaction enumerated this run's output producers and found none.\n\nOnly the storage UnitOfWork may issue this value. T9 must still re-enumerate the\ndatabase facts before completing a run: the union prevents *omitting* evidence, it\ndoes not prevent *forging* it.",
+      "properties": {
+        "enumeratedSessionSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Enumeratedsessionseq",
+          "type": "string"
+        },
+        "kind": {
+          "const": "no_producers",
+          "title": "Kind",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "runId",
+        "enumeratedSessionSeq"
+      ],
+      "title": "NoProducersConfirmed",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    },
+    "RunStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_tool",
+        "waiting_user",
+        "paused",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "StateWriteGuard": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/ActorContext"
+        },
+        "cancelVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Cancelversion",
+          "type": "string"
+        },
+        "controlCommandId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Controlcommandid"
+        },
+        "desiredControl": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DesiredControl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expectedStateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Expectedstateversion",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/LeaseToken"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        }
+      },
+      "required": [
+        "actor",
+        "lease",
+        "expectedStateVersion",
+        "status",
+        "desiredControl",
+        "controlCommandId",
+        "cancelVersion"
+      ],
+      "title": "StateWriteGuard",
+      "type": "object"
+    },
+    "VerifiedEvidence": {
+      "additionalProperties": false,
+      "description": "Output flush proofs enumerated by the storage transaction for this run.",
+      "properties": {
+        "enumeratedSessionSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Enumeratedsessionseq",
+          "type": "string"
+        },
+        "kind": {
+          "const": "verified",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proofs": {
+          "items": {
+            "$ref": "#/$defs/FlushProof"
+          },
+          "minItems": 1,
+          "title": "Proofs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "proofs",
+        "enumeratedSessionSeq"
+      ],
+      "title": "VerifiedEvidence",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "checkpointId": {
+      "format": "uuid",
+      "title": "Checkpointid",
+      "type": "string"
+    },
+    "evidence": {
+      "$ref": "#/$defs/FlushEvidence"
+    },
+    "executions": {
+      "items": {
+        "$ref": "#/$defs/ExecutionResolution"
+      },
+      "title": "Executions",
+      "type": "array"
+    },
+    "guard": {
+      "$ref": "#/$defs/StateWriteGuard"
+    }
+  },
+  "required": [
+    "guard",
+    "checkpointId",
+    "evidence",
+    "executions"
+  ],
+  "title": "PauseCommitRequest",
+  "type": "object"
+}

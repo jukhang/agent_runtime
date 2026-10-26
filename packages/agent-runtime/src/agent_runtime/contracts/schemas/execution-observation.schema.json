@@ -1,0 +1,326 @@
+{
+  "$defs": {
+    "FailureCategory": {
+      "enum": [
+        "validation",
+        "authorization",
+        "concurrency",
+        "provider",
+        "context",
+        "storage",
+        "tool",
+        "budget",
+        "compatibility",
+        "delivery",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "FailureEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "category": {
+          "$ref": "#/$defs/FailureCategory"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlineat"
+        },
+        "detailRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detailref"
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operationid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "minLength": 1,
+          "title": "Publicmessage",
+          "type": "string"
+        },
+        "recoveryOptions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Recoveryoptions",
+          "type": "array"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schemaRevision": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemarevision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "retryable",
+        "publicMessage"
+      ],
+      "title": "FailureEnvelope",
+      "type": "object"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "retry_same",
+        "retry_with_compaction",
+        "ask_user",
+        "refresh_artifact",
+        "reroute",
+        "fallback_answer",
+        "manual_attention"
+      ],
+      "type": "string"
+    },
+    "RecoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "requiredInputSchemaRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requiredinputschemaref"
+        }
+      },
+      "required": [
+        "action",
+        "label"
+      ],
+      "title": "RecoveryOption",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "evidenceRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Evidenceref",
+      "type": "string"
+    },
+    "executionRef": {
+      "$ref": "#/$defs/ResourceRef"
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FailureEnvelope"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "generation": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Generation",
+      "type": "string"
+    },
+    "observedAt": {
+      "format": "date-time",
+      "title": "Observedat",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "pending",
+        "starting",
+        "running",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled",
+        "unknown"
+      ],
+      "title": "State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "executionRef",
+    "generation",
+    "observedAt",
+    "state",
+    "evidenceRef",
+    "failure"
+  ],
+  "title": "ExecutionObservation",
+  "type": "object"
+}

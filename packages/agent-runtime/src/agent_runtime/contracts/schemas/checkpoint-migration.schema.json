@@ -1,0 +1,192 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "MaintenanceLease": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "workId",
+        "ownerId",
+        "workEpoch",
+        "workLeaseUntil"
+      ],
+      "title": "MaintenanceLease",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/ActorContext"
+    },
+    "expectedRepresentationRevision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedrepresentationrevision",
+      "type": "string"
+    },
+    "expectedStateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedstateversion",
+      "type": "string"
+    },
+    "lease": {
+      "$ref": "#/$defs/MaintenanceLease"
+    },
+    "migrator": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "sourceCheckpointId": {
+      "format": "uuid",
+      "title": "Sourcecheckpointid",
+      "type": "string"
+    },
+    "targetCheckpointId": {
+      "format": "uuid",
+      "title": "Targetcheckpointid",
+      "type": "string"
+    },
+    "targetSchemaRevision": {
+      "minimum": 1,
+      "title": "Targetschemarevision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "actor",
+    "lease",
+    "runId",
+    "expectedStateVersion",
+    "sourceCheckpointId",
+    "targetCheckpointId",
+    "expectedRepresentationRevision",
+    "targetSchemaRevision",
+    "migrator"
+  ],
+  "title": "CheckpointMigrationRequest",
+  "type": "object"
+}

@@ -1,0 +1,49 @@
+{
+  "$defs": {
+    "ResourceKind": {
+      "enum": [
+        "model_slot",
+        "tool_slot",
+        "run_slot",
+        "sandbox_slot",
+        "egress_slot"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Identity of one platform capacity counter; there is no user scope here.",
+  "properties": {
+    "deploymentId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Deploymentid",
+      "type": "string"
+    },
+    "resourceKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Resourcekey",
+      "type": "string"
+    },
+    "resourceKind": {
+      "$ref": "#/$defs/ResourceKind"
+    },
+    "resourceVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Resourceversion",
+      "type": "string"
+    }
+  },
+  "required": [
+    "deploymentId",
+    "resourceKind",
+    "resourceVersion",
+    "resourceKey"
+  ],
+  "title": "CapacityKey",
+  "type": "object"
+}

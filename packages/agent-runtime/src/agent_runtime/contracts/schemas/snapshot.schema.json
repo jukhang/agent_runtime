@@ -1,0 +1,975 @@
+{
+  "$defs": {
+    "ApprovalView": {
+      "additionalProperties": false,
+      "properties": {
+        "allowedDecisions": {
+          "items": {
+            "enum": [
+              "approved",
+              "rejected",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "title": "Alloweddecisions",
+          "type": "array"
+        },
+        "approvalRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "publicReason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publicreason"
+        },
+        "revision": {
+          "default": "0",
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "expired",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "approvalRef",
+        "summary",
+        "expiresAt",
+        "allowedDecisions"
+      ],
+      "title": "ApprovalView",
+      "type": "object"
+    },
+    "ArtifactView": {
+      "additionalProperties": false,
+      "properties": {
+        "mime": {
+          "title": "Mime",
+          "type": "string"
+        },
+        "previewStatus": {
+          "enum": [
+            "pending",
+            "ready",
+            "failed",
+            "unavailable"
+          ],
+          "title": "Previewstatus",
+          "type": "string"
+        },
+        "resourceRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "resourceRef",
+        "title",
+        "mime",
+        "previewStatus"
+      ],
+      "title": "ArtifactView",
+      "type": "object"
+    },
+    "Channel": {
+      "enum": [
+        "content",
+        "analysis"
+      ],
+      "type": "string"
+    },
+    "ChannelState": {
+      "additionalProperties": false,
+      "properties": {
+        "contentHash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Contenthash",
+          "type": "string"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        },
+        "name": {
+          "$ref": "#/$defs/Channel"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "text",
+        "lastDeltaIndex",
+        "contentHash"
+      ],
+      "title": "ChannelState",
+      "type": "object"
+    },
+    "Control": {
+      "enum": [
+        "pause",
+        "resume",
+        "cancel"
+      ],
+      "type": "string"
+    },
+    "FailureCategory": {
+      "enum": [
+        "validation",
+        "authorization",
+        "concurrency",
+        "provider",
+        "context",
+        "storage",
+        "tool",
+        "budget",
+        "compatibility",
+        "delivery",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "FailureEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "category": {
+          "$ref": "#/$defs/FailureCategory"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlineat"
+        },
+        "detailRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detailref"
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operationid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "minLength": 1,
+          "title": "Publicmessage",
+          "type": "string"
+        },
+        "recoveryOptions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Recoveryoptions",
+          "type": "array"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schemaRevision": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemarevision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "retryable",
+        "publicMessage"
+      ],
+      "title": "FailureEnvelope",
+      "type": "object"
+    },
+    "InputRequestView": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "requiredFacts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Requiredfacts",
+          "type": "array"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "runId",
+        "stateVersion",
+        "question",
+        "requiredFacts"
+      ],
+      "title": "InputRequestView",
+      "type": "object"
+    },
+    "ItemStatus": {
+      "enum": [
+        "pending",
+        "streaming",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "ItemType": {
+      "enum": [
+        "message",
+        "tool",
+        "approval",
+        "artifact",
+        "run"
+      ],
+      "type": "string"
+    },
+    "JsonValue": {},
+    "Phase": {
+      "enum": [
+        "queued",
+        "context",
+        "model",
+        "tool",
+        "waiting",
+        "paused",
+        "cancelling",
+        "terminal"
+      ],
+      "type": "string"
+    },
+    "PlanStep": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "parentStepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentstepid"
+        },
+        "runRefs": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Runrefs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "waiting",
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "parentStepId",
+        "label",
+        "status",
+        "evidenceRefs",
+        "runRefs"
+      ],
+      "title": "PlanStep",
+      "type": "object"
+    },
+    "PlanView": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/PlanStep"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "steps"
+      ],
+      "title": "PlanView",
+      "type": "object"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "retry_same",
+        "retry_with_compaction",
+        "ask_user",
+        "refresh_artifact",
+        "reroute",
+        "fallback_answer",
+        "manual_attention"
+      ],
+      "type": "string"
+    },
+    "RecoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "requiredInputSchemaRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requiredinputschemaref"
+        }
+      },
+      "required": [
+        "action",
+        "label"
+      ],
+      "title": "RecoveryOption",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    },
+    "Role": {
+      "enum": [
+        "user",
+        "assistant",
+        "tool",
+        "system"
+      ],
+      "type": "string"
+    },
+    "RunStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_tool",
+        "waiting_user",
+        "paused",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "RunView": {
+      "additionalProperties": false,
+      "properties": {
+        "allowedControls": {
+          "items": {
+            "$ref": "#/$defs/Control"
+          },
+          "title": "Allowedcontrols",
+          "type": "array"
+        },
+        "failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureEnvelope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "nextSteps": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Nextsteps",
+          "type": "array"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parentrunid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "phase": {
+          "$ref": "#/$defs/Phase"
+        },
+        "phaseStartedAt": {
+          "format": "date-time",
+          "title": "Phasestartedat",
+          "type": "string"
+        },
+        "publicMessage": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publicmessage"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "stateVersion",
+        "phase",
+        "phaseStartedAt",
+        "allowedControls"
+      ],
+      "title": "RunView",
+      "type": "object"
+    },
+    "TimelineItem": {
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/ChannelState"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "createdSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Createdseq",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        },
+        "status": {
+          "$ref": "#/$defs/ItemStatus"
+        },
+        "type": {
+          "$ref": "#/$defs/ItemType"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "role",
+        "createdSeq",
+        "revision",
+        "status",
+        "channels",
+        "resourceRefs"
+      ],
+      "title": "TimelineItem",
+      "type": "object"
+    },
+    "ToolActivity": {
+      "additionalProperties": false,
+      "properties": {
+        "createdSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Createdseq",
+          "type": "string"
+        },
+        "failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureEnvelope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "publicArguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Publicarguments",
+          "type": "object"
+        },
+        "resultRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resultrefs",
+          "type": "array"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "running",
+            "completed",
+            "failed",
+            "cancelled",
+            "not_executed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "runId",
+        "name",
+        "publicArguments",
+        "status",
+        "summary",
+        "resultRefs",
+        "failure",
+        "createdSeq"
+      ],
+      "title": "ToolActivity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "approvals": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ApprovalView"
+      },
+      "title": "Approvals",
+      "type": "array"
+    },
+    "artifacts": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ArtifactView"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "authRevision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Authrevision",
+      "type": "string"
+    },
+    "inputRequests": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/InputRequestView"
+      },
+      "title": "Inputrequests",
+      "type": "array"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/TimelineItem"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "plans": {
+      "items": {
+        "$ref": "#/$defs/PlanView"
+      },
+      "title": "Plans",
+      "type": "array"
+    },
+    "projectionVersion": {
+      "minimum": 1,
+      "title": "Projectionversion",
+      "type": "integer"
+    },
+    "resourceRefs": {
+      "items": {
+        "$ref": "#/$defs/ResourceRef"
+      },
+      "title": "Resourcerefs",
+      "type": "array"
+    },
+    "retainedFromSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Retainedfromseq",
+      "type": "string"
+    },
+    "runs": {
+      "items": {
+        "$ref": "#/$defs/RunView"
+      },
+      "title": "Runs",
+      "type": "array"
+    },
+    "schemaRevision": {
+      "const": 1,
+      "title": "Schemarevision",
+      "type": "integer"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "snapshotSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Snapshotseq",
+      "type": "string"
+    },
+    "tools": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ToolActivity"
+      },
+      "title": "Tools",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schemaRevision",
+    "projectionVersion",
+    "sessionId",
+    "snapshotSeq",
+    "authRevision",
+    "retainedFromSeq",
+    "items",
+    "runs",
+    "plans",
+    "resourceRefs"
+  ],
+  "title": "SnapshotEnvelope",
+  "type": "object"
+}

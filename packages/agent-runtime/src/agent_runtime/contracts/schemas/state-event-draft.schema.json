@@ -1,0 +1,3934 @@
+{
+  "$defs": {
+    "ApprovalRequired": {
+      "additionalProperties": false,
+      "properties": {
+        "allowedDecisions": {
+          "items": {
+            "enum": [
+              "approved",
+              "rejected",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "title": "Alloweddecisions",
+          "type": "array"
+        },
+        "approvalRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "approvalRef",
+        "summary",
+        "expiresAt",
+        "allowedDecisions"
+      ],
+      "title": "ApprovalRequired",
+      "type": "object"
+    },
+    "ApprovalRequiredDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "approval.required",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ApprovalRequired"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ApprovalRequiredDraft",
+      "type": "object"
+    },
+    "ApprovalUpdated": {
+      "additionalProperties": false,
+      "properties": {
+        "approvalRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "publicReason": {
+          "minLength": 1,
+          "title": "Publicreason",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "rejected",
+            "expired",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "approvalRef",
+        "revision",
+        "status",
+        "expiresAt",
+        "publicReason"
+      ],
+      "title": "ApprovalUpdated",
+      "type": "object"
+    },
+    "ApprovalUpdatedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "approval.updated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ApprovalUpdated"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ApprovalUpdatedDraft",
+      "type": "object"
+    },
+    "ArtifactCreated": {
+      "additionalProperties": false,
+      "properties": {
+        "mime": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Mime",
+          "type": "string"
+        },
+        "previewStatus": {
+          "enum": [
+            "pending",
+            "ready",
+            "failed",
+            "unavailable"
+          ],
+          "title": "Previewstatus",
+          "type": "string"
+        },
+        "resourceRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resourceRef",
+        "title",
+        "mime",
+        "previewStatus"
+      ],
+      "title": "ArtifactCreated",
+      "type": "object"
+    },
+    "ArtifactCreatedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "artifact.created",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ArtifactCreated"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ArtifactCreatedDraft",
+      "type": "object"
+    },
+    "Channel": {
+      "enum": [
+        "content",
+        "analysis"
+      ],
+      "type": "string"
+    },
+    "ChannelDigest": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "channel",
+        "digest"
+      ],
+      "title": "ChannelDigest",
+      "type": "object"
+    },
+    "ChannelIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        }
+      },
+      "required": [
+        "channel",
+        "lastDeltaIndex"
+      ],
+      "title": "ChannelIndex",
+      "type": "object"
+    },
+    "ChannelState": {
+      "additionalProperties": false,
+      "properties": {
+        "contentHash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Contenthash",
+          "type": "string"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        },
+        "name": {
+          "$ref": "#/$defs/Channel"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "text",
+        "lastDeltaIndex",
+        "contentHash"
+      ],
+      "title": "ChannelState",
+      "type": "object"
+    },
+    "CheckpointMigrated": {
+      "additionalProperties": false,
+      "properties": {
+        "representationRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Representationrevision",
+          "type": "string"
+        },
+        "sourceCheckpointId": {
+          "format": "uuid",
+          "title": "Sourcecheckpointid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "targetCheckpointId": {
+          "format": "uuid",
+          "title": "Targetcheckpointid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sourceCheckpointId",
+        "targetCheckpointId",
+        "representationRevision",
+        "stateVersion"
+      ],
+      "title": "CheckpointMigrated",
+      "type": "object"
+    },
+    "CheckpointMigratedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "checkpoint.migrated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/CheckpointMigrated"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "CheckpointMigratedDraft",
+      "type": "object"
+    },
+    "CommandUpdated": {
+      "additionalProperties": false,
+      "properties": {
+        "commandId": {
+          "format": "uuid",
+          "title": "Commandid",
+          "type": "string"
+        },
+        "publicReason": {
+          "title": "Publicreason",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "applied",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "status",
+        "publicReason"
+      ],
+      "title": "CommandUpdated",
+      "type": "object"
+    },
+    "CommandUpdatedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "command.updated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/CommandUpdated"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "CommandUpdatedDraft",
+      "type": "object"
+    },
+    "FailureCategory": {
+      "enum": [
+        "validation",
+        "authorization",
+        "concurrency",
+        "provider",
+        "context",
+        "storage",
+        "tool",
+        "budget",
+        "compatibility",
+        "delivery",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "FailureEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "category": {
+          "$ref": "#/$defs/FailureCategory"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlineat"
+        },
+        "detailRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detailref"
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operationid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "minLength": 1,
+          "title": "Publicmessage",
+          "type": "string"
+        },
+        "recoveryOptions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Recoveryoptions",
+          "type": "array"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schemaRevision": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemarevision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "retryable",
+        "publicMessage"
+      ],
+      "title": "FailureEnvelope",
+      "type": "object"
+    },
+    "HandoffCommitted": {
+      "additionalProperties": false,
+      "properties": {
+        "handoffId": {
+          "format": "uuid",
+          "title": "Handoffid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "sourceRunId": {
+          "format": "uuid",
+          "title": "Sourcerunid",
+          "type": "string"
+        },
+        "targetRunId": {
+          "format": "uuid",
+          "title": "Targetrunid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "handoffId",
+        "sourceRunId",
+        "targetRunId",
+        "slotVersion"
+      ],
+      "title": "HandoffCommitted",
+      "type": "object"
+    },
+    "HandoffCommittedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "handoff.committed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/HandoffCommitted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "HandoffCommittedDraft",
+      "type": "object"
+    },
+    "InputAccepted": {
+      "additionalProperties": false,
+      "properties": {
+        "replyToRunId": {
+          "format": "uuid",
+          "title": "Replytorunid",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "userItem": {
+          "$ref": "#/$defs/TimelineItem"
+        }
+      },
+      "required": [
+        "stateVersion",
+        "replyToRunId",
+        "userItem"
+      ],
+      "title": "InputAccepted",
+      "type": "object"
+    },
+    "InputAcceptedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "input.accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/InputAccepted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "InputAcceptedDraft",
+      "type": "object"
+    },
+    "InputRequired": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "replyToRunId": {
+          "format": "uuid",
+          "title": "Replytorunid",
+          "type": "string"
+        },
+        "requiredFacts": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Requiredfacts",
+          "type": "array"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stateVersion",
+        "question",
+        "requiredFacts",
+        "replyToRunId"
+      ],
+      "title": "InputRequired",
+      "type": "object"
+    },
+    "InputRequiredDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "input.required",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/InputRequired"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "InputRequiredDraft",
+      "type": "object"
+    },
+    "ItemCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "channelDigests": {
+          "items": {
+            "$ref": "#/$defs/ChannelDigest"
+          },
+          "title": "Channeldigests",
+          "type": "array"
+        },
+        "itemRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Itemrevision",
+          "type": "string"
+        },
+        "lastDeltaIndexes": {
+          "items": {
+            "$ref": "#/$defs/ChannelIndex"
+          },
+          "title": "Lastdeltaindexes",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "itemRevision",
+        "status",
+        "channelDigests",
+        "lastDeltaIndexes"
+      ],
+      "title": "ItemCompleted",
+      "type": "object"
+    },
+    "ItemCompletedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "item.completed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ItemCompleted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ItemCompletedDraft",
+      "type": "object"
+    },
+    "ItemStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/Channel"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "itemRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Itemrevision",
+          "type": "string"
+        },
+        "itemType": {
+          "$ref": "#/$defs/ItemType"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        }
+      },
+      "required": [
+        "itemType",
+        "role",
+        "channels",
+        "itemRevision"
+      ],
+      "title": "ItemStarted",
+      "type": "object"
+    },
+    "ItemStartedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "item.started",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ItemStarted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ItemStartedDraft",
+      "type": "object"
+    },
+    "ItemStatus": {
+      "enum": [
+        "pending",
+        "streaming",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "ItemType": {
+      "enum": [
+        "message",
+        "tool",
+        "approval",
+        "artifact",
+        "run"
+      ],
+      "type": "string"
+    },
+    "JsonValue": {},
+    "MailboxApplied": {
+      "additionalProperties": false,
+      "properties": {
+        "appliedInputVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Appliedinputversion",
+          "type": "string"
+        },
+        "checkpointId": {
+          "format": "uuid",
+          "title": "Checkpointid",
+          "type": "string"
+        },
+        "inputIds": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Inputids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "inputIds",
+        "appliedInputVersion",
+        "checkpointId"
+      ],
+      "title": "MailboxApplied",
+      "type": "object"
+    },
+    "MailboxAppliedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "mailbox.applied",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/MailboxApplied"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "MailboxAppliedDraft",
+      "type": "object"
+    },
+    "ModelPrepared": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "format": "uuid",
+          "title": "Attemptid",
+          "type": "string"
+        },
+        "contextSnapshotId": {
+          "format": "uuid",
+          "title": "Contextsnapshotid",
+          "type": "string"
+        },
+        "requestKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Requestkey",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attemptId",
+        "contextSnapshotId",
+        "requestKey"
+      ],
+      "title": "ModelPrepared",
+      "type": "object"
+    },
+    "ModelPreparedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "model.prepared",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ModelPrepared"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ModelPreparedDraft",
+      "type": "object"
+    },
+    "Phase": {
+      "enum": [
+        "queued",
+        "context",
+        "model",
+        "tool",
+        "waiting",
+        "paused",
+        "cancelling",
+        "terminal"
+      ],
+      "type": "string"
+    },
+    "PlanStep": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "parentStepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentstepid"
+        },
+        "runRefs": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Runrefs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "waiting",
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "parentStepId",
+        "label",
+        "status",
+        "evidenceRefs",
+        "runRefs"
+      ],
+      "title": "PlanStep",
+      "type": "object"
+    },
+    "PlanUpdated": {
+      "additionalProperties": false,
+      "properties": {
+        "planId": {
+          "format": "uuid",
+          "title": "Planid",
+          "type": "string"
+        },
+        "publicReason": {
+          "title": "Publicreason",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/PlanStep"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "planId",
+        "revision",
+        "steps",
+        "publicReason"
+      ],
+      "title": "PlanUpdated",
+      "type": "object"
+    },
+    "PlanUpdatedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "plan.updated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/PlanUpdated"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "PlanUpdatedDraft",
+      "type": "object"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "retry_same",
+        "retry_with_compaction",
+        "ask_user",
+        "refresh_artifact",
+        "reroute",
+        "fallback_answer",
+        "manual_attention"
+      ],
+      "type": "string"
+    },
+    "RecoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "requiredInputSchemaRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requiredinputschemaref"
+        }
+      },
+      "required": [
+        "action",
+        "label"
+      ],
+      "title": "RecoveryOption",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceRevoked": {
+      "additionalProperties": false,
+      "properties": {
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resourceId",
+        "authRevision"
+      ],
+      "title": "ResourceRevoked",
+      "type": "object"
+    },
+    "ResourceRevokedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "resource.revoked",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ResourceRevoked"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ResourceRevokedDraft",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    },
+    "Role": {
+      "enum": [
+        "user",
+        "assistant",
+        "tool",
+        "system"
+      ],
+      "type": "string"
+    },
+    "RunCancelled": {
+      "additionalProperties": false,
+      "properties": {
+        "failure": {
+          "title": "Failure",
+          "type": "null"
+        },
+        "finalItemIds": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Finalitemids",
+          "type": "array"
+        },
+        "nextSteps": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Nextsteps",
+          "type": "array"
+        },
+        "outcome": {
+          "title": "Outcome",
+          "type": "null"
+        },
+        "partialResultRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publicmessage"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stateVersion",
+        "finalItemIds",
+        "partialResultRefs",
+        "outcome",
+        "failure"
+      ],
+      "title": "RunCancelled",
+      "type": "object"
+    },
+    "RunCancelledDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "run.cancelled",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/RunCancelled"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "RunCancelledDraft",
+      "type": "object"
+    },
+    "RunCompleted": {
+      "additionalProperties": false,
+      "properties": {
+        "failure": {
+          "title": "Failure",
+          "type": "null"
+        },
+        "finalItemIds": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Finalitemids",
+          "type": "array"
+        },
+        "nextSteps": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Nextsteps",
+          "type": "array"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "partial"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "partialResultRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publicmessage"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stateVersion",
+        "finalItemIds",
+        "partialResultRefs",
+        "outcome",
+        "failure"
+      ],
+      "title": "RunCompleted",
+      "type": "object"
+    },
+    "RunCompletedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "run.completed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/RunCompleted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "RunCompletedDraft",
+      "type": "object"
+    },
+    "RunFailed": {
+      "additionalProperties": false,
+      "properties": {
+        "failure": {
+          "$ref": "#/$defs/FailureEnvelope"
+        },
+        "finalItemIds": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": "Finalitemids",
+          "type": "array"
+        },
+        "nextSteps": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Nextsteps",
+          "type": "array"
+        },
+        "outcome": {
+          "title": "Outcome",
+          "type": "null"
+        },
+        "partialResultRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publicmessage"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stateVersion",
+        "finalItemIds",
+        "partialResultRefs",
+        "outcome",
+        "failure"
+      ],
+      "title": "RunFailed",
+      "type": "object"
+    },
+    "RunFailedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "run.failed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/RunFailed"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "RunFailedDraft",
+      "type": "object"
+    },
+    "RunStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_tool",
+        "waiting_user",
+        "paused",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "RunStatusDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "run.status",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/RunStatusPayload"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "RunStatusDraft",
+      "type": "object"
+    },
+    "RunStatusPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "phase": {
+          "$ref": "#/$defs/Phase"
+        },
+        "phaseStartedAt": {
+          "format": "date-time",
+          "title": "Phasestartedat",
+          "type": "string"
+        },
+        "publicReason": {
+          "title": "Publicreason",
+          "type": "string"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        }
+      },
+      "required": [
+        "stateVersion",
+        "status",
+        "phase",
+        "phaseStartedAt",
+        "publicReason"
+      ],
+      "title": "RunStatusPayload",
+      "type": "object"
+    },
+    "TimelineItem": {
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/ChannelState"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "createdSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Createdseq",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        },
+        "status": {
+          "$ref": "#/$defs/ItemStatus"
+        },
+        "type": {
+          "$ref": "#/$defs/ItemType"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "role",
+        "createdSeq",
+        "revision",
+        "status",
+        "channels",
+        "resourceRefs"
+      ],
+      "title": "TimelineItem",
+      "type": "object"
+    },
+    "ToolFinished": {
+      "additionalProperties": false,
+      "properties": {
+        "failure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FailureEnvelope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finishedAt": {
+          "format": "date-time",
+          "title": "Finishedat",
+          "type": "string"
+        },
+        "resultRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resultrefs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled",
+            "not_executed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "toolCallId": {
+          "format": "uuid",
+          "title": "Toolcallid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "toolCallId",
+        "status",
+        "resultRefs",
+        "failure",
+        "finishedAt"
+      ],
+      "title": "ToolFinished",
+      "type": "object"
+    },
+    "ToolFinishedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "tool.finished",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ToolFinished"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ToolFinishedDraft",
+      "type": "object"
+    },
+    "ToolProgress": {
+      "additionalProperties": false,
+      "properties": {
+        "executionRef": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResourceRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "progressRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Progressrevision",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "toolCallId": {
+          "format": "uuid",
+          "title": "Toolcallid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "toolCallId",
+        "progressRevision",
+        "summary",
+        "executionRef"
+      ],
+      "title": "ToolProgress",
+      "type": "object"
+    },
+    "ToolProgressDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "tool.progress",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ToolProgress"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ToolProgressDraft",
+      "type": "object"
+    },
+    "ToolStarted": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Name",
+          "type": "string"
+        },
+        "publicArguments": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Publicarguments",
+          "type": "object"
+        },
+        "startedAt": {
+          "format": "date-time",
+          "title": "Startedat",
+          "type": "string"
+        },
+        "toolCallId": {
+          "format": "uuid",
+          "title": "Toolcallid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "toolCallId",
+        "name",
+        "publicArguments",
+        "startedAt"
+      ],
+      "title": "ToolStarted",
+      "type": "object"
+    },
+    "ToolStartedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "tool.started",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/ToolStarted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "ToolStartedDraft",
+      "type": "object"
+    },
+    "TurnAccepted": {
+      "additionalProperties": false,
+      "properties": {
+        "assistantItemId": {
+          "format": "uuid",
+          "title": "Assistantitemid",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "turnId": {
+          "format": "uuid",
+          "title": "Turnid",
+          "type": "string"
+        },
+        "userItem": {
+          "$ref": "#/$defs/TimelineItem"
+        }
+      },
+      "required": [
+        "turnId",
+        "runId",
+        "userItem",
+        "assistantItemId"
+      ],
+      "title": "TurnAccepted",
+      "type": "object"
+    },
+    "TurnAcceptedDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Itemid"
+        },
+        "kind": {
+          "const": "turn.accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modelAttemptId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Modelattemptid"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "parentRunId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parentrunid"
+        },
+        "payload": {
+          "$ref": "#/$defs/TurnAccepted"
+        },
+        "producerKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Producerkey",
+          "type": "string"
+        },
+        "runId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Runid"
+        },
+        "stepId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepid"
+        },
+        "turnId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turnid"
+        }
+      },
+      "required": [
+        "producerKey",
+        "occurredAt",
+        "turnId",
+        "runId",
+        "parentRunId",
+        "stepId",
+        "itemId",
+        "modelAttemptId",
+        "payload",
+        "kind"
+      ],
+      "title": "TurnAcceptedDraft",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "approval.required": "#/$defs/ApprovalRequiredDraft",
+      "approval.updated": "#/$defs/ApprovalUpdatedDraft",
+      "artifact.created": "#/$defs/ArtifactCreatedDraft",
+      "checkpoint.migrated": "#/$defs/CheckpointMigratedDraft",
+      "command.updated": "#/$defs/CommandUpdatedDraft",
+      "handoff.committed": "#/$defs/HandoffCommittedDraft",
+      "input.accepted": "#/$defs/InputAcceptedDraft",
+      "input.required": "#/$defs/InputRequiredDraft",
+      "item.completed": "#/$defs/ItemCompletedDraft",
+      "item.started": "#/$defs/ItemStartedDraft",
+      "mailbox.applied": "#/$defs/MailboxAppliedDraft",
+      "model.prepared": "#/$defs/ModelPreparedDraft",
+      "plan.updated": "#/$defs/PlanUpdatedDraft",
+      "resource.revoked": "#/$defs/ResourceRevokedDraft",
+      "run.cancelled": "#/$defs/RunCancelledDraft",
+      "run.completed": "#/$defs/RunCompletedDraft",
+      "run.failed": "#/$defs/RunFailedDraft",
+      "run.status": "#/$defs/RunStatusDraft",
+      "tool.finished": "#/$defs/ToolFinishedDraft",
+      "tool.progress": "#/$defs/ToolProgressDraft",
+      "tool.started": "#/$defs/ToolStartedDraft",
+      "turn.accepted": "#/$defs/TurnAcceptedDraft"
+    },
+    "propertyName": "kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/TurnAcceptedDraft"
+    },
+    {
+      "$ref": "#/$defs/ItemStartedDraft"
+    },
+    {
+      "$ref": "#/$defs/ItemCompletedDraft"
+    },
+    {
+      "$ref": "#/$defs/RunStatusDraft"
+    },
+    {
+      "$ref": "#/$defs/InputRequiredDraft"
+    },
+    {
+      "$ref": "#/$defs/InputAcceptedDraft"
+    },
+    {
+      "$ref": "#/$defs/PlanUpdatedDraft"
+    },
+    {
+      "$ref": "#/$defs/ToolStartedDraft"
+    },
+    {
+      "$ref": "#/$defs/ToolProgressDraft"
+    },
+    {
+      "$ref": "#/$defs/ToolFinishedDraft"
+    },
+    {
+      "$ref": "#/$defs/ArtifactCreatedDraft"
+    },
+    {
+      "$ref": "#/$defs/ApprovalRequiredDraft"
+    },
+    {
+      "$ref": "#/$defs/ApprovalUpdatedDraft"
+    },
+    {
+      "$ref": "#/$defs/CommandUpdatedDraft"
+    },
+    {
+      "$ref": "#/$defs/RunCompletedDraft"
+    },
+    {
+      "$ref": "#/$defs/RunFailedDraft"
+    },
+    {
+      "$ref": "#/$defs/RunCancelledDraft"
+    },
+    {
+      "$ref": "#/$defs/ResourceRevokedDraft"
+    },
+    {
+      "$ref": "#/$defs/ModelPreparedDraft"
+    },
+    {
+      "$ref": "#/$defs/MailboxAppliedDraft"
+    },
+    {
+      "$ref": "#/$defs/HandoffCommittedDraft"
+    },
+    {
+      "$ref": "#/$defs/CheckpointMigratedDraft"
+    }
+  ]
+}

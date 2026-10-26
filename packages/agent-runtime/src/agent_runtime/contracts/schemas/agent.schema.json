@@ -1,0 +1,238 @@
+{
+  "$defs": {
+    "Budget": {
+      "additionalProperties": false,
+      "properties": {
+        "maxModelCalls": {
+          "default": 32,
+          "minimum": 1,
+          "title": "Maxmodelcalls",
+          "type": "integer"
+        },
+        "maxRuntimeSeconds": {
+          "default": 1800,
+          "minimum": 1,
+          "title": "Maxruntimeseconds",
+          "type": "integer"
+        },
+        "maxToolCalls": {
+          "default": 24,
+          "minimum": 0,
+          "title": "Maxtoolcalls",
+          "type": "integer"
+        }
+      },
+      "title": "Budget",
+      "type": "object"
+    },
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "addDatetimeToContext": {
+      "default": false,
+      "title": "Adddatetimetocontext",
+      "type": "boolean"
+    },
+    "budget": {
+      "$ref": "#/$defs/Budget"
+    },
+    "context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "description": {
+      "default": "",
+      "title": "Description",
+      "type": "string"
+    },
+    "hooks": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Hooks",
+      "type": "array"
+    },
+    "id": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "inputSchema": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "instructions": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Instructions",
+      "type": "array"
+    },
+    "knowledge": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Knowledge",
+      "type": "array"
+    },
+    "memory": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "name": {
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "outputSchema": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "policy": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Policy",
+      "type": "array"
+    },
+    "prompt": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "skills": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Skills",
+      "type": "array"
+    },
+    "subagents": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Subagents",
+      "type": "array"
+    },
+    "timezone": {
+      "default": "UTC",
+      "title": "Timezone",
+      "type": "string"
+    },
+    "tools": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Tools",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "name"
+  ],
+  "title": "Agent",
+  "type": "object"
+}

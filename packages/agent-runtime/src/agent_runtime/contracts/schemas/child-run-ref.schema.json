@@ -1,0 +1,106 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "agent": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "budgetAllocationId": {
+      "format": "uuid",
+      "title": "Budgetallocationid",
+      "type": "string"
+    },
+    "childRunId": {
+      "format": "uuid",
+      "title": "Childrunid",
+      "type": "string"
+    },
+    "parentRunId": {
+      "format": "uuid",
+      "title": "Parentrunid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "taskId": {
+      "format": "uuid",
+      "title": "Taskid",
+      "type": "string"
+    },
+    "workspaceId": {
+      "format": "uuid",
+      "title": "Workspaceid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "parentRunId",
+    "childRunId",
+    "taskId",
+    "agent",
+    "budgetAllocationId",
+    "workspaceId"
+  ],
+  "title": "ChildRunRef",
+  "type": "object"
+}

@@ -1,0 +1,44 @@
+{
+  "$defs": {
+    "Control": {
+      "enum": [
+        "pause",
+        "resume",
+        "cancel"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedversion",
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/Control"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "runId",
+    "kind",
+    "idempotencyKey",
+    "expectedVersion"
+  ],
+  "title": "ControlRequest",
+  "type": "object"
+}

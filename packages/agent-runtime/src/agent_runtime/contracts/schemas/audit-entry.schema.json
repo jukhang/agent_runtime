@@ -1,0 +1,57 @@
+{
+  "$defs": {
+    "AuditVisibility": {
+      "enum": [
+        "public",
+        "restricted"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contentDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Contentdigest",
+      "type": "string"
+    },
+    "kind": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Kind",
+      "type": "string"
+    },
+    "payloadRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Payloadref",
+      "type": "string"
+    },
+    "recordedAt": {
+      "format": "date-time",
+      "title": "Recordedat",
+      "type": "string"
+    },
+    "sessionSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Sessionseq",
+      "type": "string"
+    },
+    "visibility": {
+      "$ref": "#/$defs/AuditVisibility"
+    }
+  },
+  "required": [
+    "sessionSeq",
+    "kind",
+    "visibility",
+    "recordedAt",
+    "payloadRef",
+    "contentDigest"
+  ],
+  "title": "AuditEntry",
+  "type": "object"
+}

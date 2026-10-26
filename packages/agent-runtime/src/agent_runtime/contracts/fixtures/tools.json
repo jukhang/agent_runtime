@@ -1,0 +1,203 @@
+{
+  "spec": {
+    "ref": {
+      "key": {
+        "namespace": "builtin",
+        "key": "artifact.revise"
+      },
+      "revision": "1"
+    },
+    "description": "Revise artifact",
+    "source": {
+      "key": {
+        "namespace": "builtin",
+        "key": "builtin"
+      },
+      "revision": "1"
+    },
+    "kind": "write",
+    "sideEffect": "database",
+    "inputSchema": {
+      "key": {
+        "namespace": "builtin",
+        "key": "input"
+      },
+      "revision": "1"
+    },
+    "outputSchema": {
+      "key": {
+        "namespace": "builtin",
+        "key": "output"
+      },
+      "revision": "1"
+    },
+    "permissions": [],
+    "approvalPolicy": {
+      "key": {
+        "namespace": "builtin",
+        "key": "approval"
+      },
+      "revision": "1"
+    },
+    "idempotency": "transactional",
+    "timeoutSeconds": 60,
+    "concurrencyGroup": "artifact",
+    "maxConcurrency": 1,
+    "cancellation": "stop",
+    "publicResultPolicy": "summary"
+  },
+  "invocation": {
+    "actor": {
+      "scopeId": "scope",
+      "actorId": "user",
+      "authRevision": "1",
+      "grantsRef": "grant"
+    },
+    "sessionId": "00000000-0000-0000-0000-000000000001",
+    "runId": "00000000-0000-0000-0000-000000000002",
+    "modelAttemptId": "00000000-0000-0000-0000-000000000003",
+    "contextSnapshotId": "00000000-0000-0000-0000-000000000004",
+    "contextVersion": "1",
+    "call": {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "tool": {
+        "key": {
+          "namespace": "builtin",
+          "key": "artifact.revise"
+        },
+        "revision": "1"
+      },
+      "arguments": {}
+    },
+    "operationId": "00000000-0000-0000-0000-000000000006",
+    "deadlineAt": "2026-09-14T11:00:00Z"
+  },
+  "binding": {
+    "scopeId": "scope",
+    "actorId": "user",
+    "sessionId": "00000000-0000-0000-0000-000000000001",
+    "tool": {
+      "key": {
+        "namespace": "builtin",
+        "key": "artifact.revise"
+      },
+      "revision": "1"
+    },
+    "operationId": "00000000-0000-0000-0000-000000000006",
+    "argumentsDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "policy": {
+      "key": {
+        "namespace": "builtin",
+        "key": "approval"
+      },
+      "revision": "1"
+    },
+    "authRevision": "1",
+    "resources": []
+  },
+  "outcomes": [
+    {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "runId": "00000000-0000-0000-0000-000000000002",
+      "operationId": "00000000-0000-0000-0000-000000000006",
+      "status": "completed",
+      "effect": "committed",
+      "effectRefs": [],
+      "result": {
+        "policy": "summary",
+        "text": "Saved"
+      }
+    },
+    {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "runId": "00000000-0000-0000-0000-000000000002",
+      "operationId": "00000000-0000-0000-0000-000000000006",
+      "status": "failed",
+      "effect": "rolled_back",
+      "effectRefs": [],
+      "failure": {
+        "code": "TOOL_TIMEOUT",
+        "category": "tool",
+        "retryable": true,
+        "publicMessage": "Execution failed"
+      }
+    },
+    {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "runId": "00000000-0000-0000-0000-000000000002",
+      "operationId": "00000000-0000-0000-0000-000000000006",
+      "status": "cancelled",
+      "effect": "unknown",
+      "effectRefs": [],
+      "failure": {
+        "code": "SIDE_EFFECT_UNKNOWN",
+        "category": "tool",
+        "retryable": false,
+        "publicMessage": "Execution failed"
+      }
+    },
+    {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "runId": "00000000-0000-0000-0000-000000000002",
+      "operationId": "00000000-0000-0000-0000-000000000006",
+      "status": "not_executed",
+      "effect": "none",
+      "effectRefs": [],
+      "failure": {
+        "code": "TOOL_TIMEOUT",
+        "category": "tool",
+        "retryable": true,
+        "publicMessage": "Execution failed"
+      }
+    },
+    {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "runId": "00000000-0000-0000-0000-000000000002",
+      "operationId": "00000000-0000-0000-0000-000000000006",
+      "status": "waiting_approval",
+      "approval": {
+        "approvalId": "00000000-0000-0000-0000-000000000007",
+        "binding": {
+          "scopeId": "scope",
+          "actorId": "user",
+          "sessionId": "00000000-0000-0000-0000-000000000001",
+          "tool": {
+            "key": {
+              "namespace": "builtin",
+              "key": "artifact.revise"
+            },
+            "revision": "1"
+          },
+          "operationId": "00000000-0000-0000-0000-000000000006",
+          "argumentsDigest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "policy": {
+            "key": {
+              "namespace": "builtin",
+              "key": "approval"
+            },
+            "revision": "1"
+          },
+          "authRevision": "1",
+          "resources": []
+        },
+        "idempotencyKey": "request",
+        "publicSummary": "Approve edit",
+        "expiresAt": "2026-09-14T11:00:00Z"
+      }
+    },
+    {
+      "toolCallId": "00000000-0000-0000-0000-000000000005",
+      "runId": "00000000-0000-0000-0000-000000000002",
+      "operationId": "00000000-0000-0000-0000-000000000006",
+      "status": "pending_execution",
+      "executionRef": {
+        "resourceType": "execution",
+        "resourceId": "00000000-0000-0000-0000-000000000007",
+        "resourceVersion": "1",
+        "scope": {
+          "scopeId": "scope"
+        }
+      }
+    }
+  ]
+}

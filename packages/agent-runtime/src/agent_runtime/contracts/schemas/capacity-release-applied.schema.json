@@ -1,0 +1,45 @@
+{
+  "additionalProperties": false,
+  "description": "The first release of this reservation by the current request.",
+  "properties": {
+    "outcome": {
+      "const": "applied",
+      "title": "Outcome",
+      "type": "string"
+    },
+    "releasedAt": {
+      "format": "date-time",
+      "title": "Releasedat",
+      "type": "string"
+    },
+    "reservationId": {
+      "format": "uuid",
+      "title": "Reservationid",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "released",
+        "expired",
+        "reclaimed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "version": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "outcome",
+    "reservationId",
+    "status",
+    "version",
+    "releasedAt"
+  ],
+  "title": "CapacityReleaseApplied",
+  "type": "object"
+}

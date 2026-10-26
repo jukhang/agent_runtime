@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "authRevision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Authrevision",
+      "type": "string"
+    },
+    "cursor": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Cursor",
+      "type": "string"
+    },
+    "kind": {
+      "const": "cursor.advanced",
+      "title": "Kind",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "cursor",
+    "authRevision"
+  ],
+  "title": "CursorFrame",
+  "type": "object"
+}

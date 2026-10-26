@@ -1,0 +1,1142 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "CancelledResult": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Artifactrefs",
+          "type": "array"
+        },
+        "failure": {
+          "title": "Failure",
+          "type": "null"
+        },
+        "finalItems": {
+          "items": {
+            "$ref": "#/$defs/TimelineItem"
+          },
+          "title": "Finalitems",
+          "type": "array"
+        },
+        "outcome": {
+          "title": "Outcome",
+          "type": "null"
+        },
+        "partialResults": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresults",
+          "type": "array"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "const": "cancelled",
+          "title": "Status",
+          "type": "string"
+        },
+        "usage": {
+          "$ref": "#/$defs/Usage"
+        }
+      },
+      "required": [
+        "runId",
+        "finalItems",
+        "artifactRefs",
+        "partialResults",
+        "usage",
+        "status",
+        "outcome",
+        "failure"
+      ],
+      "title": "CancelledResult",
+      "type": "object"
+    },
+    "Channel": {
+      "enum": [
+        "content",
+        "analysis"
+      ],
+      "type": "string"
+    },
+    "ChannelState": {
+      "additionalProperties": false,
+      "properties": {
+        "contentHash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Contenthash",
+          "type": "string"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        },
+        "name": {
+          "$ref": "#/$defs/Channel"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "text",
+        "lastDeltaIndex",
+        "contentHash"
+      ],
+      "title": "ChannelState",
+      "type": "object"
+    },
+    "CompletedResult": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Artifactrefs",
+          "type": "array"
+        },
+        "failure": {
+          "title": "Failure",
+          "type": "null"
+        },
+        "finalItems": {
+          "items": {
+            "$ref": "#/$defs/TimelineItem"
+          },
+          "title": "Finalitems",
+          "type": "array"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "partial"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "partialResults": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresults",
+          "type": "array"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "const": "completed",
+          "title": "Status",
+          "type": "string"
+        },
+        "usage": {
+          "$ref": "#/$defs/Usage"
+        }
+      },
+      "required": [
+        "runId",
+        "finalItems",
+        "artifactRefs",
+        "partialResults",
+        "usage",
+        "status",
+        "outcome",
+        "failure"
+      ],
+      "title": "CompletedResult",
+      "type": "object"
+    },
+    "DesiredControl": {
+      "enum": [
+        "pause",
+        "cancel"
+      ],
+      "title": "DesiredControl",
+      "type": "string"
+    },
+    "ExecutionResolution": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Evidenceref",
+          "type": "string"
+        },
+        "executionRef": {
+          "$ref": "#/$defs/ResourceRef"
+        },
+        "generation": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Generation",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "stopped",
+            "isolated",
+            "unknown"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "supervisionWorkId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supervisionworkid"
+        }
+      },
+      "required": [
+        "executionRef",
+        "generation",
+        "state",
+        "evidenceRef",
+        "supervisionWorkId"
+      ],
+      "title": "ExecutionResolution",
+      "type": "object"
+    },
+    "FailedResult": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Artifactrefs",
+          "type": "array"
+        },
+        "failure": {
+          "$ref": "#/$defs/FailureEnvelope"
+        },
+        "finalItems": {
+          "items": {
+            "$ref": "#/$defs/TimelineItem"
+          },
+          "title": "Finalitems",
+          "type": "array"
+        },
+        "outcome": {
+          "title": "Outcome",
+          "type": "null"
+        },
+        "partialResults": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresults",
+          "type": "array"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "const": "failed",
+          "title": "Status",
+          "type": "string"
+        },
+        "usage": {
+          "$ref": "#/$defs/Usage"
+        }
+      },
+      "required": [
+        "runId",
+        "finalItems",
+        "artifactRefs",
+        "partialResults",
+        "usage",
+        "status",
+        "outcome",
+        "failure"
+      ],
+      "title": "FailedResult",
+      "type": "object"
+    },
+    "FailureCategory": {
+      "enum": [
+        "validation",
+        "authorization",
+        "concurrency",
+        "provider",
+        "context",
+        "storage",
+        "tool",
+        "budget",
+        "compatibility",
+        "delivery",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "FailureEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "category": {
+          "$ref": "#/$defs/FailureCategory"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlineat"
+        },
+        "detailRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detailref"
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operationid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "minLength": 1,
+          "title": "Publicmessage",
+          "type": "string"
+        },
+        "recoveryOptions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Recoveryoptions",
+          "type": "array"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schemaRevision": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemarevision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "retryable",
+        "publicMessage"
+      ],
+      "title": "FailureEnvelope",
+      "type": "object"
+    },
+    "FlushEvidence": {
+      "discriminator": {
+        "mapping": {
+          "no_producers": "#/$defs/NoProducersConfirmed",
+          "verified": "#/$defs/VerifiedEvidence"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/VerifiedEvidence"
+        },
+        {
+          "$ref": "#/$defs/NoProducersConfirmed"
+        }
+      ]
+    },
+    "FlushProof": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "format": "uuid",
+          "title": "Attemptid",
+          "type": "string"
+        },
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/FlushedChannel"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "durableSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Durableseq",
+          "type": "string"
+        },
+        "itemId": {
+          "format": "uuid",
+          "title": "Itemid",
+          "type": "string"
+        },
+        "proofId": {
+          "format": "uuid",
+          "title": "Proofid",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proofId",
+        "scopeId",
+        "sessionId",
+        "runId",
+        "attemptId",
+        "itemId",
+        "durableSeq",
+        "channels"
+      ],
+      "title": "FlushProof",
+      "type": "object"
+    },
+    "FlushedChannel": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        },
+        "lastSessionSeq": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastsessionseq"
+        }
+      },
+      "required": [
+        "channel",
+        "lastDeltaIndex",
+        "lastSessionSeq",
+        "digest"
+      ],
+      "title": "FlushedChannel",
+      "type": "object"
+    },
+    "ItemStatus": {
+      "enum": [
+        "pending",
+        "streaming",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "type": "string"
+    },
+    "ItemType": {
+      "enum": [
+        "message",
+        "tool",
+        "approval",
+        "artifact",
+        "run"
+      ],
+      "type": "string"
+    },
+    "LeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "slotVersion",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "LeaseToken",
+      "type": "object"
+    },
+    "NoProducersConfirmed": {
+      "additionalProperties": false,
+      "description": "The storage transaction enumerated this run's output producers and found none.\n\nOnly the storage UnitOfWork may issue this value. T9 must still re-enumerate the\ndatabase facts before completing a run: the union prevents *omitting* evidence, it\ndoes not prevent *forging* it.",
+      "properties": {
+        "enumeratedSessionSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Enumeratedsessionseq",
+          "type": "string"
+        },
+        "kind": {
+          "const": "no_producers",
+          "title": "Kind",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "runId",
+        "enumeratedSessionSeq"
+      ],
+      "title": "NoProducersConfirmed",
+      "type": "object"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "retry_same",
+        "retry_with_compaction",
+        "ask_user",
+        "refresh_artifact",
+        "reroute",
+        "fallback_answer",
+        "manual_attention"
+      ],
+      "type": "string"
+    },
+    "RecoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "requiredInputSchemaRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requiredinputschemaref"
+        }
+      },
+      "required": [
+        "action",
+        "label"
+      ],
+      "title": "RecoveryOption",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    },
+    "Role": {
+      "enum": [
+        "user",
+        "assistant",
+        "tool",
+        "system"
+      ],
+      "type": "string"
+    },
+    "RunResult": {
+      "discriminator": {
+        "mapping": {
+          "cancelled": "#/$defs/CancelledResult",
+          "completed": "#/$defs/CompletedResult",
+          "failed": "#/$defs/FailedResult"
+        },
+        "propertyName": "status"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CompletedResult"
+        },
+        {
+          "$ref": "#/$defs/FailedResult"
+        },
+        {
+          "$ref": "#/$defs/CancelledResult"
+        }
+      ]
+    },
+    "RunStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_tool",
+        "waiting_user",
+        "paused",
+        "cancelling",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "StateWriteGuard": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/ActorContext"
+        },
+        "cancelVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Cancelversion",
+          "type": "string"
+        },
+        "controlCommandId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Controlcommandid"
+        },
+        "desiredControl": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DesiredControl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expectedStateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Expectedstateversion",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/LeaseToken"
+        },
+        "status": {
+          "$ref": "#/$defs/RunStatus"
+        }
+      },
+      "required": [
+        "actor",
+        "lease",
+        "expectedStateVersion",
+        "status",
+        "desiredControl",
+        "controlCommandId",
+        "cancelVersion"
+      ],
+      "title": "StateWriteGuard",
+      "type": "object"
+    },
+    "TimelineItem": {
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/ChannelState"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "createdSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Createdseq",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/Role"
+        },
+        "status": {
+          "$ref": "#/$defs/ItemStatus"
+        },
+        "type": {
+          "$ref": "#/$defs/ItemType"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "role",
+        "createdSeq",
+        "revision",
+        "status",
+        "channels",
+        "resourceRefs"
+      ],
+      "title": "TimelineItem",
+      "type": "object"
+    },
+    "Usage": {
+      "additionalProperties": false,
+      "description": "Reported token usage and *how* it is known (DS-P02-00 frozen matrix).\n\n``reason`` records provenance, not accuracy: a provider report, an absent provider\nreport, a failed collection, or a runtime estimate. Unknown usage must never be\nsettled as zero, so the status/reason pair is constrained:\n\n- ``complete`` requires a provider report plus all counts;\n- ``partial`` requires a provider report or an estimate;\n- ``unknown`` forbids a provider report.",
+      "properties": {
+        "inputTokens": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Inputtokens"
+        },
+        "outputTokens": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Outputtokens"
+        },
+        "reason": {
+          "enum": [
+            "provider_reported",
+            "provider_not_reported",
+            "collection_failed",
+            "estimated"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "totalTokens": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Totaltokens"
+        }
+      },
+      "required": [
+        "status",
+        "reason",
+        "inputTokens",
+        "outputTokens",
+        "totalTokens"
+      ],
+      "title": "Usage",
+      "type": "object"
+    },
+    "VerifiedEvidence": {
+      "additionalProperties": false,
+      "description": "Output flush proofs enumerated by the storage transaction for this run.",
+      "properties": {
+        "enumeratedSessionSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Enumeratedsessionseq",
+          "type": "string"
+        },
+        "kind": {
+          "const": "verified",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proofs": {
+          "items": {
+            "$ref": "#/$defs/FlushProof"
+          },
+          "minItems": 1,
+          "title": "Proofs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "proofs",
+        "enumeratedSessionSeq"
+      ],
+      "title": "VerifiedEvidence",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "checkpointId": {
+      "format": "uuid",
+      "title": "Checkpointid",
+      "type": "string"
+    },
+    "evidence": {
+      "$ref": "#/$defs/FlushEvidence"
+    },
+    "executions": {
+      "items": {
+        "$ref": "#/$defs/ExecutionResolution"
+      },
+      "title": "Executions",
+      "type": "array"
+    },
+    "guard": {
+      "$ref": "#/$defs/StateWriteGuard"
+    },
+    "result": {
+      "$ref": "#/$defs/RunResult"
+    }
+  },
+  "required": [
+    "guard",
+    "checkpointId",
+    "evidence",
+    "executions",
+    "result"
+  ],
+  "title": "TerminalCommitRequest",
+  "type": "object"
+}

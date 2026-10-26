@@ -1,0 +1,2379 @@
+{
+  "$defs": {
+    "AgentEnvelope": {
+      "discriminator": {
+        "mapping": {
+          "clarification.request": "#/$defs/ClarificationRequestMessage",
+          "control.cancel": "#/$defs/ControlCancelMessage",
+          "handoff.accepted": "#/$defs/HandoffAcceptedMessage",
+          "handoff.committed": "#/$defs/HandoffCommittedMessage",
+          "handoff.rejected": "#/$defs/HandoffRejectedMessage",
+          "handoff.request": "#/$defs/HandoffRequestMessage",
+          "input.append": "#/$defs/InputAppendMessage",
+          "progress.updated": "#/$defs/ProgressUpdatedMessage",
+          "result.accepted": "#/$defs/ResultAcceptedMessage",
+          "result.proposed": "#/$defs/ResultProposedMessage",
+          "result.rejected": "#/$defs/ResultRejectedMessage",
+          "task.accepted": "#/$defs/TaskAcceptedMessage",
+          "task.assign": "#/$defs/TaskAssignMessage",
+          "task.failed": "#/$defs/TaskFailedMessage",
+          "task.rejected": "#/$defs/TaskRejectedMessage"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TaskAssignMessage"
+        },
+        {
+          "$ref": "#/$defs/TaskAcceptedMessage"
+        },
+        {
+          "$ref": "#/$defs/TaskRejectedMessage"
+        },
+        {
+          "$ref": "#/$defs/InputAppendMessage"
+        },
+        {
+          "$ref": "#/$defs/ClarificationRequestMessage"
+        },
+        {
+          "$ref": "#/$defs/ProgressUpdatedMessage"
+        },
+        {
+          "$ref": "#/$defs/ResultProposedMessage"
+        },
+        {
+          "$ref": "#/$defs/ResultAcceptedMessage"
+        },
+        {
+          "$ref": "#/$defs/ResultRejectedMessage"
+        },
+        {
+          "$ref": "#/$defs/TaskFailedMessage"
+        },
+        {
+          "$ref": "#/$defs/ControlCancelMessage"
+        },
+        {
+          "$ref": "#/$defs/HandoffRequestMessage"
+        },
+        {
+          "$ref": "#/$defs/HandoffAcceptedMessage"
+        },
+        {
+          "$ref": "#/$defs/HandoffRejectedMessage"
+        },
+        {
+          "$ref": "#/$defs/HandoffCommittedMessage"
+        }
+      ]
+    },
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "ClarificationRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "minLength": 1,
+          "title": "Question",
+          "type": "string"
+        },
+        "replyToRunId": {
+          "format": "uuid",
+          "title": "Replytorunid",
+          "type": "string"
+        },
+        "requiredFacts": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Requiredfacts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "question",
+        "requiredFacts",
+        "replyToRunId"
+      ],
+      "title": "ClarificationRequest",
+      "type": "object"
+    },
+    "ClarificationRequestMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "clarification.request",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ClarificationRequest"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "ClarificationRequestMessage",
+      "type": "object"
+    },
+    "ControlCancel": {
+      "additionalProperties": false,
+      "properties": {
+        "commandId": {
+          "format": "uuid",
+          "title": "Commandid",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commandId",
+        "reason"
+      ],
+      "title": "ControlCancel",
+      "type": "object"
+    },
+    "ControlCancelMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "control.cancel",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ControlCancel"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "ControlCancelMessage",
+      "type": "object"
+    },
+    "FailureCategory": {
+      "enum": [
+        "validation",
+        "authorization",
+        "concurrency",
+        "provider",
+        "context",
+        "storage",
+        "tool",
+        "budget",
+        "compatibility",
+        "delivery",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "FailureEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "category": {
+          "$ref": "#/$defs/FailureCategory"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlineat"
+        },
+        "detailRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detailref"
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operationid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "minLength": 1,
+          "title": "Publicmessage",
+          "type": "string"
+        },
+        "recoveryOptions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Recoveryoptions",
+          "type": "array"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schemaRevision": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemarevision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "retryable",
+        "publicMessage"
+      ],
+      "title": "FailureEnvelope",
+      "type": "object"
+    },
+    "HandoffAcceptedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "handoff.accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/HandoffResponse"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "HandoffAcceptedMessage",
+      "type": "object"
+    },
+    "HandoffCommitted": {
+      "additionalProperties": false,
+      "properties": {
+        "handoffId": {
+          "format": "uuid",
+          "title": "Handoffid",
+          "type": "string"
+        },
+        "newOwnerRunId": {
+          "format": "uuid",
+          "title": "Newownerrunid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "handoffId",
+        "newOwnerRunId",
+        "slotVersion"
+      ],
+      "title": "HandoffCommitted",
+      "type": "object"
+    },
+    "HandoffCommittedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "handoff.committed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/HandoffCommitted"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "HandoffCommittedMessage",
+      "type": "object"
+    },
+    "HandoffRejectedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "handoff.rejected",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/HandoffResponse"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "HandoffRejectedMessage",
+      "type": "object"
+    },
+    "HandoffRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "expectedSlotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Expectedslotversion",
+          "type": "string"
+        },
+        "handoffId": {
+          "format": "uuid",
+          "title": "Handoffid",
+          "type": "string"
+        },
+        "targetAgentRevision": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "transferManifestRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Transfermanifestref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "handoffId",
+        "targetAgentRevision",
+        "transferManifestRef",
+        "expectedSlotVersion"
+      ],
+      "title": "HandoffRequest",
+      "type": "object"
+    },
+    "HandoffRequestMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "handoff.request",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/HandoffRequest"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "HandoffRequestMessage",
+      "type": "object"
+    },
+    "HandoffResponse": {
+      "additionalProperties": false,
+      "properties": {
+        "handoffId": {
+          "format": "uuid",
+          "title": "Handoffid",
+          "type": "string"
+        },
+        "publicReason": {
+          "minLength": 1,
+          "title": "Publicreason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "handoffId",
+        "publicReason"
+      ],
+      "title": "HandoffResponse",
+      "type": "object"
+    },
+    "InputAppend": {
+      "additionalProperties": false,
+      "properties": {
+        "expectedTaskRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Expectedtaskrevision",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "expectedTaskRevision"
+      ],
+      "title": "InputAppend",
+      "type": "object"
+    },
+    "InputAppendMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "input.append",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/InputAppend"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "InputAppendMessage",
+      "type": "object"
+    },
+    "ProgressUpdated": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "publicSummary": {
+          "minLength": 1,
+          "title": "Publicsummary",
+          "type": "string"
+        },
+        "stepRef": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stepref"
+        }
+      },
+      "required": [
+        "stepRef",
+        "publicSummary",
+        "evidenceRefs"
+      ],
+      "title": "ProgressUpdated",
+      "type": "object"
+    },
+    "ProgressUpdatedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "progress.updated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ProgressUpdated"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "ProgressUpdatedMessage",
+      "type": "object"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "retry_same",
+        "retry_with_compaction",
+        "ask_user",
+        "refresh_artifact",
+        "reroute",
+        "fallback_answer",
+        "manual_attention"
+      ],
+      "type": "string"
+    },
+    "RecoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "requiredInputSchemaRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requiredinputschemaref"
+        }
+      },
+      "required": [
+        "action",
+        "label"
+      ],
+      "title": "RecoveryOption",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    },
+    "ResultAcceptedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "result.accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ResultVerification"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "ResultAcceptedMessage",
+      "type": "object"
+    },
+    "ResultProposed": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Artifactrefs",
+          "type": "array"
+        },
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "remainingIssues": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Remainingissues",
+          "type": "array"
+        },
+        "resultId": {
+          "format": "uuid",
+          "title": "Resultid",
+          "type": "string"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "validation": {
+          "$ref": "#/$defs/ValidationEvidence"
+        }
+      },
+      "required": [
+        "resultId",
+        "summary",
+        "artifactRefs",
+        "evidenceRefs",
+        "validation",
+        "remainingIssues"
+      ],
+      "title": "ResultProposed",
+      "type": "object"
+    },
+    "ResultProposedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "result.proposed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ResultProposed"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "ResultProposedMessage",
+      "type": "object"
+    },
+    "ResultRejectedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "result.rejected",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ResultVerification"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "ResultRejectedMessage",
+      "type": "object"
+    },
+    "ResultVerification": {
+      "additionalProperties": false,
+      "properties": {
+        "publicReason": {
+          "minLength": 1,
+          "title": "Publicreason",
+          "type": "string"
+        },
+        "resultId": {
+          "format": "uuid",
+          "title": "Resultid",
+          "type": "string"
+        },
+        "verificationRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Verificationref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resultId",
+        "verificationRef",
+        "publicReason"
+      ],
+      "title": "ResultVerification",
+      "type": "object"
+    },
+    "TaskAccepted": {
+      "additionalProperties": false,
+      "properties": {
+        "assignmentMessageId": {
+          "format": "uuid",
+          "title": "Assignmentmessageid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignmentMessageId"
+      ],
+      "title": "TaskAccepted",
+      "type": "object"
+    },
+    "TaskAcceptedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "task.accepted",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TaskAccepted"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "TaskAcceptedMessage",
+      "type": "object"
+    },
+    "TaskAssign": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptanceSpecRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Acceptancespecref",
+          "type": "string"
+        },
+        "budgetAllocationId": {
+          "format": "uuid",
+          "title": "Budgetallocationid",
+          "type": "string"
+        },
+        "constraints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "objective": {
+          "minLength": 1,
+          "title": "Objective",
+          "type": "string"
+        },
+        "outputSchemaRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Outputschemaref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "objective",
+        "constraints",
+        "acceptanceSpecRef",
+        "outputSchemaRef",
+        "budgetAllocationId"
+      ],
+      "title": "TaskAssign",
+      "type": "object"
+    },
+    "TaskAssignMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "task.assign",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TaskAssign"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "TaskAssignMessage",
+      "type": "object"
+    },
+    "TaskFailed": {
+      "additionalProperties": false,
+      "properties": {
+        "failure": {
+          "$ref": "#/$defs/FailureEnvelope"
+        },
+        "partialResultRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "failure",
+        "partialResultRefs"
+      ],
+      "title": "TaskFailed",
+      "type": "object"
+    },
+    "TaskFailedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "task.failed",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TaskFailed"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "TaskFailedMessage",
+      "type": "object"
+    },
+    "TaskRejected": {
+      "additionalProperties": false,
+      "properties": {
+        "assignmentMessageId": {
+          "format": "uuid",
+          "title": "Assignmentmessageid",
+          "type": "string"
+        },
+        "code": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Code",
+          "type": "string"
+        },
+        "publicReason": {
+          "minLength": 1,
+          "title": "Publicreason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assignmentMessageId",
+        "code",
+        "publicReason"
+      ],
+      "title": "TaskRejected",
+      "type": "object"
+    },
+    "TaskRejectedMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "causationId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Causationid"
+        },
+        "correlationId": {
+          "format": "uuid",
+          "title": "Correlationid",
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "kind": {
+          "const": "task.rejected",
+          "title": "Kind",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/TaskRejected"
+        },
+        "protocolRevision": {
+          "const": 1,
+          "title": "Protocolrevision",
+          "type": "integer"
+        },
+        "recipientRunId": {
+          "format": "uuid",
+          "title": "Recipientrunid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        },
+        "resourceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resourcerefs",
+          "type": "array"
+        },
+        "senderRunId": {
+          "format": "uuid",
+          "title": "Senderrunid",
+          "type": "string"
+        },
+        "taskId": {
+          "format": "uuid",
+          "title": "Taskid",
+          "type": "string"
+        },
+        "traceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Traceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolRevision",
+        "messageId",
+        "correlationId",
+        "causationId",
+        "senderRunId",
+        "recipientRunId",
+        "taskId",
+        "recipientSeq",
+        "createdAt",
+        "deadlineAt",
+        "resourceRefs",
+        "traceId",
+        "payload",
+        "kind"
+      ],
+      "title": "TaskRejectedMessage",
+      "type": "object"
+    },
+    "ValidationEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "evidenceRefs"
+      ],
+      "title": "ValidationEvidence",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "appliedSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Appliedseq",
+      "type": "string"
+    },
+    "checkpointRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Checkpointref",
+      "type": "string"
+    },
+    "messages": {
+      "items": {
+        "$ref": "#/$defs/AgentEnvelope"
+      },
+      "title": "Messages",
+      "type": "array"
+    },
+    "previousSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Previousseq",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "runId",
+    "checkpointRef",
+    "previousSeq",
+    "appliedSeq",
+    "messages"
+  ],
+  "title": "AppliedInputs",
+  "type": "object"
+}

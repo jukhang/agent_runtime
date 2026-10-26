@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "commandId": {
+      "format": "uuid",
+      "title": "Commandid",
+      "type": "string"
+    },
+    "publicReason": {
+      "title": "Publicreason",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "stateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Stateversion",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "accepted",
+        "applied",
+        "rejected"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "commandId",
+    "runId",
+    "status",
+    "stateVersion",
+    "publicReason"
+  ],
+  "title": "CommandReceipt",
+  "type": "object"
+}

@@ -1,0 +1,675 @@
+{
+  "$defs": {
+    "ApprovalBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "argumentsDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Argumentsdigest",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "operationId": {
+          "format": "uuid",
+          "title": "Operationid",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "resources": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Resources",
+          "type": "array"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "tool": {
+          "$ref": "#/$defs/CapabilityRef"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "sessionId",
+        "tool",
+        "operationId",
+        "argumentsDigest",
+        "policy",
+        "authRevision",
+        "resources"
+      ],
+      "title": "ApprovalBinding",
+      "type": "object"
+    },
+    "ApprovalRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "approvalId": {
+          "format": "uuid",
+          "title": "Approvalid",
+          "type": "string"
+        },
+        "binding": {
+          "$ref": "#/$defs/ApprovalBinding"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Idempotencykey",
+          "type": "string"
+        },
+        "publicSummary": {
+          "minLength": 1,
+          "title": "Publicsummary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "approvalId",
+        "binding",
+        "idempotencyKey",
+        "publicSummary",
+        "expiresAt"
+      ],
+      "title": "ApprovalRequest",
+      "type": "object"
+    },
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "FailureCategory": {
+      "enum": [
+        "validation",
+        "authorization",
+        "concurrency",
+        "provider",
+        "context",
+        "storage",
+        "tool",
+        "budget",
+        "compatibility",
+        "delivery",
+        "internal"
+      ],
+      "type": "string"
+    },
+    "FailureEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attemptid"
+        },
+        "category": {
+          "$ref": "#/$defs/FailureCategory"
+        },
+        "code": {
+          "maxLength": 128,
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "title": "Code",
+          "type": "string"
+        },
+        "deadlineAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadlineat"
+        },
+        "detailRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detailref"
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operationid"
+        },
+        "partialResultRefs": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "title": "Partialresultrefs",
+          "type": "array"
+        },
+        "publicMessage": {
+          "minLength": 1,
+          "title": "Publicmessage",
+          "type": "string"
+        },
+        "recoveryOptions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveryOption"
+          },
+          "title": "Recoveryoptions",
+          "type": "array"
+        },
+        "retryable": {
+          "title": "Retryable",
+          "type": "boolean"
+        },
+        "schemaRevision": {
+          "const": 1,
+          "default": 1,
+          "title": "Schemarevision",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "code",
+        "category",
+        "retryable",
+        "publicMessage"
+      ],
+      "title": "FailureEnvelope",
+      "type": "object"
+    },
+    "PolicyAllow": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "const": "allow",
+          "title": "Decision",
+          "type": "string"
+        },
+        "decisionId": {
+          "format": "uuid",
+          "title": "Decisionid",
+          "type": "string"
+        },
+        "evaluatedAt": {
+          "format": "date-time",
+          "title": "Evaluatedat",
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "minItems": 1,
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "grantRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantref",
+          "type": "string"
+        },
+        "inputDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Inputdigest",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/CapabilityRef"
+        }
+      },
+      "required": [
+        "decisionId",
+        "policy",
+        "inputDigest",
+        "evidenceRefs",
+        "evaluatedAt",
+        "expiresAt",
+        "decision",
+        "grantRef"
+      ],
+      "title": "PolicyAllow",
+      "type": "object"
+    },
+    "PolicyAsk": {
+      "additionalProperties": false,
+      "properties": {
+        "approval": {
+          "$ref": "#/$defs/ApprovalRequest"
+        },
+        "decision": {
+          "const": "ask",
+          "title": "Decision",
+          "type": "string"
+        },
+        "decisionId": {
+          "format": "uuid",
+          "title": "Decisionid",
+          "type": "string"
+        },
+        "evaluatedAt": {
+          "format": "date-time",
+          "title": "Evaluatedat",
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "minItems": 1,
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "inputDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Inputdigest",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/CapabilityRef"
+        }
+      },
+      "required": [
+        "decisionId",
+        "policy",
+        "inputDigest",
+        "evidenceRefs",
+        "evaluatedAt",
+        "expiresAt",
+        "decision",
+        "approval"
+      ],
+      "title": "PolicyAsk",
+      "type": "object"
+    },
+    "PolicyDeny": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "const": "deny",
+          "title": "Decision",
+          "type": "string"
+        },
+        "decisionId": {
+          "format": "uuid",
+          "title": "Decisionid",
+          "type": "string"
+        },
+        "evaluatedAt": {
+          "format": "date-time",
+          "title": "Evaluatedat",
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "minItems": 1,
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "failure": {
+          "$ref": "#/$defs/FailureEnvelope"
+        },
+        "inputDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Inputdigest",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/CapabilityRef"
+        }
+      },
+      "required": [
+        "decisionId",
+        "policy",
+        "inputDigest",
+        "evidenceRefs",
+        "evaluatedAt",
+        "expiresAt",
+        "decision",
+        "failure"
+      ],
+      "title": "PolicyDeny",
+      "type": "object"
+    },
+    "PolicyReview": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "const": "review",
+          "title": "Decision",
+          "type": "string"
+        },
+        "decisionId": {
+          "format": "uuid",
+          "title": "Decisionid",
+          "type": "string"
+        },
+        "evaluatedAt": {
+          "format": "date-time",
+          "title": "Evaluatedat",
+          "type": "string"
+        },
+        "evidenceRefs": {
+          "items": {
+            "$ref": "#/$defs/ResourceRef"
+          },
+          "minItems": 1,
+          "title": "Evidencerefs",
+          "type": "array"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "title": "Expiresat",
+          "type": "string"
+        },
+        "inputDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Inputdigest",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "reviewRequestRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Reviewrequestref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decisionId",
+        "policy",
+        "inputDigest",
+        "evidenceRefs",
+        "evaluatedAt",
+        "expiresAt",
+        "decision",
+        "reviewRequestRef"
+      ],
+      "title": "PolicyReview",
+      "type": "object"
+    },
+    "RecoveryAction": {
+      "enum": [
+        "retry_same",
+        "retry_with_compaction",
+        "ask_user",
+        "refresh_artifact",
+        "reroute",
+        "fallback_answer",
+        "manual_attention"
+      ],
+      "type": "string"
+    },
+    "RecoveryOption": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RecoveryAction"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "requiredInputSchemaRef": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requiredinputschemaref"
+        }
+      },
+      "required": [
+        "action",
+        "label"
+      ],
+      "title": "RecoveryOption",
+      "type": "object"
+    },
+    "ResourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "resourceId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourceid",
+          "type": "string"
+        },
+        "resourceType": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Resourcetype",
+          "type": "string"
+        },
+        "resourceVersion": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resourceversion"
+        },
+        "scope": {
+          "$ref": "#/$defs/ResourceScope"
+        }
+      },
+      "required": [
+        "resourceType",
+        "resourceId",
+        "scope"
+      ],
+      "title": "ResourceRef",
+      "type": "object"
+    },
+    "ResourceScope": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ownerid"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sessionid"
+        }
+      },
+      "required": [
+        "scopeId"
+      ],
+      "title": "ResourceScope",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "allow": "#/$defs/PolicyAllow",
+      "ask": "#/$defs/PolicyAsk",
+      "deny": "#/$defs/PolicyDeny",
+      "review": "#/$defs/PolicyReview"
+    },
+    "propertyName": "decision"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/PolicyAllow"
+    },
+    {
+      "$ref": "#/$defs/PolicyDeny"
+    },
+    {
+      "$ref": "#/$defs/PolicyAsk"
+    },
+    {
+      "$ref": "#/$defs/PolicyReview"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/ActorContext"
+    },
+    "checkpointId": {
+      "format": "uuid",
+      "title": "Checkpointid",
+      "type": "string"
+    },
+    "commandId": {
+      "format": "uuid",
+      "title": "Commandid",
+      "type": "string"
+    },
+    "expectedCancelVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedcancelversion",
+      "type": "string"
+    },
+    "expectedStateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedstateversion",
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "actor",
+    "sessionId",
+    "runId",
+    "commandId",
+    "expectedStateVersion",
+    "expectedCancelVersion",
+    "checkpointId",
+    "idempotencyKey"
+  ],
+  "title": "ResumeCommitRequest",
+  "type": "object"
+}

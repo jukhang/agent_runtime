@@ -1,0 +1,40 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "approvalId": {
+      "format": "uuid",
+      "title": "Approvalid",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "approved",
+        "rejected",
+        "cancelled"
+      ],
+      "title": "Decision",
+      "type": "string"
+    },
+    "expectedVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedversion",
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    }
+  },
+  "required": [
+    "approvalId",
+    "expectedVersion",
+    "decision",
+    "idempotencyKey"
+  ],
+  "title": "ApprovalDecision",
+  "type": "object"
+}

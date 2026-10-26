@@ -1,0 +1,150 @@
+{
+  "$defs": {
+    "Channel": {
+      "enum": [
+        "content",
+        "analysis"
+      ],
+      "type": "string"
+    },
+    "FlushProof": {
+      "additionalProperties": false,
+      "properties": {
+        "attemptId": {
+          "format": "uuid",
+          "title": "Attemptid",
+          "type": "string"
+        },
+        "channels": {
+          "items": {
+            "$ref": "#/$defs/FlushedChannel"
+          },
+          "title": "Channels",
+          "type": "array"
+        },
+        "durableSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Durableseq",
+          "type": "string"
+        },
+        "itemId": {
+          "format": "uuid",
+          "title": "Itemid",
+          "type": "string"
+        },
+        "proofId": {
+          "format": "uuid",
+          "title": "Proofid",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "proofId",
+        "scopeId",
+        "sessionId",
+        "runId",
+        "attemptId",
+        "itemId",
+        "durableSeq",
+        "channels"
+      ],
+      "title": "FlushProof",
+      "type": "object"
+    },
+    "FlushedChannel": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/Channel"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "lastDeltaIndex": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastdeltaindex"
+        },
+        "lastSessionSeq": {
+          "anyOf": [
+            {
+              "maxLength": 19,
+              "pattern": "^(0|[1-9][0-9]*)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lastsessionseq"
+        }
+      },
+      "required": [
+        "channel",
+        "lastDeltaIndex",
+        "lastSessionSeq",
+        "digest"
+      ],
+      "title": "FlushedChannel",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Output flush proofs enumerated by the storage transaction for this run.",
+  "properties": {
+    "enumeratedSessionSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Enumeratedsessionseq",
+      "type": "string"
+    },
+    "kind": {
+      "const": "verified",
+      "title": "Kind",
+      "type": "string"
+    },
+    "proofs": {
+      "items": {
+        "$ref": "#/$defs/FlushProof"
+      },
+      "minItems": 1,
+      "title": "Proofs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "kind",
+    "proofs",
+    "enumeratedSessionSeq"
+  ],
+  "title": "VerifiedEvidence",
+  "type": "object"
+}

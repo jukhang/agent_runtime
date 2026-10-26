@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "BudgetCounter": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Limit",
+          "type": "string"
+        },
+        "reserved": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Reserved",
+          "type": "string"
+        },
+        "spent": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Spent",
+          "type": "string"
+        },
+        "unknownReserved": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Unknownreserved",
+          "type": "string"
+        }
+      },
+      "required": [
+        "limit",
+        "spent",
+        "reserved",
+        "unknownReserved"
+      ],
+      "title": "BudgetCounter",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "allocationId": {
+      "format": "uuid",
+      "title": "Allocationid",
+      "type": "string"
+    },
+    "deadlineAt": {
+      "format": "date-time",
+      "title": "Deadlineat",
+      "type": "string"
+    },
+    "modelCalls": {
+      "$ref": "#/$defs/BudgetCounter"
+    },
+    "revision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Revision",
+      "type": "string"
+    },
+    "tokens": {
+      "$ref": "#/$defs/BudgetCounter"
+    },
+    "toolCalls": {
+      "$ref": "#/$defs/BudgetCounter"
+    }
+  },
+  "required": [
+    "allocationId",
+    "revision",
+    "modelCalls",
+    "toolCalls",
+    "tokens",
+    "deadlineAt"
+  ],
+  "title": "BudgetView",
+  "type": "object"
+}

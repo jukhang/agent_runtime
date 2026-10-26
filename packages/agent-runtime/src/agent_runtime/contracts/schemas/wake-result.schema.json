@@ -1,0 +1,166 @@
+{
+  "$defs": {
+    "InputWatermark": {
+      "additionalProperties": false,
+      "properties": {
+        "appliedVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Appliedversion",
+          "type": "string"
+        },
+        "pendingVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Pendingversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pendingVersion",
+        "appliedVersion"
+      ],
+      "title": "InputWatermark",
+      "type": "object"
+    },
+    "WakeDeferred": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "deferred",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputWatermark"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "inputs",
+        "disposition"
+      ],
+      "title": "WakeDeferred",
+      "type": "object"
+    },
+    "WakeDuplicate": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "duplicate",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputWatermark"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "inputs",
+        "disposition"
+      ],
+      "title": "WakeDuplicate",
+      "type": "object"
+    },
+    "WakeScheduled": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "scheduled",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputWatermark"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "inputs",
+        "disposition",
+        "workId"
+      ],
+      "title": "WakeScheduled",
+      "type": "object"
+    },
+    "WakeTerminal": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "terminal",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "inputs": {
+          "$ref": "#/$defs/InputWatermark"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "runId",
+        "inputs",
+        "disposition",
+        "status"
+      ],
+      "title": "WakeTerminal",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "deferred": "#/$defs/WakeDeferred",
+      "duplicate": "#/$defs/WakeDuplicate",
+      "scheduled": "#/$defs/WakeScheduled",
+      "terminal": "#/$defs/WakeTerminal"
+    },
+    "propertyName": "disposition"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/WakeScheduled"
+    },
+    {
+      "$ref": "#/$defs/WakeDeferred"
+    },
+    {
+      "$ref": "#/$defs/WakeDuplicate"
+    },
+    {
+      "$ref": "#/$defs/WakeTerminal"
+    }
+  ]
+}

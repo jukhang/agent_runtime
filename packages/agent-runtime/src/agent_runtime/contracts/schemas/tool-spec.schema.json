@@ -1,0 +1,276 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "McpToolBinding": {
+      "additionalProperties": false,
+      "description": "Immutable, host-approved remote identity and schemas; never a model-supplied URL.",
+      "properties": {
+        "cancelDestination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CapabilityRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cancelName": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[\\x21-\\x7e]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cancelname"
+        },
+        "destination": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "inputSchema": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Inputschema",
+          "type": "object"
+        },
+        "lookupDestination": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CapabilityRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "lookupName": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "minLength": 1,
+              "pattern": "^[\\x21-\\x7e]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lookupname"
+        },
+        "outputSchema": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Outputschema",
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": "2026-07-28",
+          "title": "Protocolversion",
+          "type": "string"
+        },
+        "toolName": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Toolname",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "toolName",
+        "destination",
+        "inputSchema",
+        "outputSchema"
+      ],
+      "title": "McpToolBinding",
+      "type": "object"
+    },
+    "PublicPolicy": {
+      "enum": [
+        "full",
+        "summary",
+        "reference_only"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "approvalPolicy": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "cancellation": {
+      "enum": [
+        "stop",
+        "detach",
+        "unsupported"
+      ],
+      "title": "Cancellation",
+      "type": "string"
+    },
+    "concurrencyGroup": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Concurrencygroup",
+      "type": "string"
+    },
+    "description": {
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "idempotency": {
+      "enum": [
+        "read_only",
+        "transactional",
+        "provider_key",
+        "reconcile",
+        "manual"
+      ],
+      "title": "Idempotency",
+      "type": "string"
+    },
+    "inputSchema": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "kind": {
+      "enum": [
+        "read",
+        "write",
+        "control",
+        "background",
+        "interaction"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "maxConcurrency": {
+      "exclusiveMinimum": 0,
+      "title": "Maxconcurrency",
+      "type": "integer"
+    },
+    "mcp": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/McpToolBinding"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "outputSchema": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "permissions": {
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Permissions",
+      "type": "array"
+    },
+    "publicResultPolicy": {
+      "$ref": "#/$defs/PublicPolicy"
+    },
+    "ref": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "sideEffect": {
+      "enum": [
+        "none",
+        "database",
+        "external"
+      ],
+      "title": "Sideeffect",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "timeoutSeconds": {
+      "exclusiveMinimum": 0,
+      "title": "Timeoutseconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "ref",
+    "description",
+    "source",
+    "kind",
+    "sideEffect",
+    "inputSchema",
+    "outputSchema",
+    "permissions",
+    "approvalPolicy",
+    "idempotency",
+    "timeoutSeconds",
+    "concurrencyGroup",
+    "maxConcurrency",
+    "cancellation",
+    "publicResultPolicy"
+  ],
+  "title": "ToolSpec",
+  "type": "object"
+}

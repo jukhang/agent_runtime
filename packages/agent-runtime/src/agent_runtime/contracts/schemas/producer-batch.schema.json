@@ -1,0 +1,262 @@
+{
+  "$defs": {
+    "AnalysisDelta": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "const": "analysis",
+          "title": "Channel",
+          "type": "string"
+        },
+        "deltaIndex": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Deltaindex",
+          "type": "string"
+        },
+        "itemRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Itemrevision",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "channel",
+        "deltaIndex",
+        "itemRevision",
+        "text"
+      ],
+      "title": "AnalysisDelta",
+      "type": "object"
+    },
+    "AnalysisDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "analysis.delta",
+          "title": "Kind",
+          "type": "string"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/AnalysisDelta"
+        }
+      },
+      "required": [
+        "kind",
+        "occurredAt",
+        "payload"
+      ],
+      "title": "AnalysisDraft",
+      "type": "object"
+    },
+    "ContentDelta": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "const": "content",
+          "title": "Channel",
+          "type": "string"
+        },
+        "deltaIndex": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Deltaindex",
+          "type": "string"
+        },
+        "itemRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Itemrevision",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "channel",
+        "deltaIndex",
+        "itemRevision",
+        "text"
+      ],
+      "title": "ContentDelta",
+      "type": "object"
+    },
+    "ContentDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "assistant.delta",
+          "title": "Kind",
+          "type": "string"
+        },
+        "occurredAt": {
+          "format": "date-time",
+          "title": "Occurredat",
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/ContentDelta"
+        }
+      },
+      "required": [
+        "kind",
+        "occurredAt",
+        "payload"
+      ],
+      "title": "ContentDraft",
+      "type": "object"
+    },
+    "LeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "slotVersion",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "LeaseToken",
+      "type": "object"
+    },
+    "OutputDraft": {
+      "discriminator": {
+        "mapping": {
+          "analysis.delta": "#/$defs/AnalysisDraft",
+          "assistant.delta": "#/$defs/ContentDraft"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ContentDraft"
+        },
+        {
+          "$ref": "#/$defs/AnalysisDraft"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attemptId": {
+      "format": "uuid",
+      "title": "Attemptid",
+      "type": "string"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/OutputDraft"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Events",
+      "type": "array"
+    },
+    "itemId": {
+      "format": "uuid",
+      "title": "Itemid",
+      "type": "string"
+    },
+    "lease": {
+      "$ref": "#/$defs/LeaseToken"
+    },
+    "traceId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Traceid",
+      "type": "string"
+    },
+    "turnId": {
+      "format": "uuid",
+      "title": "Turnid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "lease",
+    "turnId",
+    "attemptId",
+    "itemId",
+    "traceId",
+    "events"
+  ],
+  "title": "ProducerBatch",
+  "type": "object"
+}

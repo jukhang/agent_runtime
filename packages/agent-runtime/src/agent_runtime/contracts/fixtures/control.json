@@ -1,0 +1,46 @@
+{
+  "note": "One positive ControlOutcome sample per kind (DS-P01-08 / F4). Applied pause/resume/cancel show the safe-point state; rejection carries a structured failure.",
+  "outcomes": [
+    {
+      "outcome": "applied",
+      "commandId": "c0000000-0000-0000-0000-000000000001",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "kind": "pause",
+      "status": "paused",
+      "stateVersion": "4",
+      "desiredControl": null,
+      "workId": null
+    },
+    {
+      "outcome": "applied",
+      "commandId": "c0000000-0000-0000-0000-000000000002",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "kind": "resume",
+      "status": "queued",
+      "stateVersion": "5",
+      "desiredControl": null,
+      "workId": "33333333-3333-3333-3333-333333333333"
+    },
+    {
+      "outcome": "applied",
+      "commandId": "c0000000-0000-0000-0000-000000000003",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "kind": "cancel",
+      "status": "cancelling",
+      "stateVersion": "6",
+      "desiredControl": "cancel",
+      "workId": null
+    },
+    {
+      "outcome": "rejected",
+      "commandId": "c0000000-0000-0000-0000-000000000004",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "failure": {
+        "code": "CONTROL_PENDING",
+        "category": "concurrency",
+        "retryable": false,
+        "publicMessage": "A newer control command already won."
+      }
+    }
+  ]
+}

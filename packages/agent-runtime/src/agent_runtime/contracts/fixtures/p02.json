@@ -1,0 +1,116 @@
+{
+  "note": "Positive DS-P02-00 wire samples: platform capacity (with reservation and release outcomes), restricted audit and a public capacity failure.",
+  "capacityViews": [
+    {
+      "key": {
+        "deploymentId": "deployment-1",
+        "resourceKind": "model_slot",
+        "resourceVersion": "1",
+        "resourceKey": "supplier-a"
+      },
+      "capacity": "8",
+      "reserved": "3",
+      "version": "4"
+    }
+  ],
+  "capacityReservations": [
+    {
+      "key": {
+        "deploymentId": "deployment-1",
+        "resourceKind": "model_slot",
+        "resourceVersion": "1",
+        "resourceKey": "supplier-a"
+      },
+      "reservationId": "00000000-0000-4000-8000-0000000000c1",
+      "amount": 1,
+      "status": "reserved",
+      "version": "5",
+      "leaseUntil": "2026-09-21T13:00:00Z",
+      "holderRef": "run:00000000-0000-4000-8000-0000000000e1"
+    }
+  ],
+  "auditQueryRequests": [
+    {
+      "actor": {
+        "scopeId": "scope",
+        "actorId": "auditor",
+        "authRevision": "1",
+        "grantsRef": "grants"
+      },
+      "purpose": "security",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "runId": null,
+      "afterSeq": "0",
+      "kinds": [
+        "model.prepared",
+        "run.failed"
+      ],
+      "limit": 64,
+      "deadlineAt": "2026-09-21T13:00:00Z"
+    }
+  ],
+  "auditQueryResults": [
+    {
+      "scopeId": "scope",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "entries": [
+        {
+          "sessionSeq": "9",
+          "kind": "model.prepared",
+          "visibility": "restricted",
+          "recordedAt": "2026-09-21T12:00:00Z",
+          "payloadRef": "payload-9",
+          "contentDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      ],
+      "nextSeq": "10",
+      "restricted": true
+    }
+  ],
+  "capacityReleases": [
+    {
+      "outcome": "applied",
+      "reservationId": "00000000-0000-4000-8000-0000000000c1",
+      "status": "released",
+      "version": "6",
+      "releasedAt": "2026-09-21T12:30:00Z"
+    },
+    {
+      "outcome": "reused",
+      "reservationId": "00000000-0000-4000-8000-0000000000c1",
+      "status": "released",
+      "version": "6",
+      "releasedAt": "2026-09-21T12:30:00Z"
+    },
+    {
+      "outcome": "rejected",
+      "reservationId": "00000000-0000-4000-8000-0000000000c2",
+      "failure": {
+        "code": "VERSION_CONFLICT",
+        "category": "concurrency",
+        "retryable": false,
+        "publicMessage": "The reservation is no longer held by this holder."
+      }
+    }
+  ],
+  "capacityFailures": [
+    {
+      "code": "CAPACITY_UNAVAILABLE",
+      "category": "budget",
+      "retryable": true,
+      "publicMessage": "Platform model_slot capacity is unavailable for a request of 3.",
+      "recoveryOptions": [
+        {
+          "action": "retry_same",
+          "label": "Retry after 15s",
+          "requiredInputSchemaRef": null
+        }
+      ],
+      "detailRef": null,
+      "attemptId": null,
+      "operationId": null,
+      "deadlineAt": null,
+      "partialResultRefs": []
+    }
+  ]
+}

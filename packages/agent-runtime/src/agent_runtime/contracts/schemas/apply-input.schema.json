@@ -1,0 +1,208 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "ClaimedInput": {
+      "additionalProperties": false,
+      "properties": {
+        "claimToken": {
+          "format": "uuid",
+          "title": "Claimtoken",
+          "type": "string"
+        },
+        "messageId": {
+          "format": "uuid",
+          "title": "Messageid",
+          "type": "string"
+        },
+        "recipientSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Recipientseq",
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageId",
+        "claimToken",
+        "recipientSeq"
+      ],
+      "title": "ClaimedInput",
+      "type": "object"
+    },
+    "CommitGuard": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "$ref": "#/$defs/ActorContext"
+        },
+        "expectedStateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Expectedstateversion",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/LeaseToken"
+        }
+      },
+      "required": [
+        "actor",
+        "lease",
+        "expectedStateVersion"
+      ],
+      "title": "CommitGuard",
+      "type": "object"
+    },
+    "LeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "slotVersion",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "LeaseToken",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "checkpointRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Checkpointref",
+      "type": "string"
+    },
+    "expectedAppliedSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedappliedseq",
+      "type": "string"
+    },
+    "guard": {
+      "$ref": "#/$defs/CommitGuard"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/ClaimedInput"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "guard",
+    "inputs",
+    "expectedAppliedSeq",
+    "checkpointRef"
+  ],
+  "title": "ApplyInputRequest",
+  "type": "object"
+}

@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "MaintenanceLease": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "workId",
+        "ownerId",
+        "workEpoch",
+        "workLeaseUntil"
+      ],
+      "title": "MaintenanceLease",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "lease": {
+      "$ref": "#/$defs/MaintenanceLease"
+    },
+    "leaseSeconds": {
+      "maximum": 3600,
+      "minimum": 1,
+      "title": "Leaseseconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "lease",
+    "leaseSeconds"
+  ],
+  "title": "MaintenanceRenewRequest",
+  "type": "object"
+}

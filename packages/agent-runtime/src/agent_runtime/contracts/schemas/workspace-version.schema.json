@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "generation": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Generation",
+      "type": "string"
+    },
+    "ownerRunId": {
+      "format": "uuid",
+      "title": "Ownerrunid",
+      "type": "string"
+    },
+    "revision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Revision",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "workspaceId": {
+      "format": "uuid",
+      "title": "Workspaceid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "workspaceId",
+    "ownerRunId",
+    "generation",
+    "revision"
+  ],
+  "title": "WorkspaceVersion",
+  "type": "object"
+}

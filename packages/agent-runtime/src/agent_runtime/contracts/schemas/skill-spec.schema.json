@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "WorkspaceFile": {
+      "additionalProperties": false,
+      "properties": {
+        "blobRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Blobref",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "executable": {
+          "default": false,
+          "title": "Executable",
+          "type": "boolean"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sizeBytes": {
+          "minimum": 0,
+          "title": "Sizebytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "blobRef",
+        "digest",
+        "sizeBytes"
+      ],
+      "title": "WorkspaceFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "bundleDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Bundledigest",
+      "type": "string"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/WorkspaceFile"
+      },
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    },
+    "gitCommit": {
+      "anyOf": [
+        {
+          "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Gitcommit"
+    },
+    "gitSubdir": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gitsubdir"
+    },
+    "instructionPath": {
+      "title": "Instructionpath",
+      "type": "string"
+    },
+    "ref": {
+      "$ref": "#/$defs/CapabilityRef"
+    },
+    "requiredTools": {
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Requiredtools",
+      "type": "array"
+    },
+    "source": {
+      "$ref": "#/$defs/CapabilityRef"
+    }
+  },
+  "required": [
+    "ref",
+    "source",
+    "gitCommit",
+    "bundleDigest",
+    "instructionPath",
+    "files",
+    "requiredTools"
+  ],
+  "title": "SkillSpec",
+  "type": "object"
+}

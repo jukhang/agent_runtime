@@ -1,0 +1,29 @@
+{
+  "additionalProperties": false,
+  "description": "The storage transaction enumerated this run's output producers and found none.\n\nOnly the storage UnitOfWork may issue this value. T9 must still re-enumerate the\ndatabase facts before completing a run: the union prevents *omitting* evidence, it\ndoes not prevent *forging* it.",
+  "properties": {
+    "enumeratedSessionSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Enumeratedsessionseq",
+      "type": "string"
+    },
+    "kind": {
+      "const": "no_producers",
+      "title": "Kind",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "runId",
+    "enumeratedSessionSeq"
+  ],
+  "title": "NoProducersConfirmed",
+  "type": "object"
+}

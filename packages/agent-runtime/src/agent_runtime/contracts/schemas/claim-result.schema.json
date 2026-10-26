@@ -1,0 +1,172 @@
+{
+  "$defs": {
+    "ClaimedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "budgetAllocationId": {
+          "format": "uuid",
+          "title": "Budgetallocationid",
+          "type": "string"
+        },
+        "checkpointId": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Checkpointid"
+        },
+        "disposition": {
+          "const": "claimed",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "lease": {
+          "$ref": "#/$defs/LeaseToken"
+        },
+        "stateVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Stateversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "disposition",
+        "lease",
+        "stateVersion",
+        "checkpointId",
+        "budgetAllocationId"
+      ],
+      "title": "ClaimedWork",
+      "type": "object"
+    },
+    "IdleWork": {
+      "additionalProperties": false,
+      "properties": {
+        "disposition": {
+          "const": "idle",
+          "title": "Disposition",
+          "type": "string"
+        },
+        "reason": {
+          "enum": [
+            "no_work",
+            "capacity",
+            "capability_mismatch"
+          ],
+          "title": "Reason",
+          "type": "string"
+        },
+        "retryAfterMs": {
+          "maximum": 60000,
+          "minimum": 1,
+          "title": "Retryafterms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "reason",
+        "retryAfterMs"
+      ],
+      "title": "IdleWork",
+      "type": "object"
+    },
+    "LeaseToken": {
+      "additionalProperties": false,
+      "properties": {
+        "ownerId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Ownerid",
+          "type": "string"
+        },
+        "runEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Runepoch",
+          "type": "string"
+        },
+        "runId": {
+          "format": "uuid",
+          "title": "Runid",
+          "type": "string"
+        },
+        "runLeaseUntil": {
+          "format": "date-time",
+          "title": "Runleaseuntil",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "slotVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Slotversion",
+          "type": "string"
+        },
+        "workEpoch": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Workepoch",
+          "type": "string"
+        },
+        "workId": {
+          "format": "uuid",
+          "title": "Workid",
+          "type": "string"
+        },
+        "workLeaseUntil": {
+          "format": "date-time",
+          "title": "Workleaseuntil",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "runId",
+        "workId",
+        "ownerId",
+        "runEpoch",
+        "workEpoch",
+        "slotVersion",
+        "runLeaseUntil",
+        "workLeaseUntil"
+      ],
+      "title": "LeaseToken",
+      "type": "object"
+    }
+  },
+  "discriminator": {
+    "mapping": {
+      "claimed": "#/$defs/ClaimedWork",
+      "idle": "#/$defs/IdleWork"
+    },
+    "propertyName": "disposition"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ClaimedWork"
+    },
+    {
+      "$ref": "#/$defs/IdleWork"
+    }
+  ]
+}

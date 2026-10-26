@@ -1,0 +1,70 @@
+{
+  "$defs": {
+    "OutboxNotice": {
+      "additionalProperties": false,
+      "description": "Payload sent to a wake-up transport; event content stays in the Journal.",
+      "properties": {
+        "eventId": {
+          "format": "uuid",
+          "title": "Eventid",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "sessionId": {
+          "format": "uuid",
+          "title": "Sessionid",
+          "type": "string"
+        },
+        "sessionSeq": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Sessionseq",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "sessionId",
+        "eventId",
+        "sessionSeq"
+      ],
+      "title": "OutboxNotice",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "claimToken": {
+      "format": "uuid",
+      "title": "Claimtoken",
+      "type": "string"
+    },
+    "leaseUntil": {
+      "format": "date-time",
+      "title": "Leaseuntil",
+      "type": "string"
+    },
+    "notices": {
+      "items": {
+        "$ref": "#/$defs/OutboxNotice"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Notices",
+      "type": "array"
+    }
+  },
+  "required": [
+    "claimToken",
+    "leaseUntil",
+    "notices"
+  ],
+  "title": "OutboxClaim",
+  "type": "object"
+}

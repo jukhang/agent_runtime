@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "MigrationChain": {
+      "enum": [
+        "host",
+        "runtime"
+      ],
+      "type": "string"
+    },
+    "MigrationStepKind": {
+      "const": "upgrade",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "chain": {
+      "$ref": "#/$defs/MigrationChain"
+    },
+    "deadlineAt": {
+      "format": "date-time",
+      "title": "Deadlineat",
+      "type": "string"
+    },
+    "fromRevision": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Fromrevision",
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/MigrationStepKind"
+    },
+    "toRevision": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Torevision",
+      "type": "string"
+    }
+  },
+  "required": [
+    "chain",
+    "kind",
+    "fromRevision",
+    "toRevision",
+    "idempotencyKey",
+    "deadlineAt"
+  ],
+  "title": "MigrationStep",
+  "type": "object"
+}

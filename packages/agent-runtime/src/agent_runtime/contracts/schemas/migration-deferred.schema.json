@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "MigrationChain": {
+      "enum": [
+        "host",
+        "runtime"
+      ],
+      "type": "string"
+    },
+    "MigrationDeferralReason": {
+      "enum": [
+        "host_failed",
+        "runtime_failed",
+        "lock_held",
+        "incompatible"
+      ],
+      "type": "string"
+    },
+    "MigrationStepRef": {
+      "additionalProperties": false,
+      "description": "Structured proof of one applied step; a bare key cannot prove ancestry.",
+      "properties": {
+        "chain": {
+          "$ref": "#/$defs/MigrationChain"
+        },
+        "fromRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Fromrevision",
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Idempotencykey",
+          "type": "string"
+        },
+        "toRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Torevision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chain",
+        "fromRevision",
+        "toRevision",
+        "idempotencyKey"
+      ],
+      "title": "MigrationStepRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Retryable state: nothing was rolled back and the same plan may be replayed.",
+  "properties": {
+    "completed": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MigrationStepRef"
+      },
+      "title": "Completed",
+      "type": "array"
+    },
+    "deploymentId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Deploymentid",
+      "type": "string"
+    },
+    "disposition": {
+      "const": "deferred",
+      "title": "Disposition",
+      "type": "string"
+    },
+    "planDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plandigest",
+      "type": "string"
+    },
+    "planId": {
+      "format": "uuid",
+      "title": "Planid",
+      "type": "string"
+    },
+    "reason": {
+      "$ref": "#/$defs/MigrationDeferralReason"
+    },
+    "retryAfterSeconds": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Retryafterseconds"
+    }
+  },
+  "required": [
+    "disposition",
+    "planId",
+    "planDigest",
+    "deploymentId",
+    "reason"
+  ],
+  "title": "MigrationDeferred",
+  "type": "object"
+}

@@ -1,0 +1,188 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "MigrationChain": {
+      "enum": [
+        "host",
+        "runtime"
+      ],
+      "type": "string"
+    },
+    "MigrationHeads": {
+      "additionalProperties": false,
+      "description": "Live head of each chain, re-read by the orchestrator before executing.",
+      "properties": {
+        "hostRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Hostrevision",
+          "type": "string"
+        },
+        "runtimeRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Runtimerevision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hostRevision",
+        "runtimeRevision"
+      ],
+      "title": "MigrationHeads",
+      "type": "object"
+    },
+    "MigrationStep": {
+      "additionalProperties": false,
+      "properties": {
+        "chain": {
+          "$ref": "#/$defs/MigrationChain"
+        },
+        "deadlineAt": {
+          "format": "date-time",
+          "title": "Deadlineat",
+          "type": "string"
+        },
+        "fromRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Fromrevision",
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Idempotencykey",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/MigrationStepKind"
+        },
+        "toRevision": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Torevision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chain",
+        "kind",
+        "fromRevision",
+        "toRevision",
+        "idempotencyKey",
+        "deadlineAt"
+      ],
+      "title": "MigrationStep",
+      "type": "object"
+    },
+    "MigrationStepKind": {
+      "const": "upgrade",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/ActorContext"
+    },
+    "deadlineAt": {
+      "format": "date-time",
+      "title": "Deadlineat",
+      "type": "string"
+    },
+    "deploymentId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Deploymentid",
+      "type": "string"
+    },
+    "heads": {
+      "$ref": "#/$defs/MigrationHeads"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    },
+    "planId": {
+      "format": "uuid",
+      "title": "Planid",
+      "type": "string"
+    },
+    "planRevision": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Planrevision",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/MigrationStep"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    }
+  },
+  "required": [
+    "planId",
+    "planRevision",
+    "deploymentId",
+    "actor",
+    "heads",
+    "steps",
+    "idempotencyKey",
+    "deadlineAt"
+  ],
+  "title": "MigrationPlanRequest",
+  "type": "object"
+}

@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "CapacityKey": {
+      "additionalProperties": false,
+      "description": "Identity of one platform capacity counter; there is no user scope here.",
+      "properties": {
+        "deploymentId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Deploymentid",
+          "type": "string"
+        },
+        "resourceKey": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Resourcekey",
+          "type": "string"
+        },
+        "resourceKind": {
+          "$ref": "#/$defs/ResourceKind"
+        },
+        "resourceVersion": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Resourceversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "deploymentId",
+        "resourceKind",
+        "resourceVersion",
+        "resourceKey"
+      ],
+      "title": "CapacityKey",
+      "type": "object"
+    },
+    "ResourceKind": {
+      "enum": [
+        "model_slot",
+        "tool_slot",
+        "run_slot",
+        "sandbox_slot",
+        "egress_slot"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Observed counter for one key; callers never receive another key's numbers.",
+  "properties": {
+    "capacity": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Capacity",
+      "type": "string"
+    },
+    "key": {
+      "$ref": "#/$defs/CapacityKey"
+    },
+    "reserved": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Reserved",
+      "type": "string"
+    },
+    "version": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "capacity",
+    "reserved",
+    "version"
+  ],
+  "title": "CapacityView",
+  "type": "object"
+}

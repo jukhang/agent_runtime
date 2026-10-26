@@ -1,0 +1,161 @@
+{
+  "note": "One positive sample per policy-decision and recovery-disposition kind (DS-P01-07). Decisions carry evidence and an expiry; recovery never revives a terminal run.",
+  "scopeId": "scope-a",
+  "policyDecisions": [
+    {
+      "decisionId": "d0000000-0000-0000-0000-000000000001",
+      "policy": {
+        "key": {
+          "namespace": "builtin",
+          "key": "tool-policy"
+        },
+        "revision": "1"
+      },
+      "inputDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "evidenceRefs": [
+        {
+          "resourceType": "policy_evidence",
+          "resourceId": "e0000000-0000-0000-0000-000000000001",
+          "resourceVersion": "1",
+          "scope": {
+            "scopeId": "scope-a"
+          }
+        }
+      ],
+      "evaluatedAt": "2026-09-17T10:00:00Z",
+      "expiresAt": "2026-09-17T10:10:00Z",
+      "decision": "allow",
+      "grantRef": "grant-1"
+    },
+    {
+      "decisionId": "d0000000-0000-0000-0000-000000000002",
+      "policy": {
+        "key": {
+          "namespace": "builtin",
+          "key": "tool-policy"
+        },
+        "revision": "1"
+      },
+      "inputDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "evidenceRefs": [
+        {
+          "resourceType": "policy_evidence",
+          "resourceId": "e0000000-0000-0000-0000-000000000002",
+          "resourceVersion": "1",
+          "scope": {
+            "scopeId": "scope-a"
+          }
+        }
+      ],
+      "evaluatedAt": "2026-09-17T10:00:00Z",
+      "expiresAt": "2026-09-17T10:10:00Z",
+      "decision": "deny",
+      "failure": {
+        "code": "FORBIDDEN",
+        "category": "authorization",
+        "retryable": false,
+        "publicMessage": "The resource is outside the allowed scope."
+      }
+    },
+    {
+      "decisionId": "d0000000-0000-0000-0000-000000000003",
+      "policy": {
+        "key": {
+          "namespace": "builtin",
+          "key": "tool-policy"
+        },
+        "revision": "1"
+      },
+      "inputDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "evidenceRefs": [
+        {
+          "resourceType": "policy_evidence",
+          "resourceId": "e0000000-0000-0000-0000-000000000003",
+          "resourceVersion": "1",
+          "scope": {
+            "scopeId": "scope-a"
+          }
+        }
+      ],
+      "evaluatedAt": "2026-09-17T10:00:00Z",
+      "expiresAt": "2026-09-17T10:10:00Z",
+      "decision": "ask",
+      "approval": {
+        "approvalId": "77777777-7777-7777-7777-777777777777",
+        "binding": {
+          "scopeId": "scope-a",
+          "actorId": "actor-1",
+          "sessionId": "22222222-2222-2222-2222-222222222222",
+          "tool": {
+            "key": {
+              "namespace": "builtin",
+              "key": "search"
+            },
+            "revision": "1"
+          },
+          "operationId": "99999999-9999-9999-9999-999999999999",
+          "argumentsDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "policy": {
+            "key": {
+              "namespace": "builtin",
+              "key": "tool-policy"
+            },
+            "revision": "1"
+          },
+          "authRevision": "1",
+          "resources": []
+        },
+        "idempotencyKey": "approval-1",
+        "publicSummary": "Run the write tool against the pinned resource?",
+        "expiresAt": "2026-09-17T10:05:00Z"
+      }
+    },
+    {
+      "decisionId": "d0000000-0000-0000-0000-000000000004",
+      "policy": {
+        "key": {
+          "namespace": "builtin",
+          "key": "tool-policy"
+        },
+        "revision": "1"
+      },
+      "inputDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "evidenceRefs": [
+        {
+          "resourceType": "policy_evidence",
+          "resourceId": "e0000000-0000-0000-0000-000000000004",
+          "resourceVersion": "1",
+          "scope": {
+            "scopeId": "scope-a"
+          }
+        }
+      ],
+      "evaluatedAt": "2026-09-17T10:00:00Z",
+      "expiresAt": "2026-09-17T10:10:00Z",
+      "decision": "review",
+      "reviewRequestRef": "review-1"
+    }
+  ],
+  "recoveryDispositions": [
+    {
+      "disposition": "scheduled",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "workId": "33333333-3333-3333-3333-333333333333",
+      "stateVersion": "1",
+      "status": "queued",
+      "wakeReason": "recovery"
+    },
+    {
+      "disposition": "deferred",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "reason": "active_lease",
+      "recheckAt": "2026-09-17T10:05:00Z"
+    },
+    {
+      "disposition": "terminal",
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "status": "completed",
+      "stateVersion": "2"
+    }
+  ]
+}

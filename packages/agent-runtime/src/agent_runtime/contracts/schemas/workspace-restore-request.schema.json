@@ -1,0 +1,213 @@
+{
+  "$defs": {
+    "ActorContext": {
+      "additionalProperties": false,
+      "properties": {
+        "actorId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Actorid",
+          "type": "string"
+        },
+        "authRevision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Authrevision",
+          "type": "string"
+        },
+        "grantsRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Grantsref",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "actorId",
+        "authRevision",
+        "grantsRef"
+      ],
+      "title": "ActorContext",
+      "type": "object"
+    },
+    "ReadyCheckpoint": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpointId": {
+          "format": "uuid",
+          "title": "Checkpointid",
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/WorkspaceFile"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "manifestDigest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Manifestdigest",
+          "type": "string"
+        },
+        "manifestRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Manifestref",
+          "type": "string"
+        },
+        "status": {
+          "const": "ready",
+          "title": "Status",
+          "type": "string"
+        },
+        "totalBytes": {
+          "minimum": 0,
+          "title": "Totalbytes",
+          "type": "integer"
+        },
+        "workspace": {
+          "$ref": "#/$defs/WorkspaceVersion"
+        }
+      },
+      "required": [
+        "checkpointId",
+        "workspace",
+        "manifestRef",
+        "manifestDigest",
+        "files",
+        "totalBytes",
+        "status"
+      ],
+      "title": "ReadyCheckpoint",
+      "type": "object"
+    },
+    "WorkspaceFile": {
+      "additionalProperties": false,
+      "properties": {
+        "blobRef": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Blobref",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Digest",
+          "type": "string"
+        },
+        "executable": {
+          "default": false,
+          "title": "Executable",
+          "type": "boolean"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sizeBytes": {
+          "minimum": 0,
+          "title": "Sizebytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "blobRef",
+        "digest",
+        "sizeBytes"
+      ],
+      "title": "WorkspaceFile",
+      "type": "object"
+    },
+    "WorkspaceVersion": {
+      "additionalProperties": false,
+      "properties": {
+        "generation": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Generation",
+          "type": "string"
+        },
+        "ownerRunId": {
+          "format": "uuid",
+          "title": "Ownerrunid",
+          "type": "string"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        },
+        "scopeId": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Scopeid",
+          "type": "string"
+        },
+        "workspaceId": {
+          "format": "uuid",
+          "title": "Workspaceid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scopeId",
+        "workspaceId",
+        "ownerRunId",
+        "generation",
+        "revision"
+      ],
+      "title": "WorkspaceVersion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "$ref": "#/$defs/ActorContext"
+    },
+    "checkpoint": {
+      "$ref": "#/$defs/ReadyCheckpoint"
+    },
+    "expected": {
+      "$ref": "#/$defs/WorkspaceVersion"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    },
+    "targetGeneration": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Targetgeneration",
+      "type": "string"
+    }
+  },
+  "required": [
+    "actor",
+    "expected",
+    "idempotencyKey",
+    "checkpoint",
+    "targetGeneration"
+  ],
+  "title": "WorkspaceRestoreRequest",
+  "type": "object"
+}

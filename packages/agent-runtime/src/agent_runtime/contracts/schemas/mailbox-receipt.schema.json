@@ -1,0 +1,45 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "disposition": {
+      "enum": [
+        "accepted",
+        "duplicate"
+      ],
+      "title": "Disposition",
+      "type": "string"
+    },
+    "messageId": {
+      "format": "uuid",
+      "title": "Messageid",
+      "type": "string"
+    },
+    "recipientRunId": {
+      "format": "uuid",
+      "title": "Recipientrunid",
+      "type": "string"
+    },
+    "recipientSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Recipientseq",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "messageId",
+    "recipientRunId",
+    "recipientSeq",
+    "disposition"
+  ],
+  "title": "MailboxReceipt",
+  "type": "object"
+}

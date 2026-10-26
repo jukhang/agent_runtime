@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "resultDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Resultdigest",
+      "type": "string"
+    },
+    "resultKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Resultkey",
+      "type": "string"
+    },
+    "resultRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Resultref",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "runId",
+    "resultKey",
+    "resultDigest",
+    "resultRef"
+  ],
+  "title": "WakeInputRequest",
+  "type": "object"
+}

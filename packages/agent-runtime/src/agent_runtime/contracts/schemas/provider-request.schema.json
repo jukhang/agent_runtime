@@ -1,0 +1,210 @@
+{
+  "$defs": {
+    "CapabilityKey": {
+      "additionalProperties": false,
+      "description": "Stable non-scoped identity of a capability inside one namespace.",
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Key",
+          "type": "string"
+        },
+        "namespace": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[\\x21-\\x7e]+$",
+          "title": "Namespace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "key"
+      ],
+      "title": "CapabilityKey",
+      "type": "object"
+    },
+    "CapabilityRef": {
+      "additionalProperties": false,
+      "description": "Public reference to one fixed capability revision.",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/CapabilityKey"
+        },
+        "revision": {
+          "maxLength": 19,
+          "pattern": "^(0|[1-9][0-9]*)$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "revision"
+      ],
+      "title": "CapabilityRef",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "ModelConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "connection": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "maxOutputTokens": {
+          "$ref": "#/$defs/PositiveInt"
+        },
+        "modelName": {
+          "maxLength": 255,
+          "minLength": 1,
+          "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+          "title": "Modelname",
+          "type": "string"
+        },
+        "providerOptions": {
+          "patternProperties": {
+            "^[^\\s\\p{Cc}\\p{Cf}]+$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 255,
+            "minLength": 1
+          },
+          "title": "Provideroptions",
+          "type": "object"
+        },
+        "ref": {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        "thinking": {
+          "enum": [
+            "default",
+            "enabled",
+            "disabled"
+          ],
+          "title": "Thinking",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "connection",
+        "modelName",
+        "maxOutputTokens",
+        "thinking",
+        "providerOptions"
+      ],
+      "title": "ModelConfig",
+      "type": "object"
+    },
+    "PositiveInt": {
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attemptId": {
+      "format": "uuid",
+      "title": "Attemptid",
+      "type": "string"
+    },
+    "budgetAllocationId": {
+      "format": "uuid",
+      "title": "Budgetallocationid",
+      "type": "string"
+    },
+    "contextSnapshotId": {
+      "format": "uuid",
+      "title": "Contextsnapshotid",
+      "type": "string"
+    },
+    "contextVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Contextversion",
+      "type": "string"
+    },
+    "deadlineAt": {
+      "format": "date-time",
+      "title": "Deadlineat",
+      "type": "string"
+    },
+    "estimatedInputTokens": {
+      "minimum": 0,
+      "title": "Estimatedinputtokens",
+      "type": "integer"
+    },
+    "inputDigest": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Inputdigest",
+      "type": "string"
+    },
+    "inputRef": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Inputref",
+      "type": "string"
+    },
+    "model": {
+      "$ref": "#/$defs/ModelConfig"
+    },
+    "outputSchema": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/CapabilityRef"
+      },
+      "title": "Tools",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "runId",
+    "attemptId",
+    "contextSnapshotId",
+    "contextVersion",
+    "inputRef",
+    "inputDigest",
+    "estimatedInputTokens",
+    "budgetAllocationId",
+    "deadlineAt",
+    "model",
+    "tools",
+    "outputSchema"
+  ],
+  "title": "ProviderRequest",
+  "type": "object"
+}

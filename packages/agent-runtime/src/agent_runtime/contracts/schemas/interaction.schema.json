@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Expectedversion",
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[\\x21-\\x7e]+$",
+      "title": "Idempotencykey",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "text": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sessionId",
+    "runId",
+    "expectedVersion",
+    "idempotencyKey",
+    "text"
+  ],
+  "title": "InteractionRequest",
+  "type": "object"
+}

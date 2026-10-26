@@ -1,0 +1,268 @@
+{
+  "spec": "RFC 8785 (JCS)",
+  "note": "Cross-language golden vectors for agent_runtime.contracts.canonical (RFC 8785 JCS). Number rule: a JSON number is allowed when it is exactly representable as an IEEE-754 double (integers above 2**53-1 included, serialized with ECMAScript shortest text); values that would round, overflow the double range, or are non-finite are rejected. Every consumer must reproduce `canonical` and `digest` byte-for-byte. scripts/verify_canonical_vectors.mjs re-derives all of them with an independent Node implementation; tests/test_canonical.py also compares the Python number and string formatters against ECMAScript Number::toString / JSON.stringify on randomized doubles and Unicode strings. Non-ASCII text is stored with \\u escapes so the file is valid UTF-8; utf16-key-order pins UTF-16 code-unit ordering (0, A, a, emoji, U+E000).",
+  "vectors": [
+    {
+      "name": "empty-object",
+      "value": {},
+      "canonical": "{}",
+      "digest": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "name": "null",
+      "value": null,
+      "canonical": "null",
+      "digest": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "name": "booleans",
+      "value": [
+        true,
+        false
+      ],
+      "canonical": "[true,false]",
+      "digest": "153c9dbcc7025ecd7e50ce6d83f1995233dfc636bc869098e3a8d84288fd938a"
+    },
+    {
+      "name": "zero-forms",
+      "value": [
+        0,
+        -0.0,
+        0.0
+      ],
+      "canonical": "[0,0,0]",
+      "digest": "2a08979e8002252124e861b2816490b04fe03b6b779f9287fb7c25652bbc4052"
+    },
+    {
+      "name": "small-integers",
+      "value": [
+        -1,
+        1,
+        42
+      ],
+      "canonical": "[-1,1,42]",
+      "digest": "753a45bb4e212fd36b6695ee9bd0b0718e574e070ff02abfde68b796a838bdf3"
+    },
+    {
+      "name": "max-safe-integer",
+      "value": 9007199254740991,
+      "canonical": "9007199254740991",
+      "digest": "f40b423c2dd95ff2b2f027e22208f438cf7242862e5e746860e697308c9add26"
+    },
+    {
+      "name": "min-safe-integer",
+      "value": -9007199254740991,
+      "canonical": "-9007199254740991",
+      "digest": "4c933a456bb8f2e9894b2d0b26480439cd72d52fb8a27cbf8fd7f323f22c7815"
+    },
+    {
+      "name": "max-safe-integer-in-object",
+      "value": {
+        "n": 9007199254740991
+      },
+      "canonical": "{\"n\":9007199254740991}",
+      "digest": "e1da48c6a6089f06ecb4e0a2259e658e3786b2420f52baccdf929ec6460d7b41"
+    },
+    {
+      "name": "decimal-fractions",
+      "value": [
+        1.5,
+        0.1,
+        0.30000000000000004,
+        123.456,
+        -1.5
+      ],
+      "canonical": "[1.5,0.1,0.30000000000000004,123.456,-1.5]",
+      "digest": "964ae91d5c6ddc4cd0fad8034fe05d1d02adc68e0a022563452a7da059a2842a"
+    },
+    {
+      "name": "integral-floats",
+      "value": [
+        1.0,
+        100.0,
+        -2.0
+      ],
+      "canonical": "[1,100,-2]",
+      "digest": "93629514c80dc32fc60de1270ed0567ce21f65de3078b6e78fe763467c33121e"
+    },
+    {
+      "name": "exponent-lower-threshold",
+      "value": [
+        0.0001,
+        1e-05,
+        1e-06,
+        1e-07,
+        2.5e-05
+      ],
+      "canonical": "[0.0001,0.00001,0.000001,1e-7,0.000025]",
+      "digest": "79ba25f120ec1f09e5e4e6838e9713b7a0c6025e04bb489dc043d103865d447c"
+    },
+    {
+      "name": "exponent-upper-threshold",
+      "value": [
+        1000000000000000.0,
+        1e+16,
+        1e+20,
+        1e+21,
+        1e+22
+      ],
+      "canonical": "[1000000000000000,10000000000000000,100000000000000000000,1e+21,1e+22]",
+      "digest": "2f524ab9266d3e4150d339b671b40df86cbb2d1203ff3c3dde3ec08d8b7e7566"
+    },
+    {
+      "name": "double-extremes",
+      "value": [
+        5e-324,
+        1.7976931348623157e+308,
+        -1.7976931348623157e+308
+      ],
+      "canonical": "[5e-324,1.7976931348623157e+308,-1.7976931348623157e+308]",
+      "digest": "a0daade3bb88b0332d94e7bb5836c729ed03f513d94f3f302062994932e8bcdd"
+    },
+    {
+      "name": "string-with-unicode",
+      "value": {
+        "text": "\u4e2d\u6587 \ud83d\ude42 caf\u00e9",
+        "unit": "\u00b5"
+      },
+      "canonical": "{\"text\":\"\u4e2d\u6587 \ud83d\ude42 caf\u00e9\",\"unit\":\"\u00b5\"}",
+      "digest": "bd50e314a8749190cf6c35db2f65d59babedf1c821322f24cb8d89c49d5d4323"
+    },
+    {
+      "name": "escaping",
+      "value": {
+        "text": "line\nbreak\ttab\"quote\\slash",
+        "control": "\u0000\u001f\u007f"
+      },
+      "canonical": "{\"control\":\"\\u0000\\u001f\u007f\",\"text\":\"line\\nbreak\\ttab\\\"quote\\\\slash\"}",
+      "digest": "77dfdd8602fe1483d25e7593dcdc99be68de79bd20d3b57aa53971f5f4b6265b"
+    },
+    {
+      "name": "empty-string-and-array",
+      "value": [
+        "",
+        []
+      ],
+      "canonical": "[\"\",[]]",
+      "digest": "aa5598c670c7f9c9ab8594d942390dad96b52631bfb78d060476b9a719365947"
+    },
+    {
+      "name": "nested-objects",
+      "value": {
+        "b": 1,
+        "a": [
+          3,
+          2,
+          1
+        ],
+        "c": {
+          "z": null,
+          "y": false
+        },
+        "e": {},
+        "l": []
+      },
+      "canonical": "{\"a\":[3,2,1],\"b\":1,\"c\":{\"y\":false,\"z\":null},\"e\":{},\"l\":[]}",
+      "digest": "0e4e4d9787cefe84506c66bd30683f45dd104a52d13685a661ffde7092348a19"
+    },
+    {
+      "name": "camel-case-alias-data",
+      "value": {
+        "sessionId": "s-1",
+        "stateVersion": "7"
+      },
+      "canonical": "{\"sessionId\":\"s-1\",\"stateVersion\":\"7\"}",
+      "digest": "341cf12bfbe68d3188096bf249ec409247838d8eb0f6860a2bfa2a6a25e1fa09"
+    },
+    {
+      "name": "utf16-key-order",
+      "value": {
+        "\ue000": 1,
+        "\ud83d\ude00": 2,
+        "a": 3,
+        "A": 4,
+        "0": 5
+      },
+      "canonical": "{\"0\":5,\"A\":4,\"a\":3,\"\ud83d\ude00\":2,\"\ue000\":1}",
+      "digest": "4daf3f047938accc52a0c0ac20424d35a69a563f61ac16ca5d31e1d4a3c9fd23"
+    },
+    {
+      "name": "mixed-nesting",
+      "value": {
+        "items": [
+          {
+            "i": 0,
+            "v": 1.5
+          },
+          {
+            "i": 1,
+            "v": 2
+          }
+        ],
+        "ok": true
+      },
+      "canonical": "{\"items\":[{\"i\":0,\"v\":1.5},{\"i\":1,\"v\":2}],\"ok\":true}",
+      "digest": "139b19d321c8ac1671af057b52d6220b0bacfc04d7a87f548227e41f42cb62ff"
+    },
+    {
+      "name": "large-representable-integers",
+      "value": [
+        9007199254740992,
+        9007199254740994,
+        1152921504606846976,
+        -1152921504606846976
+      ],
+      "canonical": "[9007199254740992,9007199254740994,1152921504606847000,-1152921504606847000]",
+      "digest": "b0bd114fc7948d3d743888805646bdbe3cc2cef521eb29190856f678ae563e51"
+    },
+    {
+      "name": "large-representable-integer-in-object",
+      "value": {
+        "epoch": 1152921504606846976,
+        "big": 2582249878086908589655919172003011874329705792829223512830659356540647622016841194629645353280137831435903171972747493376
+      },
+      "canonical": "{\"big\":2.5822498780869086e+120,\"epoch\":1152921504606847000}",
+      "digest": "cc181c6a595dd75acddb09c15fd49f5102716c2271756776fb41773bce8b66f0"
+    }
+  ],
+  "rejections": [
+    {
+      "name": "rounding-integer",
+      "value": {
+        "x": 9007199254740993
+      },
+      "reason": "not exactly representable as an IEEE-754 double; it would round"
+    },
+    {
+      "name": "rounding-large-integer",
+      "value": {
+        "x": 2582249878086908589655919172003011874329705792829223512830659356540647622016841194629645353280137831435903171972747493377
+      },
+      "reason": "2**400 + 1 rounds to 2**400 as a double, so it is not canonicalizable"
+    },
+    {
+      "name": "unrepresentable-integer",
+      "value": {
+        "x": 1000000000000000000000000000000
+      },
+      "reason": "10**30 is not exactly representable as an IEEE-754 double"
+    },
+    {
+      "name": "overflowing-integer",
+      "note": "10**400 exceeds the double range; the Python encoder is unit-tested",
+      "reason": "canonical JSON numbers must fit an IEEE-754 double"
+    },
+    {
+      "name": "lone-surrogate",
+      "value": {
+        "x": "\ud800"
+      },
+      "reason": "canonical JSON text must be valid UTF-8"
+    },
+    {
+      "name": "non-string-key",
+      "note": "JSON object keys are always strings; the Python encoder is unit-tested",
+      "reason": "canonical JSON object keys must be strings"
+    }
+  ]
+}

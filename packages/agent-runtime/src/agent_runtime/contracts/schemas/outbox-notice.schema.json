@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "description": "Payload sent to a wake-up transport; event content stays in the Journal.",
+  "properties": {
+    "eventId": {
+      "format": "uuid",
+      "title": "Eventid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "sessionSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Sessionseq",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "eventId",
+    "sessionSeq"
+  ],
+  "title": "OutboxNotice",
+  "type": "object"
+}

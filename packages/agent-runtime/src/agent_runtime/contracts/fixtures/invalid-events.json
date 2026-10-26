@@ -1,0 +1,10 @@
+[
+  {"base": "assistant.delta", "path": ["payload", "channel"], "value": "analysis"},
+  {"base": "assistant.delta", "path": ["schemaRevision"], "value": 2},
+  {"base": "assistant.delta", "path": ["sessionSeq"], "value": "01"},
+  {"base": "assistant.delta", "path": ["payload", "unexpected"], "value": true},
+  {"base": "run.failed", "path": ["payload", "failure"], "value": null},
+  {"base": "run.completed", "path": ["payload", "outcome"], "value": null},
+  {"base": "run.cancelled", "path": ["payload", "outcome"], "value": "success"},
+  {"base": "model.prepared", "path": ["visibility"], "value": "public"}
+]

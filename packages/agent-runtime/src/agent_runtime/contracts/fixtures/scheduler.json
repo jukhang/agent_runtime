@@ -1,0 +1,233 @@
+{
+  "note": "One positive sample per scheduler/work-claim union kind (DS-P01-07). All identities are fixed so the file is self-validating; epochs and versions are observations, not authority.",
+  "scopeId": "scope-a",
+  "claimResults": [
+    {
+      "disposition": "claimed",
+      "lease": {
+        "scopeId": "scope-a",
+        "sessionId": "22222222-2222-2222-2222-222222222222",
+        "runId": "11111111-1111-1111-1111-111111111111",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "runEpoch": "4",
+        "workEpoch": "9",
+        "slotVersion": "3",
+        "runLeaseUntil": "2026-09-17T10:01:00Z",
+        "workLeaseUntil": "2026-09-17T10:01:00Z"
+      },
+      "stateVersion": "0",
+      "checkpointId": null,
+      "budgetAllocationId": "55555555-5555-5555-5555-555555555555"
+    },
+    {
+      "disposition": "idle",
+      "reason": "no_work",
+      "retryAfterMs": 1000
+    }
+  ],
+  "renewResults": [
+    {
+      "disposition": "renewed",
+      "lease": {
+        "scopeId": "scope-a",
+        "sessionId": "22222222-2222-2222-2222-222222222222",
+        "runId": "11111111-1111-1111-1111-111111111111",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "runEpoch": "4",
+        "workEpoch": "9",
+        "slotVersion": "3",
+        "runLeaseUntil": "2026-09-17T10:02:00Z",
+        "workLeaseUntil": "2026-09-17T10:02:00Z"
+      }
+    },
+    {
+      "disposition": "lost",
+      "failure": {
+        "code": "FENCED",
+        "category": "concurrency",
+        "retryable": false,
+        "publicMessage": "Another worker owns this lease."
+      }
+    }
+  ],
+  "yieldResults": [
+    {
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "stateVersion": "1",
+      "checkpointId": "44444444-4444-4444-4444-444444444444",
+      "inputs": {"pendingVersion": "3", "appliedVersion": "3"},
+      "disposition": "waiting",
+      "status": "waiting_tool"
+    },
+    {
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "stateVersion": "1",
+      "checkpointId": "44444444-4444-4444-4444-444444444444",
+      "inputs": {"pendingVersion": "4", "appliedVersion": "3"},
+      "disposition": "requeued",
+      "workId": "33333333-3333-3333-3333-333333333333"
+    }
+  ],
+  "wakeResults": [
+    {
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "inputs": {"pendingVersion": "4", "appliedVersion": "3"},
+      "disposition": "scheduled",
+      "workId": "33333333-3333-3333-3333-333333333333"
+    },
+    {
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "inputs": {"pendingVersion": "4", "appliedVersion": "3"},
+      "disposition": "deferred"
+    },
+    {
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "inputs": {"pendingVersion": "4", "appliedVersion": "4"},
+      "disposition": "duplicate"
+    },
+    {
+      "runId": "11111111-1111-1111-1111-111111111111",
+      "inputs": {"pendingVersion": "4", "appliedVersion": "4"},
+      "disposition": "terminal",
+      "status": "completed"
+    }
+  ],
+  "workClaimResults": [
+    {
+      "disposition": "claimed",
+      "lease": {
+        "scopeId": "scope-a",
+        "sessionId": "22222222-2222-2222-2222-222222222222",
+        "runId": "11111111-1111-1111-1111-111111111111",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "runEpoch": "4",
+        "workEpoch": "9",
+        "slotVersion": "3",
+        "runLeaseUntil": "2026-09-17T10:01:00Z",
+        "workLeaseUntil": "2026-09-17T10:01:00Z"
+      },
+      "stateVersion": "0",
+      "checkpointId": null,
+      "budgetAllocationId": "55555555-5555-5555-5555-555555555555"
+    },
+    {
+      "disposition": "child_claimed",
+      "lease": {
+        "scopeId": "scope-a",
+        "sessionId": "22222222-2222-2222-2222-222222222222",
+        "runId": "11111111-1111-1111-1111-111111111111",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "runEpoch": "1",
+        "workEpoch": "2",
+        "runLeaseUntil": "2026-09-17T10:01:00Z",
+        "workLeaseUntil": "2026-09-17T10:01:00Z"
+      },
+      "rootRunId": "77777777-7777-7777-7777-777777777777",
+      "rootCancelVersion": "0",
+      "stateVersion": "1",
+      "checkpointId": null,
+      "budgetAllocationId": "55555555-5555-5555-5555-555555555555",
+      "workspaceRef": {
+        "resourceType": "workspace",
+        "resourceId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "resourceVersion": "2",
+        "scope": {"scopeId": "scope-a"}
+      },
+      "workspaceGeneration": "1"
+    },
+    {
+      "disposition": "maintenance_claimed",
+      "lease": {
+        "scopeId": "scope-a",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "workEpoch": "5",
+        "workLeaseUntil": "2026-09-17T10:01:00Z"
+      },
+      "kind": "reconcile_execution",
+      "subjectRef": {
+        "resourceType": "execution",
+        "resourceId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "resourceVersion": "1",
+        "scope": {"scopeId": "scope-a"}
+      },
+      "payloadRef": "payload-1"
+    },
+    {
+      "disposition": "control_claimed",
+      "lease": {
+        "scopeId": "scope-a",
+        "sessionId": "22222222-2222-2222-2222-222222222222",
+        "runId": "11111111-1111-1111-1111-111111111111",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "runEpoch": "4",
+        "workEpoch": "9",
+        "slotVersion": "3",
+        "runLeaseUntil": "2026-09-17T10:01:00Z",
+        "workLeaseUntil": "2026-09-17T10:01:00Z"
+      },
+      "stateVersion": "2",
+      "commandId": "66666666-6666-6666-6666-666666666666",
+      "desiredControl": "pause",
+      "status": "running",
+      "cancelVersion": "0",
+      "checkpointId": null
+    },
+    {
+      "disposition": "idle",
+      "reason": "capacity",
+      "retryAfterMs": 5000
+    }
+  ],
+  "childRenewResults": [
+    {
+      "disposition": "renewed",
+      "lease": {
+        "scopeId": "scope-a",
+        "sessionId": "22222222-2222-2222-2222-222222222222",
+        "runId": "11111111-1111-1111-1111-111111111111",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "runEpoch": "1",
+        "workEpoch": "2",
+        "runLeaseUntil": "2026-09-17T10:02:00Z",
+        "workLeaseUntil": "2026-09-17T10:02:00Z"
+      }
+    },
+    {
+      "disposition": "lost",
+      "failure": {
+        "code": "FENCED",
+        "category": "concurrency",
+        "retryable": false,
+        "publicMessage": "The child lease was taken over."
+      }
+    }
+  ],
+  "maintenanceRenewResults": [
+    {
+      "disposition": "renewed",
+      "lease": {
+        "scopeId": "scope-a",
+        "workId": "33333333-3333-3333-3333-333333333333",
+        "ownerId": "worker-1",
+        "workEpoch": "5",
+        "workLeaseUntil": "2026-09-17T10:02:00Z"
+      }
+    },
+    {
+      "disposition": "lost",
+      "failure": {
+        "code": "FENCED",
+        "category": "concurrency",
+        "retryable": false,
+        "publicMessage": "The maintenance lease was taken over."
+      }
+    }
+  ]
+}

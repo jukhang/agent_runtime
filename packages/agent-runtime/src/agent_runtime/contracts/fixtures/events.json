@@ -1,0 +1,620 @@
+{
+  "note": "Independent valid shape fixtures, not a chronological transcript.",
+  "events": [
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000100",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "100",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": "00000000-0000-4000-8000-000000000006",
+      "modelAttemptId": null,
+      "kind": "input.accepted",
+      "occurredAt": "2026-10-19T10:00:00Z",
+      "recordedAt": "2026-10-19T10:00:00Z",
+      "visibility": "public",
+      "traceId": "human-input",
+      "payload": {
+        "stateVersion": "2",
+        "replyToRunId": "00000000-0000-4000-8000-000000000003",
+        "userItem": {
+          "id": "00000000-0000-4000-8000-000000000006",
+          "type": "message",
+          "role": "user",
+          "createdSeq": "100",
+          "revision": "1",
+          "status": "completed",
+          "channels": [],
+          "resourceRefs": []
+        }
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000001",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "1",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "turn.accepted",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "turnId": "00000000-0000-4000-8000-000000000002",
+        "runId": "00000000-0000-4000-8000-000000000003",
+        "userItem": {
+          "id": "00000000-0000-4000-8000-000000000005",
+          "type": "message",
+          "role": "user",
+          "createdSeq": "1",
+          "revision": "1",
+          "status": "completed",
+          "channels": [],
+          "resourceRefs": []
+        },
+        "assistantItemId": "00000000-0000-4000-8000-000000000004"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000002",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "2",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": "00000000-0000-4000-8000-000000000004",
+      "modelAttemptId": null,
+      "kind": "item.started",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "itemType": "message",
+        "role": "assistant",
+        "channels": [
+          "content",
+          "analysis"
+        ],
+        "itemRevision": "1"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000003",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "3",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": "00000000-0000-4000-8000-000000000004",
+      "modelAttemptId": null,
+      "kind": "assistant.delta",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "channel": "content",
+        "deltaIndex": "0",
+        "itemRevision": "1",
+        "text": "Hello"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000004",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "4",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": "00000000-0000-4000-8000-000000000004",
+      "modelAttemptId": null,
+      "kind": "analysis.delta",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "channel": "analysis",
+        "deltaIndex": "0",
+        "itemRevision": "1",
+        "text": "Checking sources"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000005",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "5",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": "00000000-0000-4000-8000-000000000004",
+      "modelAttemptId": null,
+      "kind": "item.completed",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "itemRevision": "1",
+        "status": "completed",
+        "channelDigests": [],
+        "lastDeltaIndexes": []
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000006",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "6",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "run.status",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "stateVersion": "1",
+        "status": "running",
+        "phase": "model",
+        "phaseStartedAt": "2026-09-14T10:00:00Z",
+        "publicReason": "Answering"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000099",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "99",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "input.required",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "stateVersion": "1",
+        "question": "Which reporting period should I use?",
+        "requiredFacts": ["reporting period"],
+        "replyToRunId": "00000000-0000-4000-8000-000000000003"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000007",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "7",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "plan.updated",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "planId": "00000000-0000-4000-8000-000000000007",
+        "revision": "1",
+        "steps": [],
+        "publicReason": "Plan created"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000008",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "8",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "tool.started",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "toolCallId": "00000000-0000-4000-8000-000000000008",
+        "name": "knowledge.search",
+        "publicArguments": {
+          "query": "water"
+        },
+        "startedAt": "2026-09-14T10:00:00Z"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000009",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "9",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "tool.progress",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "toolCallId": "00000000-0000-4000-8000-000000000008",
+        "progressRevision": "1",
+        "summary": "Searching",
+        "executionRef": null
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000010",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "10",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "tool.finished",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "toolCallId": "00000000-0000-4000-8000-000000000008",
+        "status": "completed",
+        "resultRefs": [],
+        "failure": null,
+        "finishedAt": "2026-09-14T10:00:00Z"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000011",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "11",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "artifact.created",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "resourceRef": {
+          "resourceType": "artifact",
+          "resourceId": "00000000-0000-4000-8000-000000000005",
+          "resourceVersion": "sha256:abc",
+          "scope": {
+            "scopeId": "scope",
+            "sessionId": "00000000-0000-4000-8000-000000000001",
+            "ownerId": null
+          }
+        },
+        "title": "Report",
+        "mime": "text/markdown",
+        "previewStatus": "ready"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000012",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "12",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "approval.required",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "approvalRef": {
+          "resourceType": "approval",
+          "resourceId": "00000000-0000-4000-8000-000000000005",
+          "resourceVersion": "sha256:abc",
+          "scope": {
+            "scopeId": "scope",
+            "sessionId": "00000000-0000-4000-8000-000000000001",
+            "ownerId": null
+          }
+        },
+        "summary": "Confirm write",
+        "expiresAt": "2026-09-14T10:00:00Z",
+        "allowedDecisions": [
+          "approved",
+          "rejected"
+        ]
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000013",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "13",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "command.updated",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "commandId": "00000000-0000-4000-8000-000000000005",
+        "status": "accepted",
+        "publicReason": "Pause requested"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000014",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "14",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "run.completed",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "stateVersion": "2",
+        "finalItemIds": [],
+        "partialResultRefs": [],
+        "outcome": "success",
+        "failure": null
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000015",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "15",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "run.failed",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "stateVersion": "2",
+        "finalItemIds": [],
+        "partialResultRefs": [],
+        "outcome": null,
+        "failure": {
+          "schemaRevision": 1,
+          "code": "INTERNAL",
+          "category": "internal",
+          "retryable": false,
+          "publicMessage": "Cannot complete",
+          "detailRef": null,
+          "recoveryOptions": [],
+          "attemptId": null,
+          "operationId": null,
+          "deadlineAt": null,
+          "partialResultRefs": []
+        }
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000016",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "16",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "run.cancelled",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "stateVersion": "2",
+        "finalItemIds": [],
+        "partialResultRefs": [],
+        "outcome": null,
+        "failure": null
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000017",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "17",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "resource.revoked",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-1",
+      "payload": {
+        "resourceId": "00000000-0000-4000-8000-000000000005",
+        "authRevision": "2"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000018",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "18",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": "00000000-0000-4000-8000-000000000006",
+      "kind": "model.prepared",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "restricted",
+      "traceId": "trace-1",
+      "payload": {
+        "attemptId": "00000000-0000-4000-8000-000000000006",
+        "contextSnapshotId": "00000000-0000-4000-8000-000000000009",
+        "requestKey": "attempt:1"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000019",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "19",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "mailbox.applied",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "restricted",
+      "traceId": "trace-1",
+      "payload": {
+        "inputIds": [
+          "00000000-0000-4000-8000-000000000005"
+        ],
+        "appliedInputVersion": "1",
+        "checkpointId": "00000000-0000-4000-8000-000000000009"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000020",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "20",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "handoff.committed",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "restricted",
+      "traceId": "trace-1",
+      "payload": {
+        "handoffId": "00000000-0000-4000-8000-000000000011",
+        "sourceRunId": "00000000-0000-4000-8000-000000000003",
+        "targetRunId": "00000000-0000-4000-8000-000000000010",
+        "slotVersion": "2"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-9000-000000000021",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "21",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "checkpoint.migrated",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "restricted",
+      "traceId": "trace-1",
+      "payload": {
+        "sourceCheckpointId": "00000000-0000-4000-8000-000000000012",
+        "targetCheckpointId": "00000000-0000-4000-8000-000000000009",
+        "representationRevision": "2",
+        "stateVersion": "2"
+      }
+    },
+    {
+      "schemaRevision": 1,
+      "eventId": "00000000-0000-4000-8000-000000000099",
+      "sessionId": "00000000-0000-4000-8000-000000000001",
+      "sessionSeq": "22",
+      "turnId": "00000000-0000-4000-8000-000000000002",
+      "runId": "00000000-0000-4000-8000-000000000003",
+      "parentRunId": null,
+      "stepId": null,
+      "itemId": null,
+      "modelAttemptId": null,
+      "kind": "approval.updated",
+      "occurredAt": "2026-09-14T10:00:00Z",
+      "recordedAt": "2026-09-14T10:00:00Z",
+      "visibility": "public",
+      "traceId": "trace-approval",
+      "payload": {
+        "approvalRef": {
+          "resourceType": "approval",
+          "resourceId": "00000000-0000-4000-8000-000000000011",
+          "resourceVersion": "1",
+          "scope": {"scopeId": "scope-a", "sessionId": "00000000-0000-4000-8000-000000000001", "ownerId": null}
+        },
+        "revision": "1",
+        "status": "approved",
+        "expiresAt": "2026-09-14T11:00:00Z",
+        "publicReason": "Approval recorded"
+      }
+    }
+  ]
+}

@@ -1,0 +1,411 @@
+{
+  "messages": [
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "task.assign",
+      "payload": {
+        "objective": "Analyze",
+        "constraints": [],
+        "acceptanceSpecRef": "accept",
+        "outputSchemaRef": "report",
+        "budgetAllocationId": "00000000-0000-0000-0000-000000000007"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "task.accepted",
+      "payload": {
+        "assignmentMessageId": "00000000-0000-0000-0000-000000000008"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "task.rejected",
+      "payload": {
+        "assignmentMessageId": "00000000-0000-0000-0000-000000000008",
+        "code": "DEPENDENCY_UNAVAILABLE",
+        "publicReason": "No capacity for the delegated task"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "input.append",
+      "payload": {
+        "text": "More facts",
+        "expectedTaskRevision": "1"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "clarification.request",
+      "payload": {
+        "question": "Which period?",
+        "requiredFacts": [
+          "period"
+        ],
+        "replyToRunId": "00000000-0000-0000-0000-000000000002"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "progress.updated",
+      "payload": {
+        "stepRef": null,
+        "publicSummary": "Working",
+        "evidenceRefs": []
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "result.proposed",
+      "payload": {
+        "resultId": "00000000-0000-0000-0000-000000000009",
+        "summary": "Done",
+        "artifactRefs": [],
+        "evidenceRefs": [],
+        "validation": {
+          "status": "unknown",
+          "evidenceRefs": []
+        },
+        "remainingIssues": []
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "result.accepted",
+      "payload": {
+        "resultId": "00000000-0000-0000-0000-000000000009",
+        "verificationRef": "verified",
+        "publicReason": "Accepted"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "result.rejected",
+      "payload": {
+        "resultId": "00000000-0000-0000-0000-000000000009",
+        "verificationRef": "verified",
+        "publicReason": "Missing evidence"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "task.failed",
+      "payload": {
+        "failure": {
+          "code": "TOOL_TIMEOUT",
+          "category": "tool",
+          "retryable": true,
+          "publicMessage": "Timed out"
+        },
+        "partialResultRefs": []
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "control.cancel",
+      "payload": {
+        "commandId": "00000000-0000-0000-0000-000000000010",
+        "reason": "User cancelled"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "handoff.request",
+      "payload": {
+        "handoffId": "00000000-0000-0000-0000-000000000011",
+        "targetAgentRevision": {
+          "key": {
+            "namespace": "builtin",
+            "key": "worker"
+          },
+          "revision": "1"
+        },
+        "transferManifestRef": "manifest",
+        "expectedSlotVersion": "2"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "handoff.accepted",
+      "payload": {
+        "handoffId": "00000000-0000-0000-0000-000000000011",
+        "publicReason": "Ready"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "handoff.rejected",
+      "payload": {
+        "handoffId": "00000000-0000-0000-0000-000000000011",
+        "publicReason": "Busy"
+      }
+    },
+    {
+      "protocolRevision": 1,
+      "messageId": "00000000-0000-0000-0000-000000000001",
+      "correlationId": "00000000-0000-0000-0000-000000000005",
+      "causationId": null,
+      "senderRunId": "00000000-0000-0000-0000-000000000002",
+      "recipientRunId": "00000000-0000-0000-0000-000000000003",
+      "taskId": "00000000-0000-0000-0000-000000000004",
+      "recipientSeq": "1",
+      "createdAt": "2026-09-14T10:00:00Z",
+      "deadlineAt": "2026-09-14T11:00:00Z",
+      "resourceRefs": [],
+      "traceId": "trace",
+      "kind": "handoff.committed",
+      "payload": {
+        "handoffId": "00000000-0000-0000-0000-000000000011",
+        "newOwnerRunId": "00000000-0000-0000-0000-000000000003",
+        "slotVersion": "3"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "kind": "respond",
+      "payload": {
+        "answerRequestRef": "answer"
+      }
+    },
+    {
+      "kind": "invoke_tools",
+      "payload": {
+        "validatedCalls": [
+          {
+            "toolCallId": "00000000-0000-0000-0000-000000000012",
+            "tool": {
+              "key": {
+                "namespace": "builtin",
+                "key": "worker"
+              },
+              "revision": "1"
+            },
+            "arguments": {
+              "query": "hello"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "update_plan",
+      "payload": {
+        "planId": "00000000-0000-0000-0000-000000000013",
+        "expectedRevision": "0",
+        "steps": []
+      }
+    },
+    {
+      "kind": "delegate",
+      "payload": {
+        "taskPackage": {
+          "taskId": "00000000-0000-0000-0000-000000000004",
+          "targetAgent": {
+            "key": {
+              "namespace": "builtin",
+              "key": "worker"
+            },
+            "revision": "1"
+          },
+          "objective": "Analyze",
+          "constraints": [],
+          "acceptanceSpecRef": "accept",
+          "outputSchemaRef": "report",
+          "budgetAllocationId": "00000000-0000-0000-0000-000000000007",
+          "resourceRefs": [],
+          "deadlineAt": "2026-09-14T11:00:00Z"
+        }
+      }
+    },
+    {
+      "kind": "ask_user",
+      "payload": {
+        "question": "Which period?",
+        "requiredFacts": [
+          "period"
+        ]
+      }
+    },
+    {
+      "kind": "wait",
+      "payload": {
+        "waitSpec": {
+          "kind": "tool",
+          "subjectId": "00000000-0000-0000-0000-000000000012",
+          "deadlineAt": "2026-09-14T11:00:00Z",
+          "resumePredicate": {
+            "key": {
+              "namespace": "builtin",
+              "key": "worker"
+            },
+            "revision": "1"
+          }
+        }
+      }
+    },
+    {
+      "kind": "finish",
+      "payload": {
+        "outcome": "success",
+        "evidenceRefs": [],
+        "finalItemIds": []
+      }
+    }
+  ]
+}

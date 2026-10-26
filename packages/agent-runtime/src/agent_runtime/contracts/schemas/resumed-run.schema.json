@@ -1,0 +1,70 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "commandId": {
+      "format": "uuid",
+      "title": "Commandid",
+      "type": "string"
+    },
+    "controlCommandId": {
+      "title": "Controlcommandid",
+      "type": "null"
+    },
+    "desiredControl": {
+      "title": "Desiredcontrol",
+      "type": "null"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "scopeId": {
+      "maxLength": 255,
+      "minLength": 1,
+      "pattern": "^[^\\s\\p{Cc}\\p{Cf}]+$",
+      "title": "Scopeid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "stateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Stateversion",
+      "type": "string"
+    },
+    "status": {
+      "const": "queued",
+      "title": "Status",
+      "type": "string"
+    },
+    "wakeReason": {
+      "const": "resume",
+      "title": "Wakereason",
+      "type": "string"
+    },
+    "workId": {
+      "format": "uuid",
+      "title": "Workid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scopeId",
+    "sessionId",
+    "runId",
+    "commandId",
+    "workId",
+    "stateVersion",
+    "status",
+    "desiredControl",
+    "controlCommandId",
+    "wakeReason"
+  ],
+  "title": "ResumedRun",
+  "type": "object"
+}

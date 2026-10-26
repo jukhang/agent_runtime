@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "acceptedSeq": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Acceptedseq",
+      "type": "string"
+    },
+    "inputId": {
+      "format": "uuid",
+      "title": "Inputid",
+      "type": "string"
+    },
+    "runId": {
+      "format": "uuid",
+      "title": "Runid",
+      "type": "string"
+    },
+    "sessionId": {
+      "format": "uuid",
+      "title": "Sessionid",
+      "type": "string"
+    },
+    "stateVersion": {
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Stateversion",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sessionId",
+    "runId",
+    "inputId",
+    "stateVersion",
+    "acceptedSeq"
+  ],
+  "title": "InteractionReceipt",
+  "type": "object"
+}
