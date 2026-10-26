@@ -294,7 +294,7 @@ def test_upgrade_creates_the_frozen_schema_without_touching_host_schemas(schema)
     )
     result = migrate("upgrade", schema)
     assert result.status == "applied"
-    assert result.current_revision == "0008_human_input"
+    assert result.current_revision == "0009_approval_events"
     assert result.lock == "transaction-scoped"
     assert (
         scalar(
@@ -325,7 +325,7 @@ def test_repeated_upgrade_is_idempotent(schema):
     second = migrate("upgrade", schema)
     assert second.status == "up-to-date"
     assert second.applied_revisions == ()
-    assert second.current_revision == "0008_human_input"
+    assert second.current_revision == "0009_approval_events"
     assert migrate("check", schema).status == "clean"
 
 
@@ -346,7 +346,7 @@ def test_input_required_constraint_steps_back_and_forward(schema):
         "0003_context_blob"
     )
     assert "input.required" not in event_check()
-    assert migrate("upgrade", schema).current_revision == "0008_human_input"
+    assert migrate("upgrade", schema).current_revision == "0009_approval_events"
     assert "input.required" in event_check()
     assert migrate("check", schema).status == "clean"
 
@@ -380,7 +380,7 @@ def test_successor_revision_steps_back_to_the_0001_snapshot_and_forward_again(sc
     )
     # The 0001 revision itself still verifies once more from its own snapshot.
     assert migrate("upgrade", schema).status == "applied"
-    assert migrate("current", schema).current_revision == "0008_human_input"
+    assert migrate("current", schema).current_revision == "0009_approval_events"
     assert migrate("check", schema).status == "clean"
 
 
@@ -395,7 +395,7 @@ def test_successor_migrates_populated_0001_ownership_and_authority(schema):
     )
     ids = run(lambda: seed_0001_upgrade_graph(schema))
     upgraded = migrate("upgrade", schema)
-    assert upgraded.current_revision == "0008_human_input"
+    assert upgraded.current_revision == "0009_approval_events"
     assert (
         scalar(
             f'SELECT run_id FROM "{schema}"."execution" WHERE id = :id',
@@ -852,7 +852,7 @@ def test_head_revision_ignores_a_changed_live_catalog(schema, monkeypatch):
     import agent_runtime.storage_spec as storage_spec
 
     head = snapshot_names()[-1]
-    assert head == "0008_human_input"
+    assert head == "0009_approval_events"
     future_table = dataclasses.replace(storage_spec.TABLES[0], name="future_table")
     monkeypatch.setattr(storage_spec, "TABLES", (*storage_spec.TABLES, future_table))
     monkeypatch.setattr(storage_spec, "storage_document", lambda: '{"mutated": true}')

@@ -43,14 +43,14 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: agent_runtime_test
+          POSTGRES_DB: aletai_wangxh
         ports: ['5432:5432']
         options: >-
-          --health-cmd pg_isready --health-interval 10s
+          --health-cmd "pg_isready -U postgres" --health-interval 10s
           --health-timeout 5s --health-retries 10
     env:
-      AGENT_RUNTIME_TEST_DSN: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/agent_runtime_test
-      AGENT_RUNTIME_EXPECTED_DATABASE: agent_runtime_test
+      AGENT_RUNTIME_TEST_DSN: postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/aletai_wangxh
+      AGENT_RUNTIME_EXPECTED_DATABASE: aletai_wangxh
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
@@ -63,4 +63,15 @@ jobs:
           packages/agent-runtime/tests/test_storage_migrations.py
           packages/agent-runtime/tests/test_storage_uow.py
           packages/agent-runtime/tests/test_storage_model_attempts.py
-          packages/agent-runtime/tests/test_storage_sdk.py -q
+          packages/agent-runtime/tests/test_storage_sdk.py
+          packages/agent-runtime/tests/test_storage_child_cancel_evidence.py
+          packages/agent-runtime/tests/test_storage_child_deadline.py
+          packages/agent-runtime/tests/test_storage_child_empty_output.py
+          packages/agent-runtime/tests/test_storage_child_recovery.py
+          packages/agent-runtime/tests/test_storage_control_checkpoint_candidates.py
+          packages/agent-runtime/tests/test_storage_loop_stream_close.py
+          packages/agent-runtime/tests/test_storage_main_deadline.py
+          packages/agent-runtime/tests/test_storage_spawn_deadline.py
+          packages/agent-runtime/tests/test_storage_terminal_empty_output.py
+          packages/agent-runtime/tests/test_storage_tool_input_observation.py
+          packages/agent-runtime/tests/test_storage_tool_timeout.py -v

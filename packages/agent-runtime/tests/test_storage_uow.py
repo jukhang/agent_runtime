@@ -6639,7 +6639,7 @@ def test_ask_user_publishes_question_and_wakes_only_after_new_input(world, monke
                         "downgrade", DSN, world.schema, "0007_capability_superseded", 30
                     )
                 )
-            assert migrate("current", world.schema).current_revision == "0008_human_input"
+            assert migrate("current", world.schema).current_revision == "0009_approval_events"
         run(reply_engine.dispose)
         run(engine.dispose)
         return
