@@ -273,15 +273,17 @@ def test_concurrent_begin_is_idempotent_but_rejects_changed_identity(
 ) -> None:
     async def scenario() -> tuple[int, list[str], str]:
         engine = engine_for(attempt_world.schema, pool_size=2, search_path=False)
-        attempt_id = uuid.uuid4()
-        request = provider_request(attempt_world, attempt_id=attempt_id)
         store = SqlModelAttemptStore(engine, attempt_world.schema)
         try:
+            for _ in range(8):
+                attempt_id = uuid.uuid4()
+                request = provider_request(attempt_world, attempt_id=attempt_id)
+                starts = await asyncio.gather(
+                    store.begin(request, started_at=datetime.now(UTC)),
+                    store.begin(request, started_at=datetime.now(UTC)),
+                )
+                assert sorted(starts) == ["already_running", "started"]
             now = datetime.now(UTC)
-            starts = await asyncio.gather(
-                store.begin(request, started_at=now),
-                store.begin(request, started_at=now),
-            )
             changed = request.model_copy(update={"input_ref": "other-input"})
             with pytest.raises(AgentRuntimeError) as conflict:
                 await store.begin(changed, started_at=now)

@@ -50,13 +50,14 @@ class SqlModelAttemptStore(ModelAttemptStore):
             "SELECT * FROM {t}model_attempt WHERE id = :id FOR UPDATE",
             self._schema,
         )
+        # Both the primary key and scoped identity index must arbitrate duplicate starts.
         self._insert = scoped(
             "INSERT INTO {t}model_attempt (id, scope_id, created_at, updated_at, run_id, "
             "context_snapshot_id, request_key, status, input_ref, usage_status, "
             "usage_reason, provider_request_id, output_ref, finish_reason, usage, failure, "
             "started_at, finished_at) VALUES (:id, :scope_id, :now, :now, :run_id, "
             ":context_snapshot_id, :request_key, 'running', :input_ref, 'pending', "
-            "'pending', NULL, NULL, NULL, NULL, NULL, :now, NULL) ON CONFLICT (id) DO NOTHING",
+            "'pending', NULL, NULL, NULL, NULL, NULL, :now, NULL) ON CONFLICT DO NOTHING",
             self._schema,
         )
         self._finish = scoped(
