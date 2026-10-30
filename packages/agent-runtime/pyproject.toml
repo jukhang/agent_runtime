@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-runtime"
-version = "0.1.1"
+version = "0.2.1"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 description = "Reusable Agent Runtime contracts for centn and independent hosts"
@@ -19,6 +19,7 @@ broker = [
 ]
 mcp = [
   "jsonschema>=4.23,<5",
+  "mcp>=1.27,<2",
 ]
 sandbox = [
   "opensandbox==0.1.16",
@@ -52,6 +53,7 @@ dev = [
   "python-dotenv>=1.0,<2",
   "httpx>=0.28.1,<1",
   "jsonschema>=4.23,<5",
+  "mcp>=1.27,<2",
 ]
 
 [tool.hatch.build.targets.wheel]

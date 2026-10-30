@@ -19,7 +19,7 @@ type PublicPolicy = Literal["full", "summary", "reference_only"]
 class McpToolBinding(Contract):
     """Immutable, host-approved remote identity and schemas; never a model-supplied URL."""
 
-    protocol_version: Literal["2026-07-28"]
+    protocol_version: Annotated[str, Field(pattern=r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
     tool_name: MachineKey
     destination: CapabilityRef
     input_schema: dict[str, JsonValue]

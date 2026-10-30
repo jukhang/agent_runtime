@@ -3,7 +3,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AwareDatetime, StringConstraints
+from pydantic import AwareDatetime, Field, StringConstraints
 
 from agent_runtime.contracts.base import Contract, Identifier
 from agent_runtime.contracts.references import CapabilityRef, ResourceRef
@@ -33,3 +33,4 @@ class WaitSpec(Contract):
     subject_id: Identifier
     deadline_at: AwareDatetime
     resume_predicate: CapabilityRef
+    active_seconds_remaining: float | None = Field(default=None, gt=0, allow_inf_nan=False)

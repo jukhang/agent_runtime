@@ -130,6 +130,7 @@ class SqlMainHandlerFactory:
         adapter: OpenAIAdapterProfile,
         allowed_predicates: Collection[CapabilityRef],
         message_predicate: CapabilityRef | None = None,
+        human_wait_seconds: int | None = None,
         execution_predicate: CapabilityRef | None = None,
         extensions: MainExtensionResolver | None = None,
         setups: Mapping[CapabilityRef, MainSetupFactory] | None = None,
@@ -141,6 +142,9 @@ class SqlMainHandlerFactory:
         self._connections, self._capabilities, self._adapter = connections, capabilities, adapter
         self._predicates, self._message = tuple(allowed_predicates), message_predicate
         self._execution_predicate = execution_predicate
+        from agent_runtime.storage.scheduler import SchedulerConfig
+
+        self._scheduler_config = SchedulerConfig(human_wait_seconds=human_wait_seconds)
         self._extensions = extensions
         self._setups = dict(setups or {})
         self._formats = dict(output_formats or {})
@@ -307,6 +311,7 @@ class SqlMainHandlerFactory:
                 self._engine,
                 self._schema,
                 journal=SqlJournal(self._engine, self._schema, actor),
+                config=self._scheduler_config,
             ),
             subagents=ports.subagents,
             allowed_predicates=self._predicates,

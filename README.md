@@ -20,9 +20,9 @@ See the [SDK README](packages/agent-runtime/README.md),
 [standalone UI](packages/agent-runtime/examples/standalone/README.md),
 [deployment](packages/agent-runtime/DEPLOYMENT.md),
 [changes](packages/agent-runtime/CHANGELOG.md), and
-[release scope](docs/agent-runtime-release-0.1.1.md).
+[release scope](docs/agent-runtime-release-0.2.1.md).
 
-Download signed-off local wheels and SHA256SUMS from GitHub Releases. This project
+Download verified wheels and SHA256SUMS from GitHub Releases. This project
 does not publish to PyPI in this release. Capability references alone never authorize
 tools; hosts own identity, ACL, grants, connections and independent Worker processes.
 PostgreSQL, providers, MCP endpoints and sandbox services need explicit configuration.
@@ -30,6 +30,7 @@ The example identity is single-operator development authentication, not a produc
 multi-user login system. Full analysis is restricted task data, not public telemetry.
 
 Offline skips are not external integration passes. The release report distinguishes
-current checks from historical real-service evidence. Current MCP support pins
-2026-07-28; arbitrary protocol compatibility, A2A and existing product migration are
+current checks from historical real-service evidence. Standard MCP sessions negotiate
+supported versions using the optional official client; incompatible protocols fail
+explicitly. Arbitrary protocol compatibility, A2A and existing product migration are
 not certified. See [Security](SECURITY.md) before deployment.

@@ -12,7 +12,7 @@ from agent_runtime.credentials.jsonrpc import BrokerJsonRpcTransport
 from agent_runtime.credentials.ports import BrokerBlobs
 from agent_runtime.mcp.client import McpClient
 from agent_runtime.mcp.write import McpIdempotentWriteTool, McpKeyedEffectClient
-from agent_runtime.storage.tool_host import ToolEffect
+from agent_runtime.tool_effect import ToolEffect
 
 type GrantIssuer = Callable[[ToolInvocation, CapabilityRef, str], Awaitable[GrantRef]]
 type MaintenanceGrantIssuer = Callable[[str, CapabilityRef, str], Awaitable[GrantRef]]
@@ -55,6 +55,7 @@ class McpBrokerReadTool(_McpBrokerBinding):
         super().__init__(broker=broker, blobs=blobs, issue_grant=issue_grant)
         if (
             spec.mcp is None
+            or spec.mcp.protocol_version != "2026-07-28"
             or spec.source != source
             or spec.kind != "read"
             or spec.side_effect != "none"
@@ -64,7 +65,7 @@ class McpBrokerReadTool(_McpBrokerBinding):
 
     async def invoke(self, invocation: ToolInvocation) -> ToolEffect:
         transport = await self._transport(invocation, self._destination, "read")
-        client = McpClient(transport, calls={self._name: transport})
+        client = McpClient(transport, calls={self._name: transport}, profile="legacy-discovery")
         return await client.call_read(self._name, invocation.call.arguments)
 
 
@@ -81,6 +82,7 @@ class McpBrokerEffectTool(_McpBrokerBinding):
         super().__init__(broker=broker, blobs=blobs, issue_grant=issue_grant)
         if (
             spec.mcp is None
+            or spec.mcp.protocol_version != "2026-07-28"
             or spec.source != source
             or spec.kind != "write"
             or spec.side_effect != "external"
@@ -134,6 +136,7 @@ class McpMaintenanceInspector:
         binding = spec.mcp
         if (
             binding is None
+            or binding.protocol_version != "2026-07-28"
             or spec.side_effect != "external"
             or binding.lookup_name is None
             or binding.lookup_destination is None

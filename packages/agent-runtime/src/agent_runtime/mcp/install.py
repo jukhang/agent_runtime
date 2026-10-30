@@ -39,6 +39,8 @@ class McpCapabilityInstaller:
         _validate_schema(binding.input_schema)
         _validate_schema(binding.output_schema)
         catalog = await self._client.test_connection()
+        if self._client.protocol_version != binding.protocol_version:
+            raise ValueError("Negotiated MCP protocol differs from the reviewed binding")
         found = next((item for item in catalog if item.name == binding.tool_name), None)
         if found is None or content_digest(found.input_schema) != content_digest(
             binding.input_schema

@@ -305,7 +305,7 @@
           "type": "object"
         },
         "protocolVersion": {
-          "const": "2026-07-28",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
           "title": "Protocolversion",
           "type": "string"
         },

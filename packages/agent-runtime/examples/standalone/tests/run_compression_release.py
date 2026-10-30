@@ -31,7 +31,9 @@ def main():
         "CENTN_DATABASE_URL": dsn,
         "AGENT_RUNTIME_TEST_DSN": dsn,
         "CENTN_HOST_TOKEN": secrets.token_hex(32),
-        "CENTN_PROVIDER_URL": "http://192.168.1.94:9919/v1",
+        "CENTN_PROVIDER_URL": os.environ.get("CENTN_PROVIDER_URL")
+        or settings.get("CENTN_PROVIDER_URL")
+        or "",
         "CENTN_PROVIDER_KEY": settings["API_KEY"],
         "CENTN_MODEL": settings["MODEL_NAME"],
         "CENTN_SCOPE": "p05-compression",
@@ -46,6 +48,8 @@ def main():
             ]
         ),
     }
+    if not environment["CENTN_PROVIDER_URL"]:
+        raise ValueError("Set CENTN_PROVIDER_URL explicitly before running live acceptance")
     output = root / "output/p05/compression"
     output.mkdir(parents=True, exist_ok=True)
     matrix = "--matrix" in sys.argv

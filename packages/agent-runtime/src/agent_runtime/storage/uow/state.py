@@ -197,7 +197,10 @@ def build_statements(schema: str) -> _Statements:
         ),
         run_pending_control=scoped(
             "UPDATE {t}run SET desired_control = :desired_control, "
-            "control_command_id = :command_id, status = :status, updated_at = :now "
+            "control_command_id = :command_id, status = :status, "
+            "phase = CASE WHEN :desired_control = 'cancel' THEN 'cancelling' ELSE phase END, "
+            "phase_started_at = CASE WHEN :desired_control = 'cancel' THEN :now "
+            "ELSE phase_started_at END, updated_at = :now "
             "WHERE scope_id = :scope_id AND id = :run_id",
             schema,
         ),

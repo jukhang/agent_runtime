@@ -260,7 +260,7 @@ async def test_modern_mcp_uses_broker_and_pinned_tls(mcp_server):
     call = BrokerJsonRpcTransport(broker=broker, blobs=blobs, actor=actor,
         grant=grants[call_ref], action="read",
         mcp_client_info={"name": "centn-runtime", "version": "1.0"})
-    client = McpClient(discovery, calls={"search": call})
+    client = McpClient(discovery, calls={"search": call}, profile="legacy-discovery")
     try:
         catalog = await client.test_connection()
         assert catalog[0].name == "search"
@@ -300,6 +300,8 @@ async def test_mcp_install_requires_reviewed_schema_and_never_publishes():
         max_concurrency=2, cancellation="stop", public_result_policy="full", mcp=binding)
 
     class Client:
+        protocol_version = "2026-07-28"
+
         async def test_connection(self):
             from agent_runtime.mcp.client import McpToolInfo
             return (McpToolInfo("search", "remote", input_schema),)
@@ -320,7 +322,7 @@ async def test_mcp_install_requires_reviewed_schema_and_never_publishes():
     with pytest.raises(ValueError, match="pinned schema"):
         schemas.input(spec, {"query": 2})
 
-    class Drifted:
+    class Drifted(Client):
         async def test_connection(self):
             from agent_runtime.mcp.client import McpToolInfo
             return (McpToolInfo("search", "remote", {"type": "object"}),)

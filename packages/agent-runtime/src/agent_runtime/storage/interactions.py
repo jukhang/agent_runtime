@@ -3,7 +3,7 @@
 import hashlib
 import json
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import NAMESPACE_URL, uuid5
 
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
@@ -153,6 +153,9 @@ class SqlInteractionService:
             if question_body is None:
                 errors.version_conflict("The persisted question is missing")
             question = InputRequired.model_validate(question_body)
+            deadline = run["deadline_at"]
+            if spec.active_seconds_remaining is not None:
+                deadline = now + timedelta(seconds=spec.active_seconds_remaining)
             version = int(request.expected_version) + 1
             body = {**request_body, "requestHash": request_hash, "question": question.question}
             content_ref = context_blob_key(actor.scope_id, content_digest(body))
@@ -275,7 +278,8 @@ class SqlInteractionService:
                 scoped(
                     "UPDATE {t}run SET status='queued',phase='queued',phase_started_at=:now,"
                     "updated_at=:now,state_version=:version,checkpoint_id=:checkpoint,waiting_spec=NULL,"
-                    "wake_generation=wake_generation+1 WHERE scope_id=:scope AND id=:run "
+                    "wake_generation=wake_generation+1,deadline_at=:deadline "
+                    "WHERE scope_id=:scope AND id=:run "
                     "AND state_version=:expected AND status='waiting_user' RETURNING id",
                     self._schema,
                 ),
@@ -284,6 +288,7 @@ class SqlInteractionService:
                     "now": now,
                     "version": version,
                     "checkpoint": checkpoint_id,
+                    "deadline": deadline,
                     "expected": int(request.expected_version),
                 },
             )
@@ -305,7 +310,7 @@ class SqlInteractionService:
                     "dedup": f"human-input:{identity}",
                     "ref": state_ref,
                     "now": now,
-                    "deadline": run["deadline_at"],
+                    "deadline": deadline,
                 },
             )
             return InteractionReceipt(

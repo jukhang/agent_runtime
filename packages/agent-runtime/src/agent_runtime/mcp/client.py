@@ -1,13 +1,13 @@
-"""Strict stateless MCP 2026-07-28 JSON-RPC boundary."""
+"""Negotiated MCP sessions, with an explicit legacy-discovery compatibility profile."""
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Literal, Protocol, cast
 
 from pydantic import JsonValue
 
 from agent_runtime.contracts.tools import ToolInvocation
-from agent_runtime.storage.tool_host import ToolEffect
+from agent_runtime.tool_effect import ToolEffect
 
 
 class McpTransport(Protocol):
@@ -15,11 +15,17 @@ class McpTransport(Protocol):
         """Use a pinned server endpoint and Credential Broker, not a model URL/token."""
 
 
+class McpSessionTransport(McpTransport, Protocol):
+    async def initialize(self) -> dict[str, JsonValue]:
+        """Negotiate using the standard MCP lifecycle and reject unsupported versions."""
+
+
 @dataclass(frozen=True, slots=True)
 class McpToolInfo:
     name: str
     description: str
     input_schema: dict[str, JsonValue]
+    output_schema: dict[str, JsonValue] | None = None
 
 
 class McpClient:
@@ -29,12 +35,43 @@ class McpClient:
         *,
         calls: Mapping[str, McpTransport] | None = None,
         max_tools: int = 128,
+        profile: Literal["session", "legacy-discovery"] = "session",
     ) -> None:
         if max_tools <= 0:
             raise ValueError("MCP tool limit must be positive")
         self._discovery, self._calls, self._max_tools = discovery, dict(calls or {}), max_tools
+        if profile not in {"session", "legacy-discovery"}:
+            raise ValueError("Unknown MCP protocol profile")
+        if profile == "session" and not callable(getattr(discovery, "initialize", None)):
+            raise ValueError("Standard MCP requires a session-capable transport")
+        self._profile = profile
+        self.protocol_version: str | None = None
+        self._closed = False
+
+    def close(self) -> None:
+        self._closed = True
+
+    def _require_open(self) -> None:
+        if self._closed:
+            raise ValueError("MCP session is closed")
 
     async def verify_server(self) -> None:
+        self._require_open()
+        if self._profile == "session":
+            initialized = await cast(McpSessionTransport, self._discovery).initialize()
+            version, capabilities = (
+                initialized.get("protocolVersion"),
+                initialized.get("capabilities"),
+            )
+            if (
+                not isinstance(version, str)
+                or not version
+                or not isinstance(capabilities, dict)
+                or not isinstance(capabilities.get("tools"), dict)
+            ):
+                raise ValueError("MCP server did not negotiate the tools capability")
+            self.protocol_version = version
+            return
         result = await self._discovery.request("server/discover", {})
         if not isinstance(result, dict) or result.get("resultType") != "complete":
             raise ValueError("MCP server did not complete modern discovery")
@@ -47,14 +84,18 @@ class McpClient:
             or not isinstance(capabilities.get("tools"), dict)
         ):
             raise ValueError("MCP server does not support pinned tools protocol")
+        self.protocol_version = "2026-07-28"
 
     async def test_connection(self) -> tuple[McpToolInfo, ...]:
         await self.verify_server()
         return await self.list_tools()
 
     async def list_tools(self) -> tuple[McpToolInfo, ...]:
+        self._require_open()
         result = await self._discovery.request("tools/list", {})
-        if not isinstance(result, dict) or result.get("resultType") != "complete":
+        if not isinstance(result, dict) or (
+            self._profile == "legacy-discovery" and result.get("resultType") != "complete"
+        ):
             raise ValueError("MCP server returned an invalid tool catalog")
         items = result.get("tools")
         if not isinstance(items, list):
@@ -82,15 +123,21 @@ class McpClient:
             ):
                 raise ValueError("MCP tool name or schema conflicts")
             seen.add(name)
-            tools.append(McpToolInfo(name, description, schema))
+            output = item.get("outputSchema")
+            if output is not None and not isinstance(output, dict):
+                raise ValueError("MCP output schema is invalid")
+            tools.append(McpToolInfo(name, description, schema, output))
         return tuple(tools)
 
     async def call_read(self, name: str, arguments: dict[str, JsonValue]) -> ToolEffect:
+        self._require_open()
         transport = self._calls.get(name)
         if transport is None:
             raise ValueError("MCP tool has no pinned call transport")
         result = await transport.request("tools/call", {"name": name, "arguments": arguments})
-        if not isinstance(result, dict) or result.get("resultType") != "complete":
+        if not isinstance(result, dict) or (
+            self._profile == "legacy-discovery" and result.get("resultType") != "complete"
+        ):
             raise ValueError("MCP tool returned an invalid result")
         blocks = result.get("content")
         if not isinstance(blocks, list):

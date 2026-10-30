@@ -585,6 +585,19 @@
     "WaitSpec": {
       "additionalProperties": false,
       "properties": {
+        "activeSecondsRemaining": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Activesecondsremaining"
+        },
         "deadlineAt": {
           "format": "date-time",
           "title": "Deadlineat",

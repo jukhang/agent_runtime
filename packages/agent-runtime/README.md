@@ -1,7 +1,16 @@
 # Agent Runtime
 
-Version 0.1.1 is distributed under Apache-2.0. See [CHANGELOG.md](CHANGELOG.md),
+Version 0.2.1 is an Apache-2.0 Python SDK distributed through GitHub Releases,
+not PyPI. See [CHANGELOG.md](CHANGELOG.md),
 [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md) and [LICENSE](LICENSE).
+
+Hosts may configure the same `human_wait_seconds` on `SqlAdmission` and
+`SqlMainHandlerFactory`. This explicitly allocates a bounded Task/grant retention
+window at admission. Trusted AskUser waits suspend remaining active seconds inside
+WaitSpec, clamped to that existing authorization lifetime. Replies restore only
+remaining seconds atomically with their checkpoint, Journal and wake work. Counters
+and authorization revisions are never reset; expired/revoked grants still fail.
+Unconfigured hosts and non-human waits preserve their original deadline semantics.
 GitHub source is kept at `packages/agent-runtime` inside the independent repository;
 examples and their local SDK paths keep the same layout.
 
@@ -11,6 +20,11 @@ convergence and the scheduler/worker interfaces. Optional adapters remain isolat
 ``provider`` adds the OpenAI-compatible HTTP adapter and ``storage`` adds the standard
 PostgreSQL models, migrations and durable stores. Importing the core starts no service,
 opens no connection and reads no host configuration.
+
+The `mcp` extra provides standard Streamable HTTP session negotiation via the
+official MCP Python client. Use `agent_runtime.mcp.connect_mcp` with a host-owned
+HTTP client and explicit tool allowlist. See [MCP compatibility](docs/mcp-compatibility.md)
+for supported negotiation, lifecycle, authority boundaries and legacy migration.
 
 ## Independent host integration
 

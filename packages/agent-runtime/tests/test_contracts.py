@@ -147,6 +147,7 @@ NETWORK_ALLOWED_PREFIXES = (
     "agent_runtime/providers",
     "agent_runtime/integrations",
     "agent_runtime/execution",
+    "agent_runtime/mcp/session.py",  # Optional standard protocol network adapter, not core.
 )
 
 

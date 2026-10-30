@@ -76,6 +76,7 @@ def utcnow() -> datetime:
 
 @dataclass(frozen=True, slots=True)
 class SchedulerConfig:
+    human_wait_seconds: int | None = None
     candidate_limit: int = 64
     urgent_deadline_seconds: int = 30
     aging_interval_seconds: int = 30
@@ -83,6 +84,8 @@ class SchedulerConfig:
     idle_retry_after_ms: int = 250
 
     def __post_init__(self) -> None:
+        if self.human_wait_seconds is not None and not 1 <= self.human_wait_seconds <= 2592000:
+            raise ValueError("human_wait_seconds must be between 1 second and 30 days")
         if self.candidate_limit < 1 or self.candidate_limit > 1024:
             raise ValueError("candidate_limit must be between 1 and 1024")
         if self.urgent_deadline_seconds < 0:
@@ -398,6 +401,8 @@ class SqlScheduler:
                 or int(checkpoint["state_version"]) != next_version
             ):
                 errors.version_conflict("yield checkpoint does not match the next state version")
+            if request.wait_spec.active_seconds_remaining is not None:
+                errors.invalid_input("Only the scheduler may allocate suspended execution time")
             if request.wait_spec.deadline_at > run["deadline_at"]:
                 errors.invalid_input("wait deadline cannot exceed the run deadline")
             pending = int(request.inputs.pending_version)
@@ -436,6 +441,31 @@ class SqlScheduler:
                 )
                 phase = "waiting"
                 waiting_spec = request.wait_spec.model_dump(mode="json", by_alias=True)
+                if (
+                    request.input_request is not None
+                    and request.wait_spec.kind == "message"
+                    and run["parent_run_id"] is None
+                    and self._config.human_wait_seconds is not None
+                ):
+                    # Persist the remainder, not a fresh budget on each reply. No
+                    # consumer may execute while this Run is waiting for a person.
+                    remaining = (run["deadline_at"] - now).total_seconds()
+                    grant = await locks.current_grant(
+                        session,
+                        self._locks,
+                        lease.scope_id,
+                        run["id"],
+                        request.guard.actor.actor_id,
+                    )
+                    assert grant is not None  # revalidate_authority already verified this row
+                    human_deadline = min(
+                        now + timedelta(seconds=self._config.human_wait_seconds),
+                        grant["expires_at"] - timedelta(seconds=remaining),
+                    )
+                    if human_deadline > now:
+                        run["deadline_at"] = human_deadline
+                        waiting_spec["deadlineAt"] = human_deadline.isoformat()
+                        waiting_spec["activeSecondsRemaining"] = remaining
             if self._journal is not None:
                 status_event = RunStatusDraft(
                     kind="run.status",
@@ -519,7 +549,8 @@ class SqlScheduler:
                     f"UPDATE {self._schema}.run SET status = :status, phase = :phase, "
                     "state_version = :version, checkpoint_id = :checkpoint, "
                     "waiting_spec = CAST(:waiting AS jsonb), owner_id = NULL, lease_until = NULL, "
-                    "owner_epoch = owner_epoch + 1, phase_started_at = :now, updated_at = :now "
+                    "owner_epoch = owner_epoch + 1, phase_started_at = :now, updated_at = :now, "
+                    "deadline_at = :deadline "
                     "WHERE scope_id = :scope AND id = :run"
                 ),
                 {
@@ -529,6 +560,7 @@ class SqlScheduler:
                     "checkpoint": request.checkpoint_id,
                     "waiting": None if waiting_spec is None else json.dumps(waiting_spec),
                     "now": now,
+                    "deadline": run["deadline_at"],
                     "scope": lease.scope_id,
                     "run": run["id"],
                 },

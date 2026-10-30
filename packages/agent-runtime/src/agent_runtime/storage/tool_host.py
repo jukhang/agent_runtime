@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
 from uuid import NAMESPACE_URL, uuid5
@@ -36,18 +35,12 @@ from agent_runtime.storage.tool_capacity import SqlToolCapacity
 from agent_runtime.storage.tool_execution_gate import SqlToolExecutionGate
 from agent_runtime.storage.uow import errors
 from agent_runtime.storage.uow.schema import require_schema, scoped
+from agent_runtime.tool_effect import ToolEffect as ToolEffect
 from agent_runtime.tool_validation import (
     tool_timeout_failure,
     validate_tool_invocation,
     validate_tool_outcome,
 )
-
-
-@dataclass(frozen=True, slots=True)
-class ToolEffect:
-    data: JsonValue
-    summary: str
-    refs: tuple[ResourceRef, ...] = ()
 
 
 class ToolSchemaValidator(Protocol):

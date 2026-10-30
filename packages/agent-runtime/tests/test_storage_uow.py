@@ -120,7 +120,7 @@ from agent_runtime.storage.main_run_loader import (  # noqa: E402
 from agent_runtime.storage.main_stream import SqlMainStream  # noqa: E402
 from agent_runtime.storage.migrate import MigrationResult, execute  # noqa: E402
 from agent_runtime.storage.model_events import SqlModelEventSink  # noqa: E402
-from agent_runtime.storage.scheduler import SqlScheduler  # noqa: E402
+from agent_runtime.storage.scheduler import SchedulerConfig, SqlScheduler  # noqa: E402
 from agent_runtime.storage.tool_capacity import SqlToolCapacity  # noqa: E402
 from agent_runtime.storage.uow import SqlStateUnitOfWork, SqlSystemCapacityStore  # noqa: E402
 from agent_runtime.storage.uow.capacity import release_request_digest  # noqa: E402
@@ -2376,11 +2376,26 @@ def test_cancel_intake_is_worker_visible_and_creates_one_convergence_work(world)
     row = run(
         lambda: _row(
             world,
-            "SELECT status, desired_control, control_command_id, owner_id FROM run WHERE id = :id",
+            "SELECT status, phase, desired_control, control_command_id, owner_id "
+            "FROM run WHERE id = :id",
             id=world.run_id,
         )
     )
     assert row["status"] == "cancelling"
+    assert row["phase"] == "cancelling"
+    from agent_runtime.storage.run_backend import SqlRunBackend
+
+    async def immediate_snapshot():
+        engine = engine_for(world.schema, search_path=False)
+        try:
+            return await SqlRunBackend(engine, world.schema).snapshot(
+                actor(world=world), world.session_id
+            )
+        finally:
+            await engine.dispose()
+
+    snapshot = run(immediate_snapshot)
+    assert next(r for r in snapshot.runs if r.id == world.run_id).phase == "cancelling"
     assert row["desired_control"] == "cancel"
     assert row["control_command_id"] == receipt.command_id
     convergence = run(
@@ -6397,9 +6412,24 @@ def test_recovery_fences_abandoned_model_with_pending_pause(world):
         "human_reply",
         "human_rollback",
         "human_race",
+        "human_long_wait",
     ),
 )
 def test_ask_user_publishes_question_and_wakes_only_after_new_input(world, monkeypatch, scenario):
+    if scenario == "human_long_wait":
+
+        async def short_budget():
+            engine = engine_for(world.schema)
+            try:
+                async with engine.begin() as db:
+                    await db.execute(
+                        sa.text("UPDATE run SET deadline_at=:deadline WHERE id=:id"),
+                        {"deadline": datetime.now(UTC) + timedelta(seconds=60), "id": world.run_id},
+                    )
+            finally:
+                await engine.dispose()
+
+        run(short_budget)
     attempt_id = run(lambda: _seed_attempt(world))
     snapshot_id = run(
         lambda: _row(
@@ -6474,7 +6504,14 @@ def test_ask_user_publishes_question_and_wakes_only_after_new_input(world, monke
         actor=frame.actor,
         lease=lease(world),
         decisions=store,
-        scheduler=SqlScheduler(engine, world.schema, journal=journal),
+        scheduler=SqlScheduler(
+            engine,
+            world.schema,
+            journal=journal,
+            config=SchedulerConfig(human_wait_seconds=604800)
+            if scenario == "human_long_wait"
+            else None,
+        ),
         allowed_predicates=(predicate,),
         message_predicate=predicate,
         message_deadline_at=run_deadline,
@@ -6551,7 +6588,21 @@ def test_ask_user_publishes_question_and_wakes_only_after_new_input(world, monke
         from agent_runtime.storage.run_backend import SqlRunBackend
 
         reply_engine = engine_for(world.schema, pool_size=4, search_path=False)
-        service = SqlInteractionService(reply_engine, world.schema)
+        reply_now = datetime.now(UTC) + timedelta(minutes=10)
+        service = SqlInteractionService(
+            reply_engine,
+            world.schema,
+            **({"clock": lambda: reply_now} if scenario == "human_long_wait" else {}),
+        )
+        if scenario == "human_long_wait":
+            waiting = run(
+                lambda: _row(
+                    world, "SELECT waiting_spec, deadline_at FROM run WHERE id=:id", id=world.run_id
+                )
+            )
+            remaining = waiting["waiting_spec"]["activeSecondsRemaining"]
+            assert 0 < remaining <= 60
+            assert waiting["deadline_at"] > reply_now
         reply = InteractionRequest(
             session_id=world.session_id,
             run_id=world.run_id,
@@ -6614,6 +6665,11 @@ def test_ask_user_publishes_question_and_wakes_only_after_new_input(world, monke
             )
         )
         assert current["status"] == "queued"
+        if scenario == "human_long_wait":
+            resumed = run(
+                lambda: _row(world, "SELECT deadline_at FROM run WHERE id=:id", id=world.run_id)
+            )
+            assert (resumed["deadline_at"] - reply_now).total_seconds() == remaining
         assert current["pending_input_version"] == current["applied_input_version"] == 0
         snapshot = run(
             lambda: SqlRunBackend(reply_engine, world.schema).snapshot(

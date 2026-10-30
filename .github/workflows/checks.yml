@@ -34,7 +34,7 @@ jobs:
       - run: >-
           uv run --project packages/agent-runtime --locked python
           packages/agent-runtime/scripts/verify_sdk_install.py
-          --wheel dist/agent_runtime-0.1.1-py3-none-any.whl
+          --wheel dist/agent_runtime-0.2.1-py3-none-any.whl
   postgres:
     runs-on: ubuntu-latest
     timeout-minutes: 30

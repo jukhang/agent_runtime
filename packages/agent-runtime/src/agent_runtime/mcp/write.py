@@ -6,7 +6,7 @@ from pydantic import JsonValue, TypeAdapter
 
 from agent_runtime.contracts.tools import ToolInvocation
 from agent_runtime.mcp.client import McpTransport
-from agent_runtime.storage.tool_host import ToolEffect
+from agent_runtime.tool_effect import ToolEffect
 
 
 class McpEffectExtension(Protocol):

@@ -91,7 +91,7 @@ uv run --with-editable './packages/agent-runtime/examples/standalone[ecosystem]'
 ```
 
 - `3 passed in 458.80s`，driver `status=passed`。真实 Qwen `qwen3.6-27b`，
-  endpoint 为用户指定 `192.168.1.94:9919/v1`。MCP discovery/catalog/read 均通过
+  endpoint 为用户配置的私有部署（不随公开发行提供其地址）。MCP discovery/catalog/read 均通过
   SQL CredentialBroker；正常任务完成 1612/1373、85.17% 的真实数据报告与 PNG。
 - 固定在线 Git commit `1e32916b8ec579de43c04ad1a654a3e3462e1e6f`，bundle digest
   `140b593b814bf002c1c4343235079d34e1dc905bcebcda7af86e60b0d55e1d93`。

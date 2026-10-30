@@ -61,9 +61,9 @@ async def install_reviewed_tool(
 ) -> UUID:
     # The host supplies a Broker-backed discovery grant, not a URL/token from the model.
     spec = tool_spec()
-    return await McpCapabilityInstaller(McpClient(discovery), registry, source=spec.source).install(
-        actor, spec
-    )
+    return await McpCapabilityInstaller(
+        McpClient(discovery, profile="legacy-discovery"), registry, source=spec.source
+    ).install(actor, spec)
 
 
 def make_handler(

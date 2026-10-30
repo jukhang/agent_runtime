@@ -1,6 +1,6 @@
 # Agent Runtime 0.1.1 发布记录
 
-状态：发布验证 ACCEPTED。目标：公开仓库 `agent_runtime`，Apache-2.0；
+状态：PUBLISHED（2026-10-26）；发布验证 ACCEPTED。公开仓库 `agent_runtime`，Apache-2.0；
 远端PUBLISHED状态以实际仓库、commit、tag和Release及附带验收摘要为准。
 不发布PyPI，不上传现有业务仓库历史、业务app/web、根环境配置或原始对话数据。
 
@@ -95,3 +95,21 @@ DO NOTHING，仍按完整请求身份校验已有记录。保留冲突拒绝和�
   `8016e7ce6e987826f73eaf017941858e27e35ccb6894c97bdc3f6f95f22454f9`。
 
 其他发行物摘要及其文件名以Release所附SHA256SUMS为准。旧0.1.0包和清单未覆盖。
+
+## 实际发布结果
+
+- 仓库：https://github.com/jukhang/agent_runtime
+- Release：https://github.com/jukhang/agent_runtime/releases/tag/v0.1.1
+- 最终源码：`d023f4b10e04004e7779351bcae535676fc18d0f`。
+- Tag对象：`cb7b65a4f1811057e8d386dde234bd07f050b70f`，指向相同源码。
+- 最终CI：https://github.com/jukhang/agent_runtime/actions/runs/40278286625
+  offline/postgres均成功；SQL 198 passed、8个真实Qwen opt-in场景skipped，
+  跳过不算通过。此前指定57个SQL场景在最终源码上全部再次通过。
+- 并发修复本地SQL 6 passed；时间边界修正本地SQL 3 passed；修复后仓库外
+  三包安装通过，包内源码逐字节核对通过。strict mypy224文件通过。
+- 九个公开附件的GitHub服务端SHA-256均与本地冻结文件一致；不发布隐藏构建文件。
+  最终606个公开文件敏感配置比对零命中。
+- Git推送偶发超时；最终Tag通过GitHub官方Git API创建，服务端Tag对象与本地
+  重建对象摘要一致。没有强推、没有覆盖既有公开版本，没有向PyPI上传。
+- 发布回执：`output/releases/agent_runtime-0.1.1/github-publication.json`；原始私密
+  日志留本地。此节为宿主仓库的发布后记录，不修改已封存的公开发行快照。

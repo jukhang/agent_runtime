@@ -65,6 +65,7 @@ class SqlAdmission:
         agents: Mapping[tuple[str, CapabilityRef], AdmissionAgent],
         authorize: AdmissionAuthorizer,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        human_wait_seconds: int | None = None,
     ) -> None:
         self._schema = require_schema(schema)
         self._engine = engine
@@ -72,6 +73,9 @@ class SqlAdmission:
         self._sessions = async_sessionmaker(translated, expire_on_commit=False)
         self._agents = dict(agents)
         self._authorize, self._clock = authorize, clock
+        if human_wait_seconds is not None and not 1 <= human_wait_seconds <= 2592000:
+            raise ValueError("Human wait retention must be between 1 second and 30 days")
+        self._human_wait_seconds = human_wait_seconds or 0
         self._blobs = SqlContextBlobBackend(engine, schema)
         if any(ref != binding.ref for (_, ref), binding in self._agents.items()):
             raise ValueError("installed Agent mapping identity mismatch")
@@ -285,7 +289,7 @@ class SqlAdmission:
                 id=task_id,
                 root_run_id=run_id,
                 acceptance_spec_ref=input_ref,
-                deadline_at=deadline,
+                deadline_at=deadline + timedelta(seconds=self._human_wait_seconds),
             )
         )
         await db.execute(
@@ -341,7 +345,7 @@ class SqlAdmission:
                     ],
                 },
                 issued_at=now,
-                expires_at=deadline,
+                expires_at=deadline + timedelta(seconds=self._human_wait_seconds),
             )
         )
         await db.execute(

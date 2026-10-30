@@ -30,7 +30,7 @@ async def test_mcp_read_tool_discovers_and_calls_pinned_name():
         "resultType": "complete",
         "tools": [{"name": "search", "inputSchema": {"type": "object"}}],
     })
-    client = McpClient(transport, calls={"search": transport})
+    client = McpClient(transport, calls={"search": transport}, profile="legacy-discovery")
     assert (await client.test_connection())[0].name == "search"
     assert transport.calls[:2] == [("server/discover", {}), ("tools/list", {})]
     effect = await client.call_read("search", {"query": "x"})
@@ -53,7 +53,7 @@ async def test_mcp_duplicate_names_and_tool_error_fail_closed():
             "content": [{"type": "text", "text": "secret"}],
         },
     )
-    client = McpClient(transport, calls={"same": transport})
+    client = McpClient(transport, calls={"same": transport}, profile="legacy-discovery")
     with pytest.raises(ValueError, match="conflicts"):
         await client.list_tools()
     with pytest.raises(ValueError, match="failed"):
@@ -107,7 +107,7 @@ async def test_mcp_modern_protocol_and_incomplete_results_fail_closed():
             "capabilities": {"tools": {}},
         },
     )
-    client = McpClient(transport, calls={"search": transport})
+    client = McpClient(transport, calls={"search": transport}, profile="legacy-discovery")
     with pytest.raises(ValueError, match="pinned tools protocol"):
         await client.test_connection()
     assert transport.calls == [("server/discover", {})]

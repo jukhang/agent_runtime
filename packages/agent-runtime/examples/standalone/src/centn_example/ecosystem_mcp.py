@@ -133,7 +133,7 @@ def mcp_tool(host, actor, access):
                 max_response_bytes=16384,
                 mcp_client_info={"name": "centn-ecosystem", "version": "1.0"},
             )
-            catalog = await McpClient(protocol).test_connection()
+            catalog = await McpClient(protocol, profile="legacy-discovery").test_connection()
             found = next((tool for tool in catalog if tool.name == spec.mcp.tool_name), None)
             if found is None or content_digest(found.input_schema) != content_digest(
                 spec.mcp.input_schema
