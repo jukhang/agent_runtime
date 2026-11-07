@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Literal, Protocol
 from uuid import UUID
 
 from agent_runtime.action_dispatch import LiveRunGuard
@@ -33,7 +33,7 @@ class AnswerPublisher(Protocol):
 
 
 class SqlAnswerActionCommitter:
-    """Respond queues continuation; Finish commits a verified successful/partial terminal."""
+    """Complete sealed responses by default; queue model review only when requested."""
 
     def __init__(
         self,
@@ -46,6 +46,7 @@ class SqlAnswerActionCommitter:
         publisher: AnswerPublisher,
         resources: TransactionalResourceAccess,
         live: LiveRunGuard,
+        completion_policy: Literal["on_response", "model_review"] = "on_response",
     ) -> None:
         self._actor = actor
         self._lease = lease if callable(lease) else lambda: lease
@@ -55,6 +56,9 @@ class SqlAnswerActionCommitter:
         self._publisher = publisher
         self._resources = resources
         self._live = live
+        if completion_policy not in {"on_response", "model_review"}:
+            raise ValueError("unknown answer completion policy")
+        self._completion_policy = completion_policy
 
     async def commit(self, state: RunState, frame: DecisionFrame) -> RunState:
         action = frame.action
@@ -77,13 +81,14 @@ class SqlAnswerActionCommitter:
             errors.version_conflict("answer differs from its staged decision")
         await self._live.require_running(state, frame)
         refs: tuple[ResourceRef, ...]
+        outcome: Literal["success", "partial"] | None
         if isinstance(action, Respond):
             publication = await self._publisher.publish(state, frame)
             ids = publication.item_ids
             checkpoint = await self._decisions.prepare_next_checkpoint(
                 state, frame, result={"answerItemIds": [str(item) for item in ids]}
             )
-            outcome = None
+            outcome = "success" if self._completion_policy == "on_response" else None
             refs = ()
         else:
             ids = action.payload.final_item_ids
@@ -100,6 +105,7 @@ class SqlAnswerActionCommitter:
             evidence_refs=refs,
             journal=self._journal,
             resources=self._resources,
+            auto_finish=isinstance(action, Respond) and outcome is not None,
         )
         return state.model_copy(
             update={

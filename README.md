@@ -20,7 +20,7 @@ See the [SDK README](packages/agent-runtime/README.md),
 [standalone UI](packages/agent-runtime/examples/standalone/README.md),
 [deployment](packages/agent-runtime/DEPLOYMENT.md),
 [changes](packages/agent-runtime/CHANGELOG.md), and
-[release scope](docs/agent-runtime-release-0.2.1.md).
+[release scope](docs/agent-runtime-release-0.2.5.md).
 
 Download verified wheels and SHA256SUMS from GitHub Releases. This project
 does not publish to PyPI in this release. Capability references alone never authorize

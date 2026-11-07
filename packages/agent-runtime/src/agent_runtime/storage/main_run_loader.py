@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
@@ -13,10 +13,14 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from agent_runtime.agent_loop import LoopSetup
 from agent_runtime.contracts.canonical import content_digest
 from agent_runtime.contracts.loop import AppliedInputs, RunState
+from agent_runtime.contracts.payloads import RunStatusPayload
 from agent_runtime.contracts.references import CapabilityRef
 from agent_runtime.contracts.scheduler import ClaimedWork
 from agent_runtime.contracts.state import RunStatus
+from agent_runtime.contracts.state_events import MainEventAuthority, RunStatusDraft, StateEventBatch
 from agent_runtime.contracts.transactions import ActorContext, CommitGuard
+from agent_runtime.contracts.transitions import StateWriteGuard
+from agent_runtime.storage.journal import SqlJournal
 from agent_runtime.storage.message_rows import parse_agent_message_row
 from agent_runtime.storage.uow import SqlStateUnitOfWork, errors, facts, locks
 from agent_runtime.storage.uow.authority import revalidate_authority
@@ -29,6 +33,7 @@ class MainAgentBinding:
     agent: CapabilityRef
     setup: LoopSetup
     manifest_hash: str | None = None
+    completion_policy: Literal["on_response", "model_review"] = "on_response"
 
 
 @dataclass(frozen=True, slots=True)
@@ -50,6 +55,7 @@ class SqlMainRunLoader:
         *,
         actor: ActorContext,
         agents: Mapping[UUID, MainAgentBinding],
+        journal: SqlJournal | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
@@ -57,6 +63,7 @@ class SqlMainRunLoader:
         self._locks = locks.build_lock_statements(self._schema)
         self._actor = actor
         self._agents = dict(agents)
+        self._journal = journal
         self._clock = clock
         self._state = SqlStateUnitOfWork(engine, schema, actor)
 
@@ -226,6 +233,46 @@ class SqlMainRunLoader:
                 applied_seq=str(len(envelopes)),
                 messages=envelopes,
             )
+            if self._journal is not None:
+                await self._journal.append_state_in_transaction(
+                    db,
+                    StateEventBatch(
+                        authority=MainEventAuthority(
+                            kind="main",
+                            guard=StateWriteGuard(
+                                actor=self._actor,
+                                lease=lease,
+                                expected_state_version=state.state_version,
+                                status=RunStatus.RUNNING,
+                                desired_control=None,
+                                control_command_id=None,
+                                cancel_version=str(run["cancel_version"]),
+                            ),
+                        ),
+                        session_id=lease.session_id,
+                        trace_id=str(run["id"]),
+                        events=(
+                            RunStatusDraft(
+                                kind="run.status",
+                                producer_key=f"main-claim:{lease.work_id}:{lease.work_epoch}",
+                                occurred_at=run["phase_started_at"],
+                                turn_id=run["turn_id"],
+                                run_id=run["id"],
+                                parent_run_id=None,
+                                step_id=None,
+                                item_id=None,
+                                model_attempt_id=None,
+                                payload=RunStatusPayload(
+                                    state_version=state.state_version,
+                                    status=RunStatus.RUNNING,
+                                    phase="context",
+                                    phase_started_at=run["phase_started_at"],
+                                    public_reason="Preparing context for this turn.",
+                                ),
+                            ),
+                        ),
+                    ),
+                )
             return LoadedMainRun(
                 state=state,
                 inputs=inputs,

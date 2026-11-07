@@ -716,6 +716,7 @@ class SqlStateUnitOfWork:
         evidence_refs: tuple[ResourceRef, ...],
         journal: SqlJournal,
         resources: TransactionalResourceAccess,
+        auto_finish: bool = False,
     ) -> UpdatedStateRef:
         from agent_runtime.storage.uow.answers import commit_answer
 
@@ -728,6 +729,7 @@ class SqlStateUnitOfWork:
             evidence_refs=evidence_refs,
             journal=journal,
             resources=resources,
+            auto_finish=auto_finish,
         )
 
     async def commit_terminal(

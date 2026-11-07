@@ -3347,6 +3347,8 @@ def test_journal_outbox_replay_visibility_and_idempotency(world):
         "finish",
         "partial",
         "rollback_respond",
+        "pending_plan",
+        "failed_plan",
         "rollback_finish",
         "unsealed",
         "empty",
@@ -3359,7 +3361,8 @@ def test_journal_outbox_replay_visibility_and_idempotency(world):
         "other_work",
     ],
 )
-def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario):
+@pytest.mark.parametrize("completion_policy", ["model_review", "on_response"])
+def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario, completion_policy):
     item_id = run(lambda: _seed_item(world))
     attempt_id = run(lambda: _seed_attempt(world))
     snapshot_id = run(
@@ -3387,7 +3390,14 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario):
             "snapshot_id": snapshot_id,
         }
     )
-    responding = scenario in {"respond", "rollback_respond", "other_work"}
+    responding = scenario in {
+        "respond",
+        "rollback_respond",
+        "other_work",
+        "pending_plan",
+        "failed_plan",
+    }
+    automatic = responding and completion_policy == "on_response" and scenario != "pending_plan"
 
     async def register_primary():
         engine = engine_for(world.schema)
@@ -3398,6 +3408,37 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario):
                     {"run": world.run_id, "turn": world.turn_id},
                 )
                 if responding:
+                    if scenario in {"pending_plan", "failed_plan"}:
+                        plan_id = uuid.uuid4()
+                        await connection.execute(
+                            sa.text(
+                                "INSERT INTO plan (id,scope_id,task_id,current_revision) "
+                                "VALUES (:id,:scope,:task,1)"
+                            ),
+                            {"id": plan_id, "scope": world.scope, "task": world.task_id},
+                        )
+                        await connection.execute(
+                            sa.text(
+                                "INSERT INTO plan_revision "
+                                "(id,scope_id,plan_id,revision,steps,public_reason) "
+                                "VALUES (:id,:scope,:plan,1,CAST(:steps AS jsonb),'test')"
+                            ),
+                            {
+                                "id": uuid.uuid4(),
+                                "scope": world.scope,
+                                "plan": plan_id,
+                                "steps": json.dumps(
+                                    [
+                                        {
+                                            "id": "step-1",
+                                            "status": "pending"
+                                            if scenario == "pending_plan"
+                                            else "failed",
+                                        }
+                                    ]
+                                ),
+                            },
+                        )
                     await connection.execute(
                         sa.text(
                             "INSERT INTO budget_allocation (id, scope_id, root_run_id, limits, "
@@ -3554,6 +3595,7 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario):
     staged = run(lambda: store.persist(state, frame))
     publisher = Publisher()
     committer = SqlAnswerActionCommitter(
+        completion_policy=completion_policy,
         actor=frame.actor,
         lease=lease(world),
         decisions=store,
@@ -3657,12 +3699,18 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario):
         return
     committed = run(lambda: committer.commit(staged, frame))
     assert committed.state_version == str(world.state_version + 1)
-    assert committed.status == (RunStatus.QUEUED if responding else RunStatus.COMPLETED)
+    assert committed.status == (
+        RunStatus.QUEUED if responding and not automatic else RunStatus.COMPLETED
+    )
     assert count(world, "event", "kind='run.status'") == 1
-    assert count(world, "event", "kind='run.completed'") == (0 if responding else 1)
+    assert count(world, "event", "kind='run.completed'") == (
+        0 if responding and not automatic else 1
+    )
     assert count(world, "event", "kind='item.completed'") == 1
-    assert count(world, "outbox") == initial_outbox + 2
-    assert count(world, "work_item", "status='pending'") == (1 if responding else 0)
+    assert count(world, "outbox") == initial_outbox + (3 if automatic else 2)
+    assert count(world, "work_item", "status='pending'") == (
+        1 if responding and not automatic else 0
+    )
     assert count(world, "work_item", "status='leased'") == 0
     final_item = run(
         lambda: _row(
@@ -3671,21 +3719,23 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario):
     )
     assert final_item == {"status": "completed", "final_revision": 1}
     assert run(lambda: _row(world, "SELECT owner_run_id FROM session_slot"))["owner_run_id"] is None
-    if not responding:
+    if not responding or automatic:
         turn = run(
             lambda: _row(
                 world, "SELECT outcome_run_id,outcome FROM turn WHERE id=:id", id=world.turn_id
             )
         )
         assert turn["outcome_run_id"] == world.run_id
-        assert turn["outcome"] == ("partial" if scenario == "partial" else "success")
+        assert turn["outcome"] == (
+            "partial" if scenario in {"partial", "failed_plan"} else "success"
+        )
         terminal = run(lambda: _row(world, "SELECT payload FROM event WHERE kind='run.completed'"))
         assert terminal["payload"]["publicMessage"]
         if scenario == "partial":
             assert terminal["payload"]["nextSteps"]
     with pytest.raises(AgentRuntimeError):
         run(lambda: committer.commit(staged, frame))
-    if scenario == "respond":
+    if scenario == "respond" and not automatic:
         from agent_runtime.contracts.scheduler import ClaimedWork
         from agent_runtime.contracts.work_claims import WorkClaimRequest
 
@@ -5055,6 +5105,7 @@ def test_main_run_loader_requires_claimed_root_and_current_epoch(world: World) -
         world.schema,
         actor=actor(world.auth_revision, world=world),
         agents={world.agent_revision_id: MainAgentBinding(agent, Setup())},
+        journal=SqlJournal(engine, world.schema, actor(world.auth_revision, world=world)),
     )
     loaded = run(lambda: loader.load(claimed, handle))
     assert loaded.state.run_id == world.run_id
@@ -5062,6 +5113,8 @@ def test_main_run_loader_requires_claimed_root_and_current_epoch(world: World) -
     assert loaded.inputs.applied_seq == "0"
     assert loaded.binding.agent == agent
     assert loaded.turn_id == world.turn_id
+    run(lambda: loader.load(claimed, handle))
+    assert count(world, "event", "kind='run.status'") == 1
     budget_reader = SqlMainBudgetReader(
         engine,
         world.schema,
@@ -5281,6 +5334,7 @@ def _exercise_main_worker_answer(
     retry_once: bool = False,
     failure_kind: str = "transient",
     live_fault: str | None = None,
+    completion_policy="on_response",
 ) -> None:
     import httpx
     from runtime_provider_faults import InterruptingTransport
@@ -5291,7 +5345,7 @@ def _exercise_main_worker_answer(
     from agent_runtime.contracts.model import ModelConfig, ProviderCapabilities
     from agent_runtime.contracts.provider import ProviderError, ProviderFinish, ProviderUsage
     from agent_runtime.contracts.results import Usage
-    from agent_runtime.contracts.scheduler import ClaimedWork
+    from agent_runtime.contracts.scheduler import ClaimedWork, IdleWork
     from agent_runtime.contracts.work_claims import WorkClaimRequest
     from agent_runtime.providers.context_input import ContextOpenAIInputResolver
     from agent_runtime.providers.openai_compatible import (
@@ -5650,7 +5704,11 @@ def _exercise_main_worker_answer(
                 provider=provider,
                 capabilities=capabilities,
                 validate_provider_options=profile.validate_options,
-                agents={world.agent_revision_id: MainAgentBinding(agent, Setup())},
+                agents={
+                    world.agent_revision_id: MainAgentBinding(
+                        agent, Setup(), completion_policy=completion_policy
+                    )
+                },
                 specs=Unexpected(),
                 tool_resources=Unexpected(),
                 policy=Unexpected(),
@@ -5864,8 +5922,11 @@ def _exercise_main_worker_answer(
                         }
                     )
                 )
-                assert isinstance(next_claim, ClaimedWork)
-                await host_handler(next_claim, LeaseHandle(next_claim.lease))
+                if completion_policy == "model_review":
+                    assert isinstance(next_claim, ClaimedWork)
+                    await host_handler(next_claim, LeaseHandle(next_claim.lease))
+                else:
+                    assert isinstance(next_claim, IdleWork)
 
     try:
         try:
@@ -5921,7 +5982,7 @@ def _exercise_main_worker_answer(
                 )
             return
         expected_status = "completed"
-        expected_models = 2
+        expected_models = 2 if completion_policy == "model_review" else 1
         assert (
             scalar(world.schema, "SELECT status FROM run WHERE id=:id", id=world.run_id)
             == expected_status
@@ -5987,8 +6048,9 @@ def _exercise_main_worker_answer(
         run(engine.dispose)
 
 
-def test_main_worker_commits_answer(world: World) -> None:
-    _exercise_main_worker_answer(world, live=False)
+@pytest.mark.parametrize("completion_policy", ["on_response", "model_review"])
+def test_main_worker_commits_answer(world: World, completion_policy: str) -> None:
+    _exercise_main_worker_answer(world, live=False, completion_policy=completion_policy)
 
 
 @pytest.mark.parametrize("failure_kind", ("transient", "length", "empty"))

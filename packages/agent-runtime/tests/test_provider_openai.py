@@ -54,7 +54,7 @@ async def collect(provider, request, *, cancel=None):
     return [event async for event in provider.stream(request, cancel=cancel)]
 
 
-def build_provider(response_text, request, *, profile=None, capture=None):
+def build_provider(response_text, request, *, profile=None, capture=None, required_tool=None):
     async def handler(http_request):
         if capture is not None:
             capture.append(json.loads(http_request.content))
@@ -85,6 +85,7 @@ def build_provider(response_text, request, *, profile=None, capture=None):
             input_digest=request.input_digest,
             messages=({"role": "user", "content": "hello"},),
             tools=tools,
+            required_tool=required_tool,
         )
 
     async def connections(_request):
@@ -326,6 +327,86 @@ async def test_content_analysis_usage_and_finish_are_normalized():
     assert body["stream_options"] == {"include_usage": True}
     assert headers["authorization"] == "Bearer secret"
     assert "secret" not in repr(provider)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("thinking", ["enabled", "disabled"])
+async def test_deepseek_thinking_uses_native_body_and_keeps_analysis_separate(thinking):
+    request = ProviderRequest.model_validate(request_data(thinking=thinking))
+    captured = []
+    provider, client = build_provider(
+        sse(
+            {
+                "choices": [
+                    {
+                        "delta": {"reasoning_content": "reason", "content": "answer"},
+                        "finish_reason": "stop",
+                    }
+                ]
+            }
+        ),
+        request,
+        profile=OpenAIAdapterProfile.deepseek(),
+        capture=captured,
+    )
+    try:
+        events = await collect(provider, request)
+    finally:
+        await client.aclose()
+    assert captured[0]["thinking"] == {"type": thinking}
+    assert "chat_template_kwargs" not in captured[0]
+    assert [event.text for event in events if event.kind == "analysis.delta"] == ["reason"]
+    assert [event.text for event in events if event.kind == "content.delta"] == ["answer"]
+
+
+@pytest.mark.parametrize("option", [{"type": "disabled"}, {"type": []}, {"other": "enabled"}])
+def test_deepseek_rejects_conflicting_or_malformed_thinking(option):
+    request = ProviderRequest.model_validate(request_data(thinking="enabled"))
+    with pytest.raises(ValueError):
+        OpenAIAdapterProfile.deepseek().validate_options(request.model, {"thinking": option})
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("analysis", [None, ""])
+async def test_deepseek_enabled_tool_call_may_have_no_reasoning(analysis):
+    tool = {"key": {"namespace": "test", "key": "clock"}, "revision": "1"}
+    request = ProviderRequest.model_validate(request_data(thinking="enabled", tools=(tool,)))
+    captured = []
+    provider, client = build_provider(
+        sse(
+            {
+                "choices": [
+                    {
+                        "delta": {
+                            "reasoning_content": analysis,
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "id": "call-1",
+                                    "function": {
+                                        "name": "clock",
+                                        "arguments": "{}",
+                                    },
+                                }
+                            ],
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ]
+            }
+        ),
+        request,
+        profile=OpenAIAdapterProfile.deepseek(),
+        capture=captured,
+    )
+    try:
+        events = await collect(provider, request)
+    finally:
+        await client.aclose()
+    assert captured[0]["thinking"] == {"type": "enabled"}
+    assert not any(event.kind in {"analysis.delta", "error"} for event in events)
+    assert any(event.kind == "tool.complete" for event in events)
+    assert events[-1].kind == "finish" and events[-1].reason == "tool_calls"
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,6 @@
 # Agent Runtime
 
-Version 0.2.1 is an Apache-2.0 Python SDK distributed through GitHub Releases,
+Version 0.2.5 is an Apache-2.0 Python SDK distributed through GitHub Releases,
 not PyPI. See [CHANGELOG.md](CHANGELOG.md),
 [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md) and [LICENSE](LICENSE).
 
@@ -119,7 +119,9 @@ bounded history, pins installed manifests and binds each claim's current Actor. 
 must still supply trusted model connections, tool definitions/execution, resource access
 and policy ports. Unbound Agent knowledge, Skills, Hooks, custom schemas, memory/context
 or policy/delegation declarations are rejected rather than silently ignored. The supplied main
-setup is a native answer/tool/clarification profile followed by a finish-only review; a full
+setup is a native answer/tool/clarification profile. By default, a validated sealed
+response completes the Turn without another model review. Hosts can explicitly select
+`completion_policy="model_review"` for a finish-only review; a full
 developer profile can be registered through `MainSetupFactory` and per-profile output
 formats. The host must implement and validate each advertised capability; the extension
 point alone does not provide a full planner/delegation profile.
@@ -132,7 +134,8 @@ durably wakeable waits. Its declaration is not a child Worker or a budget author
 hosts must install and test those executors separately. No options means no Delegate/Wait
 actions are exposed to the model.
 
-The reference factory's answer-review output permits only finish (success/partial).
+When explicitly enabled, the reference factory's answer-review output permits only
+finish (success/partial).
 Essential clarification is an explicit native Runtime control mapped to `AskUser`, not
 an external ToolHost effect. It must be visible in the pinned Context, complete cleanly,
 and cannot share a batch with business tools. Its reserved reference cannot be declared

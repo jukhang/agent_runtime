@@ -488,23 +488,28 @@ async def compare_catalog_to_database(
     schema: str,
     *,
     tables: Iterable[TableSpec] = TABLES,
+    host_relations: frozenset[str] = frozenset(),
 ) -> tuple[Difference, ...]:
     """Catalog <-> live database, including comments read from ``pg_description``."""
     if isinstance(source, AsyncEngine):
         async with source.connect() as connection:
-            return await compare_catalog_to_database(connection, schema, tables=tables)
+            return await compare_catalog_to_database(
+                connection, schema, tables=tables, host_relations=host_relations
+            )
     connection = source
     relation_names = await connection.run_sync(
         lambda sync: set(sa.inspect(sync).get_table_names(schema=schema))
     )
     comments = await connection.run_sync(lambda sync: column_comments(sync, schema))
     expected = catalog_shapes(tables)
+    if host_relations & (set(expected) | {RUNTIME_VERSION_TABLE}):
+        raise ValueError("host relations overlap Runtime-owned identities")
     present = tuple(spec for spec in tables if spec.name in relation_names)
     shapes = await connection.run_sync(
         lambda sync: database_shapes(sa.inspect(sync), comments, schema, tables=present)
     )
     differences = list(compare_shapes(expected, shapes, compare_immutable=False))
-    unexpected = sorted(relation_names - set(expected) - {RUNTIME_VERSION_TABLE})
+    unexpected = sorted(relation_names - set(expected) - {RUNTIME_VERSION_TABLE} - host_relations)
     for name in unexpected:
         differences.append(Difference(name, "table", "absent", "unexpected table"))
     return tuple(differences)

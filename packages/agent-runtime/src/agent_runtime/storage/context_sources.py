@@ -14,6 +14,7 @@ from agent_runtime.contracts.requests import SubmitRequest
 from agent_runtime.contracts.transactions import ActorContext
 from agent_runtime.storage.context_blobs import SqlContextBlobBackend
 from agent_runtime.storage.uow.schema import require_schema, scoped
+from agent_runtime.tool_transcript import NativeToolTranscript
 
 
 class SqlRuntimeSourceReader:
@@ -26,12 +27,14 @@ class SqlRuntimeSourceReader:
         *,
         blobs: SqlContextBlobBackend,
         optional_history: bool = False,
+        native_tool_history: bool = False,
     ) -> None:
         schema = require_schema(schema)
         self._schema = schema
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
         self._blobs = blobs
         self._optional_history = optional_history
+        self._native_tool_history = native_tool_history
         self._session = scoped(
             "SELECT owner_actor_id, auth_revision, deleted_at FROM {t}session "
             "WHERE scope_id = :scope_id AND id = :session_id",
@@ -155,6 +158,8 @@ class SqlRuntimeSourceReader:
         else:
             blob = await self._blobs.get(request.actor.scope_id, str(row["result_ref"]))
             content = blob.decode("utf-8")
+            if resource.resource_type == "tool_call_result" and self._native_tool_history:
+                content = await self._with_native_history(request, resource, content)
         required = True
         if (
             self._optional_history
@@ -200,6 +205,48 @@ class SqlRuntimeSourceReader:
             content=content,
             required=required,
             priority=priority if not required else 0,
+        )
+
+    async def _with_native_history(
+        self, request: ContextRequest, resource: ResourceRef, content: str
+    ) -> str:
+        transcript = NativeToolTranscript.model_validate_json(content)
+        async with self._sessions() as session:
+            result = await session.execute(
+                scoped(
+                    "SELECT tc.attempt_id,e.kind,e.payload FROM {t}tool_call tc "
+                    "JOIN {t}model_attempt m ON m.scope_id=tc.scope_id "
+                    "AND m.id=tc.attempt_id AND m.run_id=tc.run_id AND m.status='completed' "
+                    "JOIN {t}output_seal s ON s.scope_id=m.scope_id "
+                    "AND s.model_attempt_id=m.id AND s.run_id=m.run_id "
+                    "LEFT JOIN {t}event e ON e.scope_id=s.scope_id AND e.run_id=s.run_id "
+                    "AND e.model_attempt_id=s.model_attempt_id AND e.item_id=s.item_id "
+                    "AND e.kind IN ('assistant.delta','analysis.delta') "
+                    "WHERE tc.scope_id=:scope AND tc.id=:call AND tc.run_id=:run "
+                    "ORDER BY e.session_seq",
+                    self._schema,
+                ),
+                {
+                    "scope": request.actor.scope_id,
+                    "call": UUID(resource.resource_id),
+                    "run": request.run_id,
+                },
+            )
+            rows = result.mappings().all()
+        if not rows:
+            raise self._stale()
+        return canonical_json(
+            transcript.model_copy(
+                update={
+                    "model_attempt_id": rows[0]["attempt_id"],
+                    "reasoning_content": "".join(
+                        row["payload"]["text"] for row in rows if row["kind"] == "analysis.delta"
+                    ),
+                    "assistant_content": "".join(
+                        row["payload"]["text"] for row in rows if row["kind"] == "assistant.delta"
+                    ),
+                }
+            ).model_dump(mode="json", by_alias=True)
         )
 
     async def _load(

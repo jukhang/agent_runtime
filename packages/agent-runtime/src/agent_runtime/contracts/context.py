@@ -29,6 +29,13 @@ class ContextRequest(Contract):
     budget: ContextBudget
     prompt_text: str | None = None
     user_input: str | None = None
+    required_tool: CapabilityRef | None = None
+
+    @model_validator(mode="after")
+    def valid_required_tool(self) -> Self:
+        if self.required_tool is not None and self.required_tool not in self.tools:
+            raise ValueError("required tool must be a pinned context capability")
+        return self
 
 
 class ContextSourceRecord(Contract):

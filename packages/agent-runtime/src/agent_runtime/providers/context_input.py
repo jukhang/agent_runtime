@@ -19,7 +19,7 @@ from agent_runtime.contracts.transactions import ActorContext
 from agent_runtime.native_controls import ASK_USER_CONTROL, ask_user_definition
 from agent_runtime.providers.openai_compatible import ResolvedProviderInput, ResolvedTool
 from agent_runtime.tool_names import provider_tool_name
-from agent_runtime.tool_transcript import ToolTranscript
+from agent_runtime.tool_transcript import NativeToolTranscript as ToolTranscript
 
 type OutputFormatFactory = Callable[
     [ProviderRequest, PreparedContext], Awaitable[Mapping[str, JsonValue]]
@@ -123,33 +123,51 @@ class ContextOpenAIInputResolver:
                     "content": source_label + "\n" + canonical_json(data_sources),
                 }
             )
+        groups: dict[object, list[ToolTranscript]] = {}
         for transcript in transcripts:
-            call_id = str(transcript.call.tool_call_id)
-            messages.append(
-                {
-                    "role": "assistant",
-                    "content": None,
-                    "tool_calls": [
-                        {
-                            "id": call_id,
-                            "type": "function",
-                            "function": {
-                                "name": provider_tool_name(transcript.call.tool),
-                                "arguments": canonical_json(transcript.call.arguments),
-                            },
-                        }
-                    ],
-                }
-            )
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": call_id,
-                    "content": canonical_json(
-                        transcript.outcome.model_dump(mode="json", by_alias=True)
-                    ),
-                }
-            )
+            group_id = transcript.model_attempt_id or transcript.call.tool_call_id
+            groups.setdefault(group_id, []).append(transcript)
+        for group in groups.values():
+            first = group[0]
+            if any(
+                entry.reasoning_content != first.reasoning_content
+                or entry.assistant_content != first.assistant_content
+                for entry in group
+            ):
+                raise runtime_failure(
+                    "INVALID_INPUT",
+                    category="context",
+                    public_message="Tool history has conflicting model output.",
+                )
+            assistant: dict[str, JsonValue] = {
+                "role": "assistant",
+                "content": first.assistant_content,
+                "tool_calls": [
+                    {
+                        "id": str(entry.call.tool_call_id),
+                        "type": "function",
+                        "function": {
+                            "name": provider_tool_name(entry.call.tool),
+                            "arguments": canonical_json(entry.call.arguments),
+                        },
+                    }
+                    for entry in group
+                ],
+            }
+            if first.reasoning_content is not None:
+                assistant["reasoning_content"] = first.reasoning_content
+            messages.append(assistant)
+            for transcript in group:
+                call_id = str(transcript.call.tool_call_id)
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call_id,
+                        "content": canonical_json(
+                            transcript.outcome.model_dump(mode="json", by_alias=True)
+                        ),
+                    }
+                )
         resolved_tools: list[ResolvedTool] = []
         for ref in snapshot.tools:
             definition = (
@@ -183,10 +201,23 @@ class ContextOpenAIInputResolver:
                 if callable(format_binding)
                 else format_binding
             )
+        required_tool = None
+        if payload.get("requiredTool") is not None:
+            try:
+                required_tool = CapabilityRef.model_validate(payload["requiredTool"])
+                if required_tool not in snapshot.tools or request.output_schema is not None:
+                    raise ValueError("required native tool differs from snapshot")
+            except (ValueError, TypeError) as exc:
+                raise runtime_failure(
+                    "INVALID_INPUT",
+                    category="context",
+                    public_message="Required tool binding is invalid.",
+                ) from exc
         return ResolvedProviderInput(
             input_ref=snapshot.payload_ref,
             input_digest=snapshot.content_hash,
             messages=tuple(messages),
             tools=tuple(resolved_tools),
             response_format=response_format,
+            required_tool=required_tool,
         )

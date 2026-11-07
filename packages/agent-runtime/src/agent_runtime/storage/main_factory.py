@@ -287,6 +287,7 @@ class SqlMainHandlerFactory:
                 manifest_hash=content_digest(
                     profile.installed.agent.model_dump(mode="json", by_alias=True)
                 ),
+                completion_policy=profile.installed.agent.completion_policy,
             )
             for revision, profile in profiles.items()
         }

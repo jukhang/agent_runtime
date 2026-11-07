@@ -1,6 +1,6 @@
 """Declarative Agent configuration; execution belongs to AgentRuntime."""
 
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import Field, StringConstraints, field_validator, model_validator
@@ -35,6 +35,7 @@ class Agent(Contract):
     budget: Budget = Field(default_factory=Budget)
     add_datetime_to_context: Annotated[bool, Field(strict=True)] = False
     timezone: str = "UTC"
+    completion_policy: Literal["on_response", "model_review"] = "on_response"
 
     @field_validator("timezone")
     @classmethod

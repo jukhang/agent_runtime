@@ -1,5 +1,6 @@
 """Provider messages and definitions must derive from one authorized snapshot."""
 
+from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
@@ -44,7 +45,17 @@ async def test_native_control_definition_is_pinned_not_supplied_by_host_tools():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "case", ["paired", "call_mismatch", "foreign_run", "unknown_effect", "data_only"]
+    "case",
+    [
+        "paired",
+        "call_mismatch",
+        "foreign_run",
+        "unknown_effect",
+        "data_only",
+        "reasoning",
+        "grouped",
+        "conflicting_reasoning",
+    ],
 )
 async def test_tool_observation_becomes_native_paired_history(case):
     req = request(refs=0).model_copy(
@@ -95,10 +106,34 @@ async def test_tool_observation_becomes_native_paired_history(case):
         }
     )
     req = req.model_copy(update={"resource_refs": (resource,)})
+    extra_id = uuid4()
+    if case in {"reasoning", "grouped", "conflicting_reasoning"}:
+        data.update(
+            {
+                "modelAttemptId": str(uuid4()),
+                "reasoningContent": "exact reasoning",
+                "assistantContent": "I will check.",
+            }
+        )
+    if case in {"grouped", "conflicting_reasoning"}:
+        req = req.model_copy(
+            update={
+                "resource_refs": (
+                    resource,
+                    resource.model_copy(update={"resource_id": str(extra_id)}),
+                )
+            }
+        )
 
     class Reader:
         async def read(self, request, ref):
-            return LoadedSource(resource=ref, content=canonical_json(data), required=True)
+            entry = deepcopy(data)
+            if ref.resource_id == str(extra_id):
+                entry["call"]["toolCallId"] = str(extra_id)
+                entry["outcome"]["toolCallId"] = str(extra_id)
+                if case == "conflicting_reasoning":
+                    entry["reasoningContent"] = "tampered reasoning"
+            return LoadedSource(resource=ref, content=canonical_json(entry), required=True)
 
     context = ContextRuntime(
         reader=Reader(), estimator=Estimator(), payloads=Payloads(), snapshots=Snapshots()
@@ -111,9 +146,20 @@ async def test_tool_observation_becomes_native_paired_history(case):
         with pytest.raises(AgentRuntimeError, match="pairing"):
             await resolver(model_request(snapshot))
         return
+    if case == "conflicting_reasoning":
+        with pytest.raises(AgentRuntimeError, match="conflicting"):
+            await resolver(model_request(snapshot))
+        return
     resolved = await resolver(model_request(snapshot))
     if case == "data_only":
         assert all(message["role"] != "tool" for message in resolved.messages)
+        return
+    if case == "grouped":
+        assistant, first_result, second_result = resolved.messages[-3:]
+        assert len(assistant["tool_calls"]) == 2
+        assert assistant["reasoning_content"] == "exact reasoning"
+        assert first_result["tool_call_id"] == str(call_id)
+        assert second_result["tool_call_id"] == str(extra_id)
         return
     assistant, result = resolved.messages[-2:]
     assert assistant["role"] == "assistant"
@@ -121,6 +167,9 @@ async def test_tool_observation_becomes_native_paired_history(case):
     assert assistant["tool_calls"][0]["function"]["name"] == provider_tool_name(req.tools[0])
     assert result["role"] == "tool" and result["tool_call_id"] == str(call_id)
     assert "5837" in result["content"]
+    if case == "reasoning":
+        assert assistant["reasoning_content"] == "exact reasoning"
+        assert assistant["content"] == "I will check."
 
 
 class Access:

@@ -41,3 +41,26 @@ Only the independently exportable SDK, examples, necessary test helpers and expl
 documentation enter the public repository. No original business history, app/web,
 centn-agent, private environment, credentials, raw conversation or diagnostic log
 is uploaded. GitHub assets contain wheel/sdist, redacted verification and checksums.
+
+## Publication Record (2026-11-02)
+
+Status: PUBLISHED. This post-publication record is maintained in the host repository;
+it does not change the tagged SDK source snapshot.
+
+- Release: https://github.com/jukhang/agent_runtime/releases/tag/v0.2.1
+- Source commit: `1c707469f378bd3a020293d42c9d0bc17c1f90ab`.
+- GitHub CI: https://github.com/jukhang/agent_runtime/actions/runs/41043010732
+  (offline and PostgreSQL jobs both succeeded).
+- Independent source verification: 1450 offline tests passed, 398 external-service
+  tests skipped; 8 selected real PostgreSQL tests passed; 24 Python example tests,
+  16 focused standalone host tests and 19 Node tests passed.
+- Ruff, strict mypy (226 source files), Schema/storage drift checks, wheel/sdist
+  builds and outside-repository wheel installation verification passed.
+- Five public attachments were downloaded without authentication and verified
+  against local SHA-256 and GitHub asset digests. The downloaded checksum manifest
+  also verified all four payload attachments.
+- Published wheel SHA-256:
+  `ee42b411e8b65e3d6c935ddd1f753907bdf1b67492e6ff2e1ad91fc6c2c61849`.
+
+Distribution is GitHub Release under Apache-2.0, not PyPI. Skipped external-service
+tests remain outside this release's acceptance evidence.

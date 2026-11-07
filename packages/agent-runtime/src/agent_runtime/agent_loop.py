@@ -405,6 +405,16 @@ class ModelAgentLoop:
             answer_ref = f"answer-{content_digest({'runId': str(state.run_id), 'text': text})}"
             action = Respond(kind="respond", payload=RespondPayload(answer_request_ref=answer_ref))
         checked = validate_candidate_decision(state, prepared, budget, action, now=self._clock())
+        required = context_request.required_tool
+        if required is not None and (
+            not isinstance(checked, InvokeTools)
+            or any(call.tool != required for call in checked.payload.validated_calls)
+        ):
+            raise runtime_failure(
+                "INCOMPLETE_MODEL_OUTPUT",
+                category="provider",
+                public_message="The model did not complete the required native tool call.",
+            )
         if setup.validate_action is not None:
             setup.validate_action(checked, prepared)
         if isinstance(checked, Respond):
@@ -428,6 +438,8 @@ class ModelAgentLoop:
             or setup.model.max_output_tokens > request.budget.reserved_output_tokens
             or not (request.user_input or "").strip()
             or (setup.mode == "native" and setup.output_schema is not None)
+            or (request.required_tool is not None and setup.mode != "native")
+            or (request.required_tool is not None and request.required_tool not in request.tools)
         ):
             raise runtime_failure(
                 "INVALID_INPUT",

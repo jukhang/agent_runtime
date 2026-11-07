@@ -1,6 +1,7 @@
 """Trusted call/result pairing inside an authorized context payload."""
 
 from typing import Self
+from uuid import UUID
 
 from pydantic import model_validator
 
@@ -22,3 +23,11 @@ class ToolTranscript(Contract):
         if self.outcome.effect == "unknown":
             raise ValueError("unknown effects require reconciliation, not model continuation")
         return self
+
+
+class NativeToolTranscript(ToolTranscript):
+    """Provider enrichment, separate from the stored business-effect record."""
+
+    model_attempt_id: UUID | None = None
+    reasoning_content: str | None = None
+    assistant_content: str | None = None

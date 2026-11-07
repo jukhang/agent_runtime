@@ -83,6 +83,15 @@
     "budget": {
       "$ref": "#/$defs/Budget"
     },
+    "completionPolicy": {
+      "default": "on_response",
+      "enum": [
+        "on_response",
+        "model_review"
+      ],
+      "title": "Completionpolicy",
+      "type": "string"
+    },
     "context": {
       "anyOf": [
         {

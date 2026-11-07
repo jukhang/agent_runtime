@@ -235,6 +235,17 @@
       "default": null,
       "title": "Prompttext"
     },
+    "requiredTool": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CapabilityRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "resourceRefs": {
       "items": {
         "$ref": "#/$defs/ResourceRef"

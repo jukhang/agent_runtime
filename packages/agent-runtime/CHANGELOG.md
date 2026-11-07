@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.2.5
+
+- Add explicit DeepSeek thinking.type mapping and reject mismatched/foreign thinking
+  options. Keep Qwen chat_template_kwargs handling separate.
+- Opt-in SQL native tool history derives exact analysis/content from the same
+  sealed model attempt after normal resource authorization. Group parallel calls
+  into one assistant message with paired results; reject conflicting history.
+- Preserve the existing stored ToolTranscript/effect wire shape. Provider history
+  is a separate NativeToolTranscript enrichment, not nullable fields on business results.
+- Latency projection accepts run-bound SQL ModelAttemptTiming audit facts when
+  model.prepared events are absent, avoiding false zero-call reports. No model
+  request is added for measurement.
+- Includes the on-response completion and explicit review policies from 0.2.3.
+  Publication checks and remaining integration limits are recorded in the release report.
+
+## 0.2.3 (Local Validation Candidate)
+
+- Root Agents complete a validated, sealed native response without an unconditional
+  model-review call or another scheduler continuation. Hosts requiring a model
+  verifier explicitly select `completion_policy="model_review"`.
+- Keep live ownership, authorization, pending input, child collection, tool/execution
+  reconciliation and sealed output checks on the terminal transaction. Failed tool
+  attempts conservatively yield partial completion, not unconditional success.
+- Publish root claim/context status durably from the existing loader transaction.
+  Add read-only Journal latency projection and nearest-rank P50/P95 with sample counts.
+- No database schema change. Real Provider percentiles remain a separate required
+  measurement, not something certified by offline tests or this version number.
+
 ## 0.2.1
 
 - Cancel intake updates status/phase/phase timestamp together, so snapshots remain

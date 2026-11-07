@@ -47,6 +47,7 @@ async def commit_answer(
     evidence_refs: tuple[ResourceRef, ...],
     journal: SqlJournal,
     resources: TransactionalResourceAccess,
+    auto_finish: bool = False,
 ) -> UpdatedStateRef:
     if journal.schema != store.schema:
         errors.invalid_input("answer Journal uses another schema")
@@ -79,6 +80,35 @@ async def commit_answer(
                 session, guard.actor, ref, session_id=run["session_id"]
             )
         params = {"scope": run["scope_id"], "run": run["id"]}
+        if auto_finish:
+            if outcome != "success":
+                errors.invalid_input("automatic completion requires a successful answer candidate")
+            failed = await session.execute(
+                scoped(
+                    "SELECT id FROM {t}tool_call WHERE scope_id=:scope AND run_id=:run "
+                    "AND status IN ('failed','cancelled','not_executed') LIMIT 1",
+                    store.schema,
+                ),
+                params,
+            )
+            if failed.first() is not None:
+                outcome = "partial"
+            plan_steps = await session.execute(
+                scoped(
+                    "SELECT step->>'status' FROM {t}plan p JOIN {t}plan_revision pr "
+                    "ON pr.scope_id=p.scope_id AND pr.plan_id=p.id "
+                    "AND pr.revision=p.current_revision "
+                    "CROSS JOIN LATERAL jsonb_array_elements(pr.steps) step "
+                    "WHERE p.scope_id=:scope AND p.task_id=:task",
+                    store.schema,
+                ),
+                {**params, "task": run["task_id"]},
+            )
+            statuses = plan_steps.scalars().all()
+            if any(status not in {"completed", "failed", "cancelled"} for status in statuses):
+                outcome = None
+            elif any(status in {"failed", "cancelled"} for status in statuses):
+                outcome = "partial"
 
         if outcome is None:
             other_work = await session.execute(
@@ -168,7 +198,7 @@ async def commit_answer(
                 or (
                     int(item["final_revision"]) != int(seal["sealed_revision"])
                     and not (
-                        outcome is None
+                        (outcome is None or auto_finish)
                         and item["status"] == "streaming"
                         and int(item["final_revision"]) == 0
                     )
@@ -189,7 +219,7 @@ async def commit_answer(
             )
             if text.scalar_one_or_none() is None:
                 errors.invalid_input("answer has no visible content")
-            if outcome is None:
+            if outcome is None or (auto_finish and item["status"] == "streaming"):
                 events.append(
                     ItemCompletedDraft(
                         kind="item.completed",

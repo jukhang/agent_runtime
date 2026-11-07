@@ -119,6 +119,8 @@ class ContextRuntime:
             "sourceLabel": SOURCE_DATA_LABEL,
             "sources": included,
         }
+        if request.required_tool is not None:
+            payload["requiredTool"] = request.required_tool.model_dump(mode="json", by_alias=True)
         used = self._estimate(payload)
         if used > request.budget.max_input_tokens:
             raise runtime_failure(
@@ -224,6 +226,15 @@ class ContextRuntime:
             )
         if self._payload_renderer is not None:
             payload = self._payload_renderer(payload)
+            required = request.required_tool
+            if payload.get("requiredTool") != (
+                required.model_dump(mode="json", by_alias=True) if required else None
+            ):
+                raise runtime_failure(
+                    "INVALID_INPUT",
+                    category="context",
+                    public_message="Context rendering changed the required tool binding.",
+                )
             used = self._estimate(payload)
             if used > request.budget.max_input_tokens:
                 raise runtime_failure(

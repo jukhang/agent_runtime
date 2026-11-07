@@ -32,6 +32,7 @@ from agent_runtime.contracts.provider import (
 from agent_runtime.contracts.results import Usage
 from agent_runtime.ports import CancelSignal, Provider
 from agent_runtime.providers.context_errors import vllm_context_error
+from agent_runtime.tool_names import provider_tool_name
 
 if TYPE_CHECKING:
     from pydantic import JsonValue
@@ -55,6 +56,7 @@ class ResolvedProviderInput:
     messages: tuple[Mapping[str, JsonValue], ...]
     tools: tuple[ResolvedTool, ...] = ()
     response_format: Mapping[str, JsonValue] | None = None
+    required_tool: CapabilityRef | None = None
 
     def __post_init__(self) -> None:
         if not self.messages:
@@ -68,6 +70,11 @@ class ResolvedProviderInput:
             _finite_json(tool.definition)
         if self.response_format is not None:
             _finite_json(self.response_format)
+        if self.required_tool is not None:
+            if self.required_tool not in tuple(tool.ref for tool in self.tools):
+                raise ValueError("required tool is not in resolved capabilities")
+            if self.response_format is not None:
+                raise ValueError("required native tool cannot use a structured response format")
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,7 +100,7 @@ class OpenAIAdapterProfile:
     endpoint_path: str = "/chat/completions"
     max_tokens_field: Literal["max_tokens", "max_completion_tokens"] = "max_tokens"
     analysis_fields: tuple[str, ...] = ("reasoning_content", "reasoning")
-    thinking_style: Literal["none", "qwen_chat_template"] = "none"
+    thinking_style: Literal["none", "qwen_chat_template", "deepseek"] = "none"
     include_usage: bool = True
     context_error_codes: tuple[str, ...] = (
         "context_length_exceeded",
@@ -119,10 +126,25 @@ class OpenAIAdapterProfile:
             context_error_format="vllm",
         )
 
+    @classmethod
+    def deepseek(cls) -> OpenAIAdapterProfile:
+        return cls(name="deepseek", thinking_style="deepseek")
+
     def validate_options(self, model: ModelConfig, options: dict[str, JsonValue]) -> None:
         _finite_json(options)
         if model.thinking != "default" and self.thinking_style == "none":
             raise ValueError("this adapter profile cannot control thinking")
+        thinking = options.get("thinking")
+        if thinking is not None:
+            if (
+                self.thinking_style != "deepseek"
+                or not isinstance(thinking, dict)
+                or set(thinking) != {"type"}
+                or thinking.get("type") not in ("enabled", "disabled")
+            ):
+                raise ValueError("thinking.type requires the explicit DeepSeek profile")
+            if model.thinking != "default" and thinking["type"] != model.thinking:
+                raise ValueError("thinking option conflicts with the pinned model configuration")
         template = options.get("chat_template_kwargs")
         if template is not None:
             if self.thinking_style != "qwen_chat_template" or not isinstance(template, dict):
@@ -286,7 +308,9 @@ class OpenAICompatibleProvider(Provider):
                         ),
                     )
                     return
-                parser = _OpenAIStreamParser(request, self.profile)
+                parser = _OpenAIStreamParser(
+                    request, self.profile, required_tool=resolved.required_tool
+                )
                 async for payload in _sse_payloads(response, cancel=cancel):
                     if payload == "[DONE]":
                         parser.done_seen = True
@@ -418,6 +442,11 @@ class OpenAICompatibleProvider(Provider):
             body["stream_options"] = {"include_usage": True}
         if resolved.tools:
             body["tools"] = [dict(tool.definition) for tool in resolved.tools]
+        if resolved.required_tool is not None:
+            body["tool_choice"] = {
+                "type": "function",
+                "function": {"name": provider_tool_name(resolved.required_tool)},
+            }
         if resolved.response_format is not None:
             body["response_format"] = dict(resolved.response_format)
         body.update(options)
@@ -432,6 +461,8 @@ class OpenAICompatibleProvider(Provider):
                 raise ValueError("thinking option conflicts with the pinned model configuration")
             template["enable_thinking"] = expected
             body["chat_template_kwargs"] = template
+        if self.profile.thinking_style == "deepseek" and request.model.thinking != "default":
+            body["thinking"] = {"type": request.model.thinking}
         _finite_json(body)
         return body
 
@@ -443,13 +474,20 @@ class OpenAICompatibleProvider(Provider):
 
 
 class _OpenAIStreamParser:
-    def __init__(self, request: ProviderRequest, profile: OpenAIAdapterProfile) -> None:
+    def __init__(
+        self,
+        request: ProviderRequest,
+        profile: OpenAIAdapterProfile,
+        *,
+        required_tool: CapabilityRef | None = None,
+    ) -> None:
         self.request = request
         self.profile = profile
         self.tools: dict[int, _ToolBuffer] = {}
         self.finished = False
         self.done_seen = False
         self.pending_finish: ProviderFinish | None = None
+        self.required_name = provider_tool_name(required_tool) if required_tool else None
 
     def feed(self, value: object) -> list[ProviderEvent]:
         if self.finished:
@@ -498,9 +536,21 @@ class _OpenAIStreamParser:
         if finish_reason is not None:
             if not isinstance(finish_reason, str):
                 raise ValueError("provider finish reason must be text")
-            if finish_reason == "tool_calls":
+            named_stop = (
+                finish_reason == "stop"
+                and self.required_name is not None
+                and len(self.tools) == 1
+                and all(tool.name == self.required_name for tool in self.tools.values())
+            )
+            if finish_reason == "tool_calls" or named_stop:
                 events.extend(self._complete_tools())
             self.pending_finish = self._finish(finish_reason)
+            if named_stop:
+                # Named-tool guided decoders may terminate with raw "stop".
+                # Only normalize a fully parsed, exactly bound native call.
+                self.pending_finish = self.pending_finish.model_copy(
+                    update={"reason": "tool_calls"}
+                )
         return events
 
     def finalize(self) -> ProviderFinish | None:

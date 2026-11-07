@@ -113,7 +113,9 @@ class SqlMainWorkerHandler:
         self._engine = engine
         self._schema = require_schema(schema)
         self._actor = actor
-        self._loader = SqlMainRunLoader(engine, schema, actor=actor, agents=agents)
+        self._loader = SqlMainRunLoader(
+            engine, schema, actor=actor, agents=agents, journal=SqlJournal(engine, schema, actor)
+        )
         self._estimator = estimator
         self._context = context
         self._provider = provider
@@ -231,6 +233,7 @@ class SqlMainWorkerHandler:
                 publisher=output.publisher,
                 resources=self._resources,
                 live=live,
+                completion_policy=loaded.binding.completion_policy,
             ),
             waits=SqlWaitActionCommitter(
                 actor=self._actor,

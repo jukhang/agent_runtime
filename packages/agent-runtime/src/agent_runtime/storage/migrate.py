@@ -139,8 +139,22 @@ async def acquire_lock(connection: AsyncConnection, key: int, timeout_seconds: f
         await asyncio.sleep(0.25)
 
 
-async def preflight(connection: AsyncConnection, schema: str) -> dict[str, str]:
+def validate_host_relations(relations: frozenset[str]) -> None:
+    """Explicit disjoint host identities, never prefixes or catalog exclusions."""
+    if any(not SCHEMA_PATTERN.fullmatch(name) for name in relations):
+        raise MigrationPreflightError("host relations must be exact PostgreSQL identifiers")
+    if relations & known_relations():
+        raise MigrationPreflightError("host relations overlap Runtime-owned identities")
+
+
+async def preflight(
+    connection: AsyncConnection,
+    schema: str,
+    *,
+    host_relations: frozenset[str] = frozenset(),
+) -> dict[str, str]:
     """Verify owner/privilege and refuse to take over foreign objects (Q40)."""
+    validate_host_relations(host_relations)
     exists = await _scalar(
         connection,
         sa.text("SELECT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = :schema)"),
@@ -190,7 +204,7 @@ async def preflight(connection: AsyncConnection, schema: str) -> dict[str, str]:
             {"schema": schema},
         )
     ).all()
-    allowed_relations = known_relations()
+    allowed_relations = known_relations() | host_relations
     unexpected = sorted(name for (name,) in rows if name not in allowed_relations)
     if unexpected:
         raise MigrationPreflightError(
@@ -251,9 +265,11 @@ async def dispatch(
     command: str,
     schema: str,
     revision: str,
+    *,
+    host_relations: frozenset[str] = frozenset(),
 ) -> MigrationResult:
     """Run one command on an already-locked connection."""
-    roles = await preflight(connection, schema)
+    roles = await preflight(connection, schema, host_relations=host_relations)
     if command == "upgrade":
         # Alembic bootstraps ``<schema>.alembic_version`` before the first revision runs,
         # so the schema itself must exist already. This is still DDL performed by the
@@ -271,7 +287,9 @@ async def dispatch(
             roles=roles,
         )
     if command == "check":
-        differences = await compare_catalog_to_database(connection, schema)
+        differences = await compare_catalog_to_database(
+            connection, schema, host_relations=host_relations
+        )
         return MigrationResult(
             status="clean" if not differences else "differences",
             command=command,
@@ -316,7 +334,10 @@ async def execute(
     schema: str,
     revision: str,
     lock_timeout_seconds: float,
+    *,
+    host_relations: frozenset[str] = frozenset(),
 ) -> MigrationResult:
+    validate_host_relations(host_relations)
     started = time.monotonic()
     engine: AsyncEngine = create_async_engine(dsn, pool_size=2, max_overflow=0)
     key = advisory_key(schema)
@@ -327,7 +348,12 @@ async def execute(
         # the transaction-scoped advisory lock is held until that commit/rollback finishes.
         async with engine.begin() as connection:
             lock_state = await acquire_lock(connection, key, lock_timeout_seconds)
-            result = await dispatch(connection, command, schema, revision)
+            if host_relations:
+                result = await dispatch(
+                    connection, command, schema, revision, host_relations=host_relations
+                )
+            else:
+                result = await dispatch(connection, command, schema, revision)
     finally:
         await engine.dispose()
     return replace(
