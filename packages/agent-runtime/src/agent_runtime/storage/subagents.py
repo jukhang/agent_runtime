@@ -175,6 +175,10 @@ class SqlSubagentRuntime:
         now: datetime,
         reason: str,
     ) -> None:
+        if status in {RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED}:
+            from agent_runtime.storage.model_budget import release_closing
+
+            await release_closing(session, self._schema, run["scope_id"], run["id"])
         phase: Phase = (
             "queued"
             if status == RunStatus.QUEUED
@@ -322,6 +326,17 @@ class SqlSubagentRuntime:
                 errors.forbidden("delegation parent budget has another owner")
             limits = policy.limits
             reserved = dict(budget["reserved"])
+            from agent_runtime.storage.model_budget import own_spend, reserve_closing
+
+            own, unknown_own = await own_spend(db, self._schema, self._actor.scope_id, parent["id"])
+            if unknown_own:
+                from agent_runtime.contracts.failure import runtime_failure
+
+                raise runtime_failure(
+                    "USAGE_UNRESOLVED",
+                    category="budget",
+                    public_message="Parent usage must be reconciled before delegation.",
+                )
             for key, amount in limits.items():
                 values = [
                     budget["limits"].get(key),
@@ -330,7 +345,7 @@ class SqlSubagentRuntime:
                 ]
                 if any(type(value) is not int or value < 0 for value in values):
                     errors.invalid_input("parent budget quantities are not valid counters")
-                if values[0] - values[1] - values[2] < amount:
+                if values[0] - values[1] - values[2] - own.get(key, 0) < amount:
                     errors.capacity_unavailable("insufficient parent budget for child")
                 reserved[key] = values[1] + amount
             key = f"delegate:{parent['id']}:{request.idempotency_key}"
@@ -445,6 +460,14 @@ class SqlSubagentRuntime:
                 root=parent["id"],
                 parent=budget["id"],
                 limits=json.dumps(limits),
+            )
+            await reserve_closing(
+                db,
+                self._schema,
+                scope=self._actor.scope_id,
+                allocation=task.budget_allocation_id,
+                run=child_id,
+                tokens=agent_budget.finalization_tokens,
             )
             await self._execute(
                 db,

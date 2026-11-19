@@ -177,6 +177,40 @@ def failed(code: str = "PROVIDER_TIMEOUT") -> AttemptTerminal:
     )
 
 
+def test_fenced_attempt_cannot_fall_back_to_an_unfunded_audit_call(attempt_world: Any) -> None:
+    from test_storage_uow import actor, lease
+
+    async def scenario() -> None:
+        engine = engine_for(attempt_world.schema, search_path=False)
+        try:
+            request = provider_request(attempt_world).model_copy(
+                update={"budget_allocation_id": uuid.uuid4()}
+            )
+            store = SqlModelAttemptStore(
+                engine,
+                attempt_world.schema,
+                actor=actor(world=attempt_world),
+                lease=lambda: lease(attempt_world),
+            )
+            with pytest.raises(AgentRuntimeError) as rejected:
+                await store.begin(request, started_at=datetime.now(UTC))
+            assert rejected.value.failure.code == "FORBIDDEN"
+            async with engine.connect() as db:
+                assert (
+                    await db.execute(
+                            sa.text(
+                                f"SELECT count(*) FROM {attempt_world.schema}.model_attempt "
+                                "WHERE id=:id"
+                            ),
+                        {"id": request.attempt_id},
+                    )
+                ).scalar_one() == 0
+        finally:
+            await engine.dispose()
+
+    run(scenario)
+
+
 def test_begin_and_same_terminal_are_idempotent(attempt_world: Any) -> None:
     async def scenario() -> tuple[str, dict[str, Any]]:
         engine = engine_for(attempt_world.schema, search_path=False)

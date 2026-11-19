@@ -39,7 +39,7 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from agent_runtime.contracts.canonical import content_digest
-from agent_runtime.contracts.decisions import UpdatePlanPayload
+from agent_runtime.contracts.decisions import RecoveredToolFailure, UpdatePlanPayload
 from agent_runtime.contracts.failure import AgentRuntimeError, FailureEnvelope
 from agent_runtime.contracts.journal import FlushProof
 from agent_runtime.contracts.loop import AppliedInputs
@@ -477,6 +477,10 @@ class SqlStateUnitOfWork:
     ) -> UpdatedStateRef:
         run = guarded.run
         now = guarded.now
+        if status in {"completed", "failed", "cancelled"}:
+            from agent_runtime.storage.model_budget import release_closing
+
+            await release_closing(session, self.schema, run["scope_id"], run["id"])
         expected = int(run["state_version"])
         state_version = expected + 1
         if run["desired_control"] is not None:
@@ -717,6 +721,7 @@ class SqlStateUnitOfWork:
         journal: SqlJournal,
         resources: TransactionalResourceAccess,
         auto_finish: bool = False,
+        recovered_tool_failures: tuple[RecoveredToolFailure, ...] = (),
     ) -> UpdatedStateRef:
         from agent_runtime.storage.uow.answers import commit_answer
 
@@ -730,6 +735,7 @@ class SqlStateUnitOfWork:
             journal=journal,
             resources=resources,
             auto_finish=auto_finish,
+            recovered_tool_failures=recovered_tool_failures,
         )
 
     async def commit_terminal(

@@ -35,6 +35,7 @@ from agent_runtime.storage.tool_capacity import SqlToolCapacity
 from agent_runtime.storage.tool_execution_gate import SqlToolExecutionGate
 from agent_runtime.storage.uow import errors
 from agent_runtime.storage.uow.schema import require_schema, scoped
+from agent_runtime.tool_effect import DatabaseToolRejected
 from agent_runtime.tool_effect import ToolEffect as ToolEffect
 from agent_runtime.tool_validation import (
     tool_timeout_failure,
@@ -287,8 +288,10 @@ class SqlToolHost:
             raise TimeoutError("tool deadline elapsed before execution")
         async with asyncio.timeout(remaining):
             async with configured[1]:
-                if spec.side_effect == "external" and spec.idempotency == "reconcile":
-                    # The background authority commits slot + intent together.
+                if spec.side_effect == "database" or (
+                    spec.side_effect == "external" and spec.idempotency == "reconcile"
+                ):
+                    # Transactional and background authorities own their slot intent.
                     outcome = await self._execute_authorized(invocation, grant, spec, refs)
                 else:
                     reservation = await self._capacity.reserve(invocation, spec)
@@ -468,7 +471,7 @@ class SqlToolHost:
 
     async def _cached(
         self, db: AsyncSession, invocation: ToolInvocation, task_id: str, spec: ToolSpec
-    ) -> ToolCompleted | None:
+    ) -> ToolCompleted | ToolFailed | None:
         if invocation.operation_id is None or spec.idempotency == "reconcile":
             # Supervised tools own their dispatch digest and sealed result format.
             # Their authority must resolve the durable handle before any send.
@@ -497,7 +500,11 @@ class SqlToolHost:
             invocation, spec
         ):
             errors.invalid_input("operation identity was reused for different input")
-        return self._replay(dict(row), invocation) if row["status"] == "committed" else None
+        if row["status"] == "committed":
+            return self._replay(dict(row), invocation)
+        if row["status"] == "failed_safe" and spec.side_effect == "database":
+            return self._replay_rejection(dict(row), invocation)
+        return None
 
     async def _completed(
         self, spec: ToolSpec, invocation: ToolInvocation, effect: ToolEffect
@@ -593,22 +600,84 @@ class SqlToolHost:
         spec: ToolSpec,
         refs: tuple[ResourceRef, ...],
         handler: TransactionalTool,
-    ) -> ToolCompleted:
+    ) -> ToolCompleted | ToolFailed:
+        assert invocation.operation_id is not None
         async with self._sessions() as db, db.begin():
             task = await self._check(db, invocation, grant, spec, refs)
             row = await self._claim(db, invocation, task, spec)
             if row["status"] == "committed":
                 return self._replay(row, invocation)
+            if row["status"] == "failed_safe":
+                return self._replay_rejection(row, invocation)
             if row["status"] != "prepared":
                 errors.version_conflict("database effect is not safe to re-execute")
             remaining = (invocation.deadline_at - datetime.now(UTC)).total_seconds()
             if remaining <= 0:
                 raise TimeoutError("tool deadline elapsed before database write")
-            async with asyncio.timeout(min(remaining, spec.timeout_seconds)):
-                effect = await handler.invoke(db, invocation)
-            outcome = await self._completed(spec, invocation, effect)
+            await self._capacity.reserve_in_transaction(db, invocation, spec)
+            try:
+                async with db.begin_nested():
+                    async with asyncio.timeout(min(remaining, spec.timeout_seconds)):
+                        effect = await handler.invoke(db, invocation)
+                    outcome = await self._completed(spec, invocation, effect)
+            except DatabaseToolRejected as rejection:
+                # The savepoint has rolled back successfully. The outer claim and
+                # exact rejection survive, unlike the rejected domain writes.
+                failed = ToolFailed(
+                    tool_call_id=invocation.call.tool_call_id,
+                    run_id=invocation.run_id,
+                    operation_id=invocation.operation_id,
+                    status="failed",
+                    effect="rolled_back",
+                    effect_refs=(),
+                    failure=rejection.failure.model_copy(
+                        update={"operation_id": str(invocation.operation_id)}
+                    ),
+                )
+                validate_tool_outcome(spec, invocation, failed)
+                changed = await db.execute(
+                    scoped(
+                        "UPDATE {t}operation SET status='failed_safe',result_ref=:result,"
+                        "failure=CAST(:failure AS jsonb),updated_at=:now "
+                        "WHERE scope_id=:scope AND id=:id AND status='prepared'",
+                        self._schema,
+                    ),
+                    {
+                        "result": failed.model_dump_json(by_alias=True),
+                        "failure": failed.failure.model_dump_json(by_alias=True),
+                        "now": datetime.now(UTC),
+                        "scope": invocation.actor.scope_id,
+                        "id": invocation.operation_id,
+                    },
+                )
+                if getattr(changed, "rowcount", None) != 1:
+                    errors.version_conflict("database rejection was resolved concurrently")
+                await self._capacity.settle_operation_in_transaction(
+                    db, invocation.actor.scope_id, invocation.operation_id, spec
+                )
+                return failed
             await self._commit(db, invocation, outcome)
+            await self._capacity.settle_operation_in_transaction(
+                db, invocation.actor.scope_id, invocation.operation_id, spec
+            )
             return outcome
+
+    def _replay_rejection(
+        self, row: Mapping[str, object], invocation: ToolInvocation
+    ) -> ToolFailed:
+        raw = row["result_ref"]
+        if not isinstance(raw, str):
+            errors.version_conflict("safe database rejection has no result")
+        result = tool_outcome_adapter.validate_json(raw)
+        if (
+            not isinstance(result, ToolFailed)
+            or result.effect != "rolled_back"
+            or result.operation_id != invocation.operation_id
+            or result.run_id != invocation.run_id
+            or result.tool_call_id != invocation.call.tool_call_id
+        ):
+            errors.version_conflict("safe database rejection result is inconsistent")
+        return result
 
     async def _external_effect(
         self,

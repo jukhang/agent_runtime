@@ -9,6 +9,26 @@ from agent_runtime.contracts.events import event_adapter
 from agent_runtime.projection import SessionProjection, display_event
 
 
+@pytest.mark.parametrize("outcome", ("success", "partial"))
+def test_sql_snapshot_preserves_explicit_completion_outcome(outcome):
+    from datetime import UTC, datetime
+    from uuid import uuid4
+
+    from agent_runtime.storage.run_backend import SqlRunBackend
+
+    view = SqlRunBackend._view(
+        {
+            "id": uuid4(),
+            "status": "completed",
+            "outcome": outcome,
+            "state_version": 2,
+            "phase": "terminal",
+            "phase_started_at": datetime.now(UTC),
+        }
+    )
+    assert view.model_dump(mode="json", by_alias=True)["outcome"] == outcome
+
+
 def event(kind, seq, **payload):
     fixtures = json.loads(
         files("agent_runtime.contracts").joinpath("fixtures/events.json").read_text()

@@ -3,7 +3,7 @@
 from typing import Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, model_validator
+from pydantic import AwareDatetime, Field, model_validator
 
 from agent_runtime.contracts.base import Contract, Identifier, Revision
 from agent_runtime.contracts.messages import AgentEnvelope
@@ -36,6 +36,8 @@ class BudgetView(Contract):
     tool_calls: BudgetCounter
     tokens: BudgetCounter
     deadline_at: AwareDatetime
+    closing_tokens: Revision = "0"
+    closing: bool = Field(default=False, strict=True)
 
 
 ACTIVE_CONTROL_STATUSES = frozenset(

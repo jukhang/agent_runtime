@@ -665,6 +665,22 @@
           "title": "Nextsteps",
           "type": "array"
         },
+        "outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "success",
+                "partial"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outcome"
+        },
         "parentRunId": {
           "anyOf": [
             {

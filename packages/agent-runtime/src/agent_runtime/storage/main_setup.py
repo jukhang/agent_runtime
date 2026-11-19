@@ -22,6 +22,7 @@ from agent_runtime.contracts.references import (
 )
 from agent_runtime.contracts.requests import InteractionRequest, SubmitRequest
 from agent_runtime.contracts.transactions import ActorContext
+from agent_runtime.finalization import budget_guidance
 from agent_runtime.native_controls import ASK_USER_CONTROL
 from agent_runtime.storage.context_blobs import SqlContextBlobBackend
 from agent_runtime.storage.context_sources import SqlRuntimeSourceReader
@@ -49,6 +50,7 @@ class SqlMainLoopSetup:
         prompt: CapabilityRef,
         max_input_tokens: int = 16384,
         history_items: int = 12,
+        allow_user_questions: bool = True,
         skill_instructions: Mapping[CapabilityRef, str] | None = None,
         review_instructions: str | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
@@ -58,11 +60,13 @@ class SqlMainLoopSetup:
         if agent_ref.key.key != agent.id or agent.model != model.ref:
             raise ValueError("Agent model differs from its pinned model configuration")
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
+        self._engine = engine
         self._schema = require_schema(schema)
         self._actor, self._agent, self._model = actor, agent, model
         self._agent_ref = agent_ref
         self._profile, self._prompt = profile, prompt
         self._max_input, self._history_items = max_input_tokens, history_items
+        self._allow_user_questions = allow_user_questions
         self._clock = clock
         self._blobs = SqlContextBlobBackend(engine, schema)
         self._reader = SqlRuntimeSourceReader(engine, schema, blobs=self._blobs)
@@ -216,6 +220,14 @@ class SqlMainLoopSetup:
         )
         if submitted.session_id != state.session_id or submitted.agent != state.agent:
             errors.version_conflict("Durable input differs from the claimed Agent")
+        if budget.closing:
+            from agent_runtime.storage.closing_setup import closing_setup
+
+            return await closing_setup(
+                self._engine, self._schema, actor=self._actor, state=state, budget=budget,
+                model=self._model, profile=self._profile, prompt=self._prompt,
+                objective="\n".join(part.text for part in submitted.inputs if part.kind == "text"),
+            )
         scope = ResourceScope(
             scope_id=state.scope_id, session_id=str(state.session_id), owner_id=self._actor.actor_id
         )
@@ -279,13 +291,21 @@ class SqlMainLoopSetup:
             prompt += (
                 "\n"
                 + review
+                + " Preserve every unsuccessful tool audit. If subsequent authorized tools "
+                "corrected a failure AND verified the original user goal, include one "
+                "recoveredToolFailures entry per failed/cancelled/not_executed call: "
+                "failedToolCallId, later completed recoveryToolCallIds and a semantic reason. "
+                "Use actual tool_call_result source identities from this Run, not provider "
+                "native call names. A successful unrelated tool is not recovery. Unknown "
+                "effects or unresolved operations cannot be waived. With incomplete evidence "
+                "select partial; never invent evidence or claim an unresolved failure recovered. "
                 + (
                     "Return only one JSON action matching this schema. Do not fabricate evidence. "
                     "Only these sealed item IDs may be used as finalItemIds: "
                     + canonical_json([str(row["id"]) for row in published])
                 )
             )
-        else:
+        elif self._allow_user_questions:
             prompt += (
                 "\nWhen essential facts are missing, call the Runtime ask-user control alone "
                 "to publish the question and wait. Do not just output a question as a final "
@@ -371,14 +391,20 @@ class SqlMainLoopSetup:
                 profile=self._profile,
                 model=self._model.ref,
                 prompt=self._prompt,
-                tools=() if control else (*self._agent.tools, ASK_USER_CONTROL),
+                tools=()
+                if control
+                else (
+                    (*self._agent.tools, ASK_USER_CONTROL)
+                    if self._allow_user_questions
+                    else self._agent.tools
+                ),
                 resource_refs=tuple(dict.fromkeys(sources)),
                 budget=ContextBudget(
                     allocation_id=budget.allocation_id,
                     max_input_tokens=available_input,
                     reserved_output_tokens=self._model.max_output_tokens,
                 ),
-                prompt_text=prompt,
+                prompt_text=prompt + budget_guidance(budget),
                 user_input=user_input,
             ),
             self._model,

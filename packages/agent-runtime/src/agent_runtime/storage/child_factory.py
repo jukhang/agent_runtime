@@ -162,6 +162,8 @@ class SqlChildHandlerFactory:
                     prompt=profile.prompt,
                     reader=reader,
                     max_input_tokens=profile.max_input_tokens,
+                    engine=self._engine,
+                    schema=self._schema,
                 ),
             )
             for revision, profile in profiles.items()

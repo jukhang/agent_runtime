@@ -1,8 +1,67 @@
 import asyncio
+import traceback
 
 import pytest
 
 from agent_runtime.storage.host_worker import SqlWorkerService
+
+
+def test_recovery_cleanup_failure_never_replaces_initial_worker_failure():
+    async def scenario():
+        stopped = asyncio.Event()
+
+        class Runner:
+            def request_drain(self):
+                stopped.set()
+
+            async def serve(self):
+                await asyncio.sleep(0)
+                raise ValueError("original worker failure")
+
+        class Recovery:
+            async def reconcile_scope(self, scope):
+                await stopped.wait()
+                raise RuntimeError("later cleanup failure")
+
+        service = SqlWorkerService(Runner(), Recovery(), scope_id="tenant-a")
+        with pytest.raises(ValueError, match="original worker failure"):
+            await service.serve()
+        assert stopped.is_set()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("failed_role", ["worker", "recovery"])
+def test_role_failure_retains_origin_traceback_after_sibling_cleanup(failed_role):
+    async def scenario():
+        stopped = asyncio.Event()
+
+        async def database_origin():
+            raise TimeoutError("database deadline")
+
+        class Runner:
+            def request_drain(self):
+                stopped.set()
+
+            async def serve(self):
+                if failed_role == "worker":
+                    await database_origin()
+                await stopped.wait()
+
+        class Recovery:
+            async def reconcile_scope(self, scope):
+                if failed_role == "recovery":
+                    await database_origin()
+
+        service = SqlWorkerService(Runner(), Recovery(), scope_id="tenant-a")
+        with pytest.raises(TimeoutError) as raised:
+            await service.serve()
+        assert "database_origin" in {
+            frame.name for frame in traceback.extract_tb(raised.value.__traceback__)
+        }
+        assert stopped.is_set()
+
+    asyncio.run(scenario())
 
 
 @pytest.mark.parametrize("failure", (None, "worker", "recovery", "approval"))

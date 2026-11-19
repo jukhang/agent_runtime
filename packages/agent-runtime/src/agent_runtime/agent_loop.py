@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Literal, Protocol
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
+from agent_runtime.candidate_repair import CandidateRejected
 from agent_runtime.context_runtime import (
     ContextAccessVerifier,
     ContextBoundProvider,
@@ -46,6 +47,7 @@ from agent_runtime.contracts.references import CapabilityRef, ResourceRef
 from agent_runtime.contracts.state import RunStatus
 from agent_runtime.contracts.transactions import ActorContext
 from agent_runtime.decision_validation import validate_candidate_decision
+from agent_runtime.finalization import closing_budget
 from agent_runtime.native_controls import ASK_USER_CONTROL
 from agent_runtime.ports import CancelSignal, Provider
 from agent_runtime.provider import _close_stream
@@ -61,6 +63,11 @@ class DecisionSetup:
     mode: Literal["native", "structured"] = "native"
     output_schema: CapabilityRef | None = None
     validate_action: Callable[[NextAction, PreparedContext], None] | None = None
+    observation_policy: Literal["include", "isolate"] = "include"
+
+    def __post_init__(self) -> None:
+        if self.observation_policy not in {"include", "isolate"}:
+            raise ValueError("Unknown trusted observation policy")
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,6 +133,7 @@ class ModelAgentLoop:
         tool_names: ToolNames | None = None,
         cancel: CancelSignal | None = None,
         clock: Clock = lambda: datetime.now(UTC),
+        candidate_repair: bool = False,
     ) -> None:
         self._context = context
         self._access = access
@@ -136,6 +144,7 @@ class ModelAgentLoop:
         self._tool_names = tool_names or ExactToolNames()
         self._cancel = cancel
         self._clock = clock
+        self._candidate_repair = candidate_repair
 
     async def advance(
         self, state: RunState, inputs: AppliedInputs, budget: BudgetView
@@ -149,6 +158,7 @@ class ModelAgentLoop:
         budget: BudgetView,
         *,
         observation_refs: tuple[ResourceRef, ...] = (),
+        candidate_feedback: str | None = None,
     ) -> DecisionFrame:
         now = self._clock()
         if now.tzinfo is None or now.utcoffset() is None:
@@ -197,7 +207,25 @@ class ModelAgentLoop:
             raise runtime_failure(
                 "BUDGET_EXHAUSTED", category="budget", public_message="Model budget is exhausted."
             )
-        setup = await self._setup.resolve(state, inputs, budget)
+        try:
+            setup = await self._setup.resolve(state, inputs, budget)
+        except AgentRuntimeError as exc:
+            if (
+                exc.failure.code != "BUDGET_EXHAUSTED"
+                or budget.closing
+                or not int(budget.closing_tokens)
+            ):
+                raise
+            # Setup only: no Provider request or paid attempt exists yet.
+            budget = closing_budget(budget)
+            setup = await self._setup.resolve(state, inputs, budget)
+        if candidate_feedback is not None:
+            setup = replace(
+                setup,
+                context_request=setup.context_request.model_copy(
+                    update={"candidate_feedback": candidate_feedback}
+                ),
+            )
         setup, prepared = await self._prepare_setup(state, inputs, budget, setup, observation_refs)
         context_request = setup.context_request
         request = self._model_request(state, budget, setup.model, prepared, setup.output_schema)
@@ -224,6 +252,12 @@ class ModelAgentLoop:
             if exc.failure.code != "VERSION_CONFLICT" or exc.failure.category != "context":
                 raise
             fresh = await self._setup.resolve(state, inputs, budget)
+            fresh = replace(
+                fresh,
+                context_request=fresh.context_request.model_copy(
+                    update={"candidate_feedback": original.context_request.candidate_feedback}
+                ),
+            )
             old_request, new_request = original.context_request, fresh.context_request
             invariant_fields = (
                 "actor",
@@ -245,6 +279,7 @@ class ModelAgentLoop:
                 or original.model != fresh.model
                 or original.mode != fresh.mode
                 or original.output_schema != fresh.output_schema
+                or original.observation_policy != fresh.observation_policy
             ):
                 raise exc
             # A second conflict propagates. Never substitute versions from model
@@ -274,6 +309,7 @@ class ModelAgentLoop:
                     category="authorization",
                     public_message="Observation belongs to another scope.",
                 )
+        if observation_refs and setup.observation_policy == "include":
             context_request = context_request.model_copy(
                 update={
                     "resource_refs": context_request.resource_refs
@@ -300,6 +336,7 @@ class ModelAgentLoop:
         content: list[str] = []
         tool_calls: list[ToolCallRequest] = []
         questions: list[AskUserPayload] = []
+        raw_calls: list[ToolCallComplete] = []
         finish: ProviderFinish | None = None
         stream = wrapped.stream(request, cancel=self._cancel)
         try:
@@ -311,26 +348,7 @@ class ModelAgentLoop:
                 if isinstance(event, ContentDelta):
                     content.append(event.text)
                 elif isinstance(event, ToolCallComplete):
-                    tool_ref = self._tool_names.resolve(event.name, prepared.tools)
-                    if tool_ref == ASK_USER_CONTROL:
-                        try:
-                            questions.append(AskUserPayload.model_validate(event.arguments))
-                        except ValueError as exc:
-                            raise runtime_failure(
-                                "INVALID_INPUT",
-                                category="validation",
-                                public_message="The clarification control arguments are invalid.",
-                            ) from exc
-                        continue
-                    tool_calls.append(
-                        ToolCallRequest(
-                            tool_call_id=uuid5(
-                                NAMESPACE_URL, f"{request.attempt_id}:{event.call_id}"
-                            ),
-                            tool=tool_ref,
-                            arguments=event.arguments,
-                        )
-                    )
+                    raw_calls.append(event)
                 elif isinstance(event, ProviderFinish):
                     finish = event
         except BaseException as error:
@@ -341,6 +359,45 @@ class ModelAgentLoop:
             raise
         else:
             await _close_stream(stream)
+        if finish is not None and finish.reason in {"stop", "tool_calls"}:
+            for event in raw_calls:
+                try:
+                    tool_ref = self._tool_names.resolve(event.name, prepared.tools)
+                except AgentRuntimeError:
+                    if not self._candidate_repair or not isinstance(
+                        self._tool_names, ExactToolNames
+                    ):
+                        raise
+                    raise CandidateRejected(
+                        attempt_id=request.attempt_id,
+                        snapshot_id=prepared.snapshot_id,
+                        reason="unknown_tool",
+                        detail=event.name,
+                    ) from None
+                if tool_ref == ASK_USER_CONTROL:
+                    try:
+                        questions.append(AskUserPayload.model_validate(event.arguments))
+                    except ValueError as exc:
+                        if self._candidate_repair:
+                            raise CandidateRejected(
+                                attempt_id=request.attempt_id,
+                                snapshot_id=prepared.snapshot_id,
+                                reason="invalid_arguments",
+                                detail="Clarification arguments do not match the schema.",
+                            ) from exc
+                        raise runtime_failure(
+                            "INVALID_INPUT",
+                            category="validation",
+                            public_message="The clarification control arguments are invalid.",
+                        ) from exc
+                    continue
+                tool_calls.append(
+                    ToolCallRequest(
+                        tool_call_id=uuid5(NAMESPACE_URL, f"{request.attempt_id}:{event.call_id}"),
+                        tool=tool_ref,
+                        arguments=event.arguments,
+                    )
+                )
         if finish is not None and finish.reason == "cancelled":
             raise runtime_failure(
                 "CONTROL_PENDING", category="concurrency", public_message="Run was cancelled."
@@ -363,6 +420,13 @@ class ModelAgentLoop:
                 proposal = json.loads("".join(content))
                 action = decision_adapter.validate_python(proposal)
             except (json.JSONDecodeError, ValueError, TypeError) as exc:
+                if self._candidate_repair:
+                    raise CandidateRejected(
+                        attempt_id=request.attempt_id,
+                        snapshot_id=prepared.snapshot_id,
+                        reason="invalid_decision",
+                        detail="Return one valid decision object matching the advertised schema.",
+                    ) from exc
                 raise runtime_failure(
                     "INVALID_INPUT",
                     category="validation",
@@ -377,6 +441,13 @@ class ModelAgentLoop:
         elif finish.reason == "tool_calls":
             if questions:
                 if len(questions) != 1 or tool_calls:
+                    if self._candidate_repair:
+                        raise CandidateRejected(
+                            attempt_id=request.attempt_id,
+                            snapshot_id=prepared.snapshot_id,
+                            reason="invalid_decision",
+                            detail="Submit one clarification or business tool calls, not both.",
+                        )
                     raise runtime_failure(
                         "INVALID_INPUT",
                         category="validation",
@@ -402,21 +473,60 @@ class ModelAgentLoop:
                     public_message="The model did not produce a complete answer.",
                 )
             text = "".join(content)
+            bare = text.strip()
+            if (
+                self._candidate_repair
+                and request.tools
+                and bare.startswith("<tool_call>")
+                and bare.endswith("</tool_call>")
+            ):
+                raise CandidateRejected(
+                    attempt_id=request.attempt_id,
+                    snapshot_id=prepared.snapshot_id,
+                    reason="invalid_decision",
+                    detail="The provider returned a native tool envelope as answer text. "
+                    "Use the declared native tool channel with the exact current function name, "
+                    "or answer in ordinary prose if the requested work is complete. "
+                    "No tool was executed from that text.",
+                )
             answer_ref = f"answer-{content_digest({'runId': str(state.run_id), 'text': text})}"
             action = Respond(kind="respond", payload=RespondPayload(answer_request_ref=answer_ref))
         checked = validate_candidate_decision(state, prepared, budget, action, now=self._clock())
         required = context_request.required_tool
-        if required is not None and (
-            not isinstance(checked, InvokeTools)
-            or any(call.tool != required for call in checked.payload.validated_calls)
+        if (context_request.require_tool_call and not isinstance(checked, InvokeTools)) or (
+            required is not None
+            and (
+                not isinstance(checked, InvokeTools)
+                or any(call.tool != required for call in checked.payload.validated_calls)
+            )
         ):
+            if self._candidate_repair:
+                raise CandidateRejected(
+                    attempt_id=request.attempt_id,
+                    snapshot_id=prepared.snapshot_id,
+                    reason="invalid_decision",
+                    detail=(
+                        "Use the required visible native tool selection; "
+                        "prose is not a saved result."
+                    ),
+                )
             raise runtime_failure(
                 "INCOMPLETE_MODEL_OUTPUT",
                 category="provider",
                 public_message="The model did not complete the required native tool call.",
             )
         if setup.validate_action is not None:
-            setup.validate_action(checked, prepared)
+            try:
+                setup.validate_action(checked, prepared)
+            except AgentRuntimeError as exc:
+                if self._candidate_repair and exc.failure.category == "validation":
+                    raise CandidateRejected(
+                        attempt_id=request.attempt_id,
+                        snapshot_id=prepared.snapshot_id,
+                        reason="invalid_decision",
+                        detail=exc.failure.public_message,
+                    ) from exc
+                raise
         if isinstance(checked, Respond):
             await self._answers.save(state.scope_id, str(state.run_id), answer_ref, text)
         return DecisionFrame(
@@ -439,6 +549,7 @@ class ModelAgentLoop:
             or not (request.user_input or "").strip()
             or (setup.mode == "native" and setup.output_schema is not None)
             or (request.required_tool is not None and setup.mode != "native")
+            or (request.require_tool_call and (setup.mode != "native" or not request.tools))
             or (request.required_tool is not None and request.required_tool not in request.tools)
         ):
             raise runtime_failure(
@@ -470,4 +581,5 @@ class ModelAgentLoop:
             model=model,
             tools=context.tools,
             output_schema=output_schema,
+            purpose=context.purpose,
         )

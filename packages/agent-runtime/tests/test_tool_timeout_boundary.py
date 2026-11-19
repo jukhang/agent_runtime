@@ -71,6 +71,9 @@ class Transaction(AbstractAsyncContextManager):
     def begin(self):
         return Transaction()
 
+    def begin_nested(self):
+        return Transaction()
+
 
 def fake_host(spec):
     host = SqlToolHost.__new__(SqlToolHost)
@@ -84,6 +87,8 @@ def fake_host(spec):
         reserve=AsyncMock(return_value=object()),
         release=AsyncMock(),
         settle_committed=AsyncMock(),
+        reserve_in_transaction=AsyncMock(),
+        settle_operation_in_transaction=AsyncMock(),
     )
     host._hooks = ()
     host._groups = {}
@@ -177,7 +182,7 @@ async def test_database_prewrite_expiry_is_not_control(monkeypatch):
     assert_timeout(caught.value.failure, invocation)
     assert isinstance(caught.value.__cause__, TimeoutError)
     handler.invoke.assert_not_awaited()
-    host._capacity.release.assert_awaited_once()
+    host._capacity.release.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -250,3 +255,33 @@ async def test_unknown_outcome_and_untyped_non_timeout_are_unchanged():
     with pytest.raises(ValueError) as caught:
         await host.execute(invocation, grant_for(spec, invocation))
     assert caught.value is original
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cached", [False, True])
+async def test_database_rollback_releases_capacity_and_replays_without_execution(cached):
+    spec, invocation = invocation_pair(effect="database")
+    spec = spec.model_copy(update={"idempotency": "transactional"})
+    host = fake_host(spec)
+    failure = runtime_failure(
+        "VERSION_CONFLICT", category="concurrency", public_message="Read current facts."
+    ).failure
+    outcome = ToolFailed(
+        tool_call_id=invocation.call.tool_call_id,
+        run_id=invocation.run_id,
+        operation_id=invocation.operation_id,
+        status="failed",
+        effect="rolled_back",
+        effect_refs=(),
+        failure=failure,
+    )
+    if cached:
+        host._cached.return_value = outcome
+    host._execute_authorized.return_value = outcome
+    assert await host.execute(invocation, grant_for(spec, invocation)) == outcome
+    if cached:
+        host._capacity.settle_committed.assert_awaited_once()
+        host._execute_authorized.assert_not_awaited()
+    else:
+        host._capacity.reserve.assert_not_awaited()
+        host._capacity.release.assert_not_awaited()

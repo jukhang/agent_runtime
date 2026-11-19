@@ -11,7 +11,12 @@ from uuid import UUID, uuid4
 import httpx
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
-from agent_runtime.compression import COMPRESSION_PROMPT, render_source, verified_extraction
+from agent_runtime.compression import (
+    COMPRESSION_PROMPT,
+    CompressionNoGain,
+    render_source,
+    verified_extraction,
+)
 from agent_runtime.context_payloads import BlobContextPayloadStore
 from agent_runtime.context_runtime import (
     CompressedSource,
@@ -175,7 +180,7 @@ class SqlCompressionAttempts(SqlModelAttemptStore):
                 ):
                     available = int(allocation["limits"][key]) - sum(
                         int(allocation[field].get(key, 0))
-                        for field in ("settled", "reserved", "unknown_reserved")
+                        for field in ("settled", "reserved")
                     )
                     if own > available:
                         self._exhausted("Compression would exceed the allocated model budget.")
@@ -232,6 +237,7 @@ class SqlContextCompression:
         self._reader, self._resources, self._model = reader, resources, model
         self._input_limit, self._timeout = max_input_tokens, timeout_seconds
         self._answer_reserve = 0
+        self._estimator = estimator
         adapter = adapter or OpenAIAdapterProfile()
         self._payloads = BlobContextPayloadStore(SqlContextBlobBackend(engine, schema))
         self._raw = ContextRuntime(
@@ -292,6 +298,44 @@ class SqlContextCompression:
         if source.required or request.actor != self._actor or request.model != self._model.ref:
             errors.forbidden("Compression cannot replace required or differently bound facts")
         async with self._lock:
+            cache_key = self._cache_key(request, source)
+            # Reuse only a no-gain verdict, never a failed/invalid model output.
+            # Run-scoped durable attempts survive a Worker restart without a new table.
+            async with self._sessions() as db:
+                candidates = (
+                    (
+                        await db.execute(
+                            scoped(
+                                "SELECT b.content FROM {t}model_attempt m JOIN {t}context_blob b "
+                                "ON b.scope_id=m.scope_id AND b.blob_key=m.output_ref "
+                                "WHERE m.scope_id=:scope AND m.run_id=:run "
+                                "AND m.status='completed'",
+                                self._schema,
+                            ),
+                            {"scope": request.actor.scope_id, "run": request.run_id},
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+            import json
+
+            for raw in candidates:
+                saved = json.loads(raw)
+                if (
+                    isinstance(saved, dict)
+                    and saved.get("compressionKey") == cache_key
+                    and saved.get("noGain") is True
+                ):
+                    current = await self._reader.read(request, source.resource)
+                    if current != source:
+                        errors.version_conflict("Original context changed during compression")
+                    if saved.get("noGainKind") == "request_wrapper":
+                        raise CompressionNoGain("Cached full request compression has no gain")
+                    # A tokenizer/config change may turn a previous no-gain into gain.
+                    verified_extraction(
+                        source.content, str(saved.get("text")), measure=self._estimator.count
+                    )
             self._answer_reserve = (
                 request.budget.max_input_tokens + request.budget.reserved_output_tokens
             )
@@ -381,7 +425,13 @@ class SqlContextCompression:
                     category="context",
                     public_message="Summary or usage incomplete; original facts were not replaced.",
                 )
-            text = verified_extraction(source.content, "".join(content))
+            try:
+                text = verified_extraction(
+                    source.content, "".join(content), measure=self._estimator.count
+                )
+            except CompressionNoGain:
+                await self._record_candidate(call, "".join(content), no_gain_key=cache_key)
+                raise
             current = await self._reader.read(request, source.resource)
             if current != source:
                 errors.version_conflict("Original context changed during compression")
@@ -440,13 +490,60 @@ class SqlContextCompression:
                 ),
             )
 
-    async def _record_candidate(self, call: ProviderRequest, text: str) -> None:
+    def _cache_key(self, request: ContextRequest, source: LoadedSource) -> str:
+        return content_digest(
+            {
+                "source": source.resource.model_dump(mode="json", by_alias=True),
+                "content": source.content,
+                "task": request.user_input,
+                "prompt": request.prompt_text,
+                "model": self._model.model_dump(mode="json", by_alias=True),
+                "compressionPrompt": COMPRESSION_PROMPT,
+            }
+        )
+
+    async def record_no_gain(
+        self, request: ContextRequest, source: LoadedSource, summary: CompressedSource
+    ) -> None:
+        envelope = await self.read_summary(request.actor, summary.summary_ref)
+        if envelope.get("source") != source.resource.model_dump(mode="json", by_alias=True):
+            errors.invalid_input("Rejected summary source differs")
+        candidate = {
+            "kind": "compression-candidate-v1",
+            "compressionKey": self._cache_key(request, source),
+            "noGain": True,
+            "noGainKind": "request_wrapper",
+            "text": envelope["rawOutput"],
+        }
+        ref = await self._payloads.put(request.actor.scope_id, candidate, content_digest(candidate))
+        async with self._sessions() as db, db.begin():
+            await db.execute(
+                scoped(
+                    "UPDATE {t}model_attempt SET output_ref=:ref WHERE scope_id=:scope "
+                    "AND run_id=:run AND id=:attempt AND status='completed' "
+                    "AND output_ref=:original",
+                    self._schema,
+                ),
+                {
+                    "ref": ref,
+                    "scope": request.actor.scope_id,
+                    "run": request.run_id,
+                    "attempt": UUID(str(envelope["attemptId"])),
+                    "original": summary.summary_ref.resource_id,
+                },
+            )
+
+    async def _record_candidate(
+        self, call: ProviderRequest, text: str, *, no_gain_key: str | None = None
+    ) -> None:
         """Keep even rejected/partial output private and durable for reconciliation."""
         candidate: dict[str, object] = {
             "kind": "compression-candidate-v1",
             "text": text,
             "attemptId": str(call.attempt_id),
             "model": call.model.model_dump(mode="json", by_alias=True),
+            "compressionKey": no_gain_key,
+            "noGain": no_gain_key is not None,
         }
         ref = await self._payloads.put(call.scope_id, candidate, content_digest(candidate))
         async with self._sessions() as db, db.begin():
@@ -454,7 +551,7 @@ class SqlContextCompression:
                 scoped(
                     "UPDATE {t}model_attempt SET output_ref=:ref "
                     "WHERE scope_id=:scope AND run_id=:run AND id=:id "
-                    "AND input_ref=:input AND output_ref IS NULL",
+                    "AND input_ref=:input AND (output_ref IS NULL OR :no_gain)",
                     self._schema,
                 ),
                 {
@@ -462,6 +559,7 @@ class SqlContextCompression:
                     "run": call.run_id,
                     "id": call.attempt_id,
                     "input": call.input_ref,
+                    "no_gain": no_gain_key is not None,
                     "ref": ref,
                 },
             )
@@ -482,9 +580,9 @@ class SqlContextCompression:
         current = await self._reader.read(request, original)
         if content_digest({"content": current.content}) != envelope.get("sourceDigest"):
             errors.version_conflict("Summary source content changed")
-        if verified_extraction(current.content, str(envelope.get("rawOutput"))) != envelope.get(
-            "text"
-        ):
+        if verified_extraction(
+            current.content, str(envelope.get("rawOutput")), measure=self._estimator.count
+        ) != envelope.get("text"):
             errors.invalid_input("Summary extraction is corrupt")
         input_snapshot, input_payload = await self._raw.load(
             actor.scope_id, UUID(str(envelope["inputSnapshotId"]))

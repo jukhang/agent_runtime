@@ -3,7 +3,19 @@
 from contextlib import aclosing
 
 import pytest
-from test_storage_uow import DSN, engine_for, run, schema  # noqa: F401
+from test_storage_uow import (  # noqa: F401
+    DSN,
+    _seed_attempt,
+    _seed_item,
+    actor,
+    engine_for,
+    lease,
+    make_request,
+    run,
+    schema,
+    state_guard,
+    world,
+)
 
 from agent_runtime import Agent, Runtime
 from agent_runtime.contracts.failure import AgentRuntimeError
@@ -17,6 +29,185 @@ from agent_runtime.storage.sessions import SqlSessionStore
 from agent_runtime.storage.uow.schema import scoped
 
 pytestmark = pytest.mark.skipif(not DSN, reason="requires isolated PostgreSQL")
+
+
+@pytest.mark.parametrize("page_events", [7, 256])
+def test_snapshot_pages_large_journal_and_monotonic_cache(world, monkeypatch, page_events):  # noqa: F811
+    from datetime import UTC, datetime
+
+    from agent_runtime.contracts.payloads import ItemStarted
+    from agent_runtime.contracts.provider import AnalysisDelta, ContentDelta
+    from agent_runtime.contracts.state_events import (
+        ItemStartedDraft,
+        MainEventAuthority,
+        StateEventBatch,
+    )
+    from agent_runtime.storage.journal import SqlJournal
+    from agent_runtime.storage.model_events import SqlModelEventSink
+
+    item = run(lambda: _seed_item(world))
+    attempt = run(lambda: _seed_attempt(world))
+
+    async def exercise():
+        engine = engine_for(world.schema, search_path=False)
+        current = actor(world=world)
+        request = make_request().model_copy(
+            update={
+                "scope_id": world.scope,
+                "session_id": world.session_id,
+                "run_id": world.run_id,
+                "attempt_id": attempt,
+            }
+        )
+        sink = SqlModelEventSink(
+            SqlJournal(engine, world.schema, current),
+            lease=lease(world),
+            turn_id=world.turn_id,
+            attempt_id=attempt,
+            item_id=item,
+            item_revision="1",
+            trace_id="snapshot-paging",
+        )
+        backend = SqlRunBackend(
+            engine,
+            world.schema,
+            include_analysis=True,
+            max_snapshot_events=page_events,
+            max_snapshot_bytes=12000,
+        )
+        try:
+            await SqlJournal(engine, world.schema, current).append_state(
+                StateEventBatch(
+                    authority=MainEventAuthority(kind="main", guard=state_guard(world)),
+                    session_id=world.session_id,
+                    trace_id="snapshot-start",
+                    events=(
+                        ItemStartedDraft(
+                            kind="item.started",
+                            producer_key=f"snapshot-start:{item}",
+                            occurred_at=datetime.now(UTC),
+                            turn_id=world.turn_id,
+                            run_id=world.run_id,
+                            parent_run_id=None,
+                            step_id=None,
+                            item_id=item,
+                            model_attempt_id=attempt,
+                            payload=ItemStarted(
+                                item_type="message",
+                                role="assistant",
+                                channels=("content", "analysis"),
+                                item_revision="1",
+                            ),
+                        ),
+                    ),
+                )
+            )
+            events = tuple(
+                cls(attempt_id=attempt, sequence=str(i), kind=kind, text=text)
+                for i in range(60)
+                for cls, kind, text in [
+                    (ContentDelta, "content.delta", "x")
+                    if i % 2 == 0
+                    else (AnalysisDelta, "analysis.delta", "y")
+                ]
+            )
+            await sink.record_many(request, events)
+            async with engine.connect() as db:
+                cost = await db.scalar(
+                    scoped(
+                        "SELECT sum(octet_length(payload::text)+512) FROM {t}event "
+                        "WHERE scope_id=:scope AND session_id=:session",
+                        world.schema,
+                    ),
+                    {"scope": world.scope, "session": world.session_id},
+                )
+            assert cost > 12000
+            with pytest.raises(AgentRuntimeError) as oversized_event:
+                await SqlRunBackend(engine, world.schema, max_snapshot_bytes=200).snapshot(
+                    current, world.session_id
+                )
+            assert oversized_event.value.failure.code == "SNAPSHOT_TOO_LARGE"
+            public_without_cache = await SqlRunBackend(
+                engine,
+                world.schema,
+                max_snapshot_events=1,
+                max_snapshot_bytes=12000,
+            ).snapshot(current, world.session_id)
+            assert public_without_cache.items[0].channels[0].text == "x" * 30
+            assert len(public_without_cache.items[0].channels) == 1
+            first = await backend.snapshot(current, world.session_id)
+            assert first.snapshot_seq == "61" and first.items
+            assert {c.name: c.text for c in first.items[0].channels} == {
+                "content": "x" * 30,
+                "analysis": "y" * 30,
+            }
+            old_snapshot, old_projection, _ = await backend._load(current, world.session_id)
+
+            async def cache_row():
+                async with engine.connect() as db:
+                    return (
+                        await db.execute(
+                            scoped(
+                                "SELECT applied_seq,projection_revision FROM {t}projection "
+                                "WHERE scope_id=:scope AND session_id=:session",
+                                world.schema,
+                            ),
+                            {"scope": world.scope, "session": world.session_id},
+                        )
+                    ).one()
+
+            before = await cache_row()
+            observed = []
+            original = backend._replay
+
+            async def tracked(*args, **kwargs):
+                observed.append((kwargs["after"], kwargs["watermark"]))
+                await original(*args, **kwargs)
+
+            monkeypatch.setattr(backend, "_replay", tracked)
+            assert (await backend.snapshot(current, world.session_id)).items == first.items
+            assert observed == [(61, 61)] and await cache_row() == before
+            public = await SqlRunBackend(
+                engine,
+                world.schema,
+                max_snapshot_events=3,
+                max_snapshot_bytes=12000,
+            ).snapshot(current, world.session_id)
+            assert [c.name for c in public.items[0].channels] == ["content"]
+            assert await cache_row() == before
+            await sink.record(
+                request,
+                ContentDelta(
+                    attempt_id=attempt,
+                    sequence="60",
+                    kind="content.delta",
+                    text="z",
+                ),
+            )
+            latest = await backend.snapshot(current, world.session_id)
+            assert latest.snapshot_seq == "62"
+            await backend._store_projection(current, old_snapshot, old_projection)
+            assert (await cache_row()).applied_seq == 62
+            assert (await backend.snapshot(current, world.session_id)).items == latest.items
+            with pytest.raises(AgentRuntimeError) as error:
+                await SqlRunBackend(engine, world.schema, max_snapshot_bytes=1).snapshot(
+                    current, world.session_id
+                )
+            assert error.value.failure.code == "SNAPSHOT_TOO_LARGE"
+            await sink.record(
+                request,
+                ContentDelta(
+                    attempt_id=attempt, sequence="61", kind="content.delta", text="a" * 13000
+                ),
+            )
+            with pytest.raises(AgentRuntimeError) as failed_refresh:
+                await backend.snapshot(current, world.session_id)
+            assert failed_refresh.value.failure.code == "SNAPSHOT_TOO_LARGE"
+            assert (await cache_row()).applied_seq == 62
+        finally:
+            await engine.dispose()
+
+    run(exercise)
 
 
 def test_independent_sdk_ingress_snapshot_scope_stream_and_retention(schema, monkeypatch):  # noqa: F811
@@ -107,7 +298,7 @@ def test_independent_sdk_ingress_snapshot_scope_stream_and_retention(schema, mon
                 await SqlRunBackend(engine, schema, max_snapshot_bytes=1).snapshot(
                     actor, session.id
                 )
-            assert error.value.failure.code == "VERSION_CONFLICT"
+            assert error.value.failure.code == "SNAPSHOT_TOO_LARGE"
             archived = await sessions.create(actor, title="Archived session")
             archived_request = request.model_copy(update={"session_id": archived.id})
             await runtime.submit(actor, archived_request)

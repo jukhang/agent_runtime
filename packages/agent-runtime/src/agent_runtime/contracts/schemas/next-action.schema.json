@@ -166,6 +166,15 @@
           ],
           "title": "Outcome",
           "type": "string"
+        },
+        "recoveredToolFailures": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RecoveredToolFailure"
+          },
+          "maxItems": 128,
+          "title": "Recoveredtoolfailures",
+          "type": "array"
         }
       },
       "required": [
@@ -276,6 +285,39 @@
         "runRefs"
       ],
       "title": "PlanStep",
+      "type": "object"
+    },
+    "RecoveredToolFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "failedToolCallId": {
+          "format": "uuid",
+          "title": "Failedtoolcallid",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 600,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "recoveryToolCallIds": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Recoverytoolcallids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "failedToolCallId",
+        "recoveryToolCallIds",
+        "reason"
+      ],
+      "title": "RecoveredToolFailure",
       "type": "object"
     },
     "ResourceRef": {

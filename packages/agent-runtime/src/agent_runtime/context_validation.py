@@ -9,6 +9,7 @@ def validate_context_binding(context: PreparedContext, request: ProviderRequest)
     context = PreparedContext.model_validate(context.model_dump())
     request = ProviderRequest.model_validate(request.model_dump())
     expected = (
+        context.purpose,
         context.scope_id,
         context.session_id,
         context.run_id,
@@ -23,6 +24,7 @@ def validate_context_binding(context: PreparedContext, request: ProviderRequest)
         context.budget.reserved_output_tokens,
     )
     actual = (
+        request.purpose,
         request.scope_id,
         request.session_id,
         request.run_id,

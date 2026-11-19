@@ -221,21 +221,34 @@ class SqlWorkerService:
     async def serve(self) -> None:
         worker = asyncio.create_task(self._runner.serve())
         recovery = asyncio.create_task(self._recover())
+        primary_failure: BaseException | None = None
         try:
             done, _ = await asyncio.wait({worker, recovery}, return_when=asyncio.FIRST_COMPLETED)
             for task in done:
                 task.result()
+        except BaseException as error:
+            primary_failure = error
         finally:
             self.request_drain()
             try:
-                await worker
+                # Re-awaiting a failed Task can replace its original traceback,
+                # preventing the host from classifying the underlying DB failure.
+                results = await asyncio.gather(worker, return_exceptions=True)
+                if primary_failure is None and isinstance(results[0], BaseException):
+                    primary_failure = results[0]
             finally:
                 if not recovery.done():
                     try:
-                        await asyncio.wait_for(recovery, timeout=10)
+                        await asyncio.wait_for(asyncio.shield(recovery), timeout=10)
                     except TimeoutError:
                         recovery.cancel()
-                await asyncio.gather(recovery, return_exceptions=True)
+                    except Exception:
+                        pass  # Gather below records the failure after sibling cleanup.
+                results = await asyncio.gather(recovery, return_exceptions=True)
+                if primary_failure is None and isinstance(results[0], Exception):
+                    primary_failure = results[0]
+        if primary_failure is not None:
+            raise primary_failure
 
     async def _recover(self) -> None:
         while not self._stop.is_set():

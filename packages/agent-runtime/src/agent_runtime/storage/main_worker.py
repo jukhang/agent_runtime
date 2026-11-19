@@ -34,6 +34,7 @@ from agent_runtime.storage.action_router import SqlActionCommitRouter
 from agent_runtime.storage.answer_commit import AnswerPublisher, SqlAnswerActionCommitter
 from agent_runtime.storage.approval_resume import SqlApprovalResumer
 from agent_runtime.storage.approvals import SqlApprovalService
+from agent_runtime.storage.candidate_repair import SqlCandidateRepairs
 from agent_runtime.storage.context_access import TransactionalResourceAccess
 from agent_runtime.storage.context_blobs import SqlContextBlobBackend
 from agent_runtime.storage.context_factory import SqlContextComponents, build_sql_context_components
@@ -107,10 +108,12 @@ class SqlMainWorkerHandler:
         control: MainControlHandler | None = None,
         max_decisions: int = 24,
         context: SqlContextComponents | None = None,
+        candidate_repair: bool = False,
     ) -> None:
         if max_decisions < 1:
             raise ValueError("main decision limit must be positive")
         self._engine = engine
+        self._candidate_repair = candidate_repair
         self._schema = require_schema(schema)
         self._actor = actor
         self._loader = SqlMainRunLoader(
@@ -212,6 +215,7 @@ class SqlMainWorkerHandler:
             answers=output.answers,
             events=output.events,
             cancel=cancel,
+            candidate_repair=self._candidate_repair,
         )
         dispatch = RunActionDispatcher(
             decisions=decisions,
@@ -285,6 +289,13 @@ class SqlMainWorkerHandler:
                 else None
             ),
             max_decisions=self._max_decisions,
+            candidate_repairs=(
+                SqlCandidateRepairs(
+                    self._engine, self._schema, actor=self._actor, lease=lease.current
+                )
+                if self._candidate_repair
+                else None
+            ),
         )
         watcher = asyncio.create_task(cancel.watch())
         try:

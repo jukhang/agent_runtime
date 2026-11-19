@@ -1,9 +1,16 @@
 """Declarative Agent configuration; execution belongs to AgentRuntime."""
 
-from typing import Annotated, Literal, Self
+from typing import Annotated, Any, Literal, Self
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import Field, StringConstraints, field_validator, model_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    StringConstraints,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from agent_runtime.contracts.base import Contract, Identifier
 from agent_runtime.contracts.references import CapabilityRef
@@ -13,6 +20,15 @@ class Budget(Contract):
     max_model_calls: Annotated[int, Field(strict=True, ge=1)] = 32
     max_tool_calls: Annotated[int, Field(strict=True, ge=0)] = 24
     max_runtime_seconds: Annotated[int, Field(strict=True, ge=1)] = 1800
+    finalization_tokens: Annotated[int, Field(strict=True, ge=0, le=65536)] = 0
+
+    @model_serializer(mode="wrap")
+    def legacy_shape(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        data: dict[str, Any] = handler(self)
+        if not self.finalization_tokens:
+            data.pop("finalizationTokens", None)
+            data.pop("finalization_tokens", None)
+        return data
 
 
 class Agent(Contract):

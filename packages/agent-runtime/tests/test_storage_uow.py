@@ -3359,6 +3359,10 @@ def test_journal_outbox_replay_visibility_and_idempotency(world):
         "revoked",
         "unpublished",
         "other_work",
+        "respond_tool_failures",
+        "finish_unresolved",
+        "finish_recovered",
+        "finish_recovered_write",
     ],
 )
 @pytest.mark.parametrize("completion_policy", ["model_review", "on_response"])
@@ -3396,8 +3400,13 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario, 
         "other_work",
         "pending_plan",
         "failed_plan",
+        "respond_tool_failures",
     }
-    automatic = responding and completion_policy == "on_response" and scenario != "pending_plan"
+    automatic = (
+        responding
+        and completion_policy == "on_response"
+        and scenario not in {"pending_plan", "respond_tool_failures"}
+    )
 
     async def register_primary():
         engine = engine_for(world.schema)
@@ -3459,6 +3468,44 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario, 
             await engine.dispose()
 
     run(register_primary)
+    recovery_ids = None
+    if scenario in {
+        "respond_tool_failures",
+        "finish_unresolved",
+        "finish_recovered",
+        "finish_recovered_write",
+    }:
+        from test_storage_tool_recovery_evidence import seed_recovery_calls
+
+        from agent_runtime.contracts.context import ContextSourceRecord
+        from agent_runtime.contracts.references import ResourceRef, ResourceScope
+
+        recovery_ids = run(lambda: seed_recovery_calls(world, write=scenario.endswith("_write")))
+        context = context.model_copy(
+            update={
+                "sources": tuple(
+                    ContextSourceRecord(
+                        source_id=f"tool-{identity}",
+                        required=True,
+                        resource=ResourceRef(
+                            resource_type="tool_call_result",
+                            resource_id=str(identity),
+                            resource_version="1",
+                            scope=ResourceScope(
+                                scope_id=world.scope,
+                                session_id=str(world.session_id),
+                                owner_id=actor(world=world).actor_id,
+                            ),
+                        ),
+                        disposition="included",
+                        reason=None,
+                        summary_ref=None,
+                        summary_status=None,
+                    )
+                    for identity in recovery_ids
+                )
+            }
+        )
     action = (
         {"kind": "respond", "payload": {"answerRequestRef": "answer:request"}}
         if responding
@@ -3477,6 +3524,28 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario, 
         attempt_id=attempt_id,
         action=decision_adapter.validate_python(action),
     )
+    if scenario in {"finish_recovered", "finish_recovered_write"}:
+        from agent_runtime.contracts.decisions import RecoveredToolFailure
+
+        failed, successful = recovery_ids
+        frame = replace(
+            frame,
+            action=frame.action.model_copy(
+                update={
+                    "payload": frame.action.payload.model_copy(
+                        update={
+                            "recovered_tool_failures": (
+                                RecoveredToolFailure(
+                                    failed_tool_call_id=failed,
+                                    recovery_tool_call_ids=(successful,),
+                                    reason="Corrected arguments and verified result.",
+                                ),
+                            )
+                        }
+                    )
+                }
+            ),
+        )
 
     class Context:
         async def load(self, scope_id, requested_id):
@@ -3727,7 +3796,7 @@ def test_answer_action_atomic_commit_and_recovery(world, monkeypatch, scenario, 
         )
         assert turn["outcome_run_id"] == world.run_id
         assert turn["outcome"] == (
-            "partial" if scenario in {"partial", "failed_plan"} else "success"
+            "partial" if scenario in {"partial", "failed_plan", "finish_unresolved"} else "success"
         )
         terminal = run(lambda: _row(world, "SELECT payload FROM event WHERE kind='run.completed'"))
         assert terminal["payload"]["publicMessage"]
@@ -4878,6 +4947,48 @@ def test_staged_decision_observation_and_recovery_are_durable(world, monkeypatch
     assert "391" in run(lambda: reader.read(req, source)).content
     with pytest.raises(AgentRuntimeError):
         run(lambda: reader.read(req, source.model_copy(update={"resource_version": "2"})))
+    from agent_runtime.tool_transcript import NativeToolTranscript
+
+    native_reader = SqlRuntimeSourceReader(
+        engine,
+        world.schema,
+        blobs=SqlContextBlobBackend(engine, world.schema),
+        native_tool_history=True,
+    )
+    native = NativeToolTranscript.model_validate_json(
+        run(lambda: native_reader.read(req, source)).content
+    )
+    assert native.model_attempt_id == attempt_id
+    assert native.reasoning_content is None and native.assistant_content is None
+    assert native.call.tool_call_id == call_id
+    assert native.outcome == outcome
+    with pytest.raises(AgentRuntimeError):
+        run(lambda: native_reader.read(req, source.model_copy(update={"resource_version": "2"})))
+    with pytest.raises(AgentRuntimeError):
+        run(
+            lambda: native_reader.read(
+                req.model_copy(
+                    update={"actor": req.actor.model_copy(update={"actor_id": "other"})}
+                ),
+                source,
+            )
+        )
+    # Enrichment follows the already authorized source Run, not the consumer Run.
+    original_content = run(lambda: reader.read(req, source)).content
+    history = run(
+        lambda: native_reader._with_native_history(
+            req.model_copy(update={"run_id": uuid.uuid4()}),
+            source,
+            original_content,
+            source_run_id=world.run_id,
+        )
+    )
+    assert NativeToolTranscript.model_validate_json(history).model_attempt_id == attempt_id
+    item_id = run(lambda: _seed_item(world))
+    run(lambda: _seed_event(world, sequence=3, item_id=item_id, attempt_id=attempt_id))
+    with pytest.raises(AgentRuntimeError) as unsealed:
+        run(lambda: native_reader.read(req, source))
+    assert classify(unsealed.value) == "VERSION_CONFLICT"
     run(engine.dispose)
 
 
@@ -5335,6 +5446,7 @@ def _exercise_main_worker_answer(
     failure_kind: str = "transient",
     live_fault: str | None = None,
     completion_policy="on_response",
+    finalization: str | None = None,
 ) -> None:
     import httpx
     from runtime_provider_faults import InterruptingTransport
@@ -5405,9 +5517,26 @@ def _exercise_main_worker_answer(
                     "id": budget_id,
                     "scope": world.scope,
                     "run": world.run_id,
-                    "limits": json.dumps({"model_calls": 4, "tool_calls": 4, "tokens": 12000}),
+                    "limits": json.dumps(
+                        {
+                            "model_calls": 1 if finalization == "closing" else 4,
+                            "tool_calls": 4,
+                            "tokens": 12000,
+                        }
+                    ),
                 },
             )
+            if finalization is not None:
+                from agent_runtime.storage.model_budget import reserve_closing
+
+                await reserve_closing(
+                    db,
+                    world.schema,
+                    scope=world.scope,
+                    allocation=budget_id,
+                    run=world.run_id,
+                    tokens=4000,
+                )
 
     run(seed)
     runtime_actor = actor(world.auth_revision, world=world)
@@ -5481,6 +5610,7 @@ def _exercise_main_worker_answer(
                         "Complete the already published answer, without answering again. "
                         "Use exactly the finalItemIds from the supplied finish decision."
                     ),
+                    "purpose": "closing" if budget.closing else "ordinary",
                 }
             )
             return DecisionSetup(
@@ -5693,7 +5823,11 @@ def _exercise_main_worker_answer(
                 if live
                 else FixedProvider()
             )
-            if live_fault is not None and live_fault not in {"timeout", "disconnect"}:
+            if live_fault is not None and live_fault not in {
+                "timeout",
+                "disconnect",
+                "unreachable",
+            }:
                 assert live
                 provider = FaultInjectedLiveProvider(provider)
             handler = SqlMainWorkerHandler(
@@ -5840,7 +5974,7 @@ def _exercise_main_worker_answer(
                             )
                         ).scalar_one() == watermark
                     return
-                if live_fault in {"timeout", "disconnect", "exhausted"}:
+                if live_fault in {"timeout", "disconnect", "exhausted", "unreachable"}:
                     with pytest.raises(AgentRuntimeError) as failed:
                         await host_handler(claimed, LeaseHandle(claimed.lease))
                     await SqlWorkerRecoverySink(
@@ -5936,7 +6070,10 @@ def _exercise_main_worker_answer(
                 f"live root worker failed with {exc.failure.code}; "
                 f"provider HTTP {statuses}; request {request_shapes}"
             ) from exc
-        if live_fault is not None:
+        if live_fault == "unreachable":
+            assert not statuses and len(request_shapes) == 1
+            assert not injected_faults
+        elif live_fault is not None:
             assert injected_faults == [live_fault]
             assert statuses and all(status == 200 for status in statuses)
         if interrupt is not None:
@@ -5952,13 +6089,15 @@ def _exercise_main_worker_answer(
                 count(world, "event", "run_id=:id AND kind='item.completed'", id=world.run_id) == 1
             )
             return
-        if live_fault in {"timeout", "disconnect", "exhausted"}:
+        if live_fault in {"timeout", "disconnect", "exhausted", "unreachable"}:
             assert (
                 scalar(world.schema, "SELECT status FROM run WHERE id=:id", id=world.run_id)
                 == "failed"
             )
             assert count(world, "model_attempt", "run_id=:id", id=world.run_id) == 1
-            assert count(world, "output_seal", "run_id=:id", id=world.run_id) == 1
+            assert count(world, "output_seal", "run_id=:id", id=world.run_id) == (
+                0 if live_fault == "unreachable" else 1
+            )
             terminal = run(
                 lambda: _row(
                     world,
@@ -5968,7 +6107,7 @@ def _exercise_main_worker_answer(
             )["payload"]
             assert terminal["publicMessage"].strip()
             assert terminal["nextSteps"]
-            if live_fault in {"timeout", "disconnect"}:
+            if live_fault in {"timeout", "disconnect", "unreachable"}:
                 assert terminal["failure"]["code"] == (
                     "PROVIDER_TIMEOUT" if live_fault == "timeout" else "DEPENDENCY_UNAVAILABLE"
                 )
@@ -6043,7 +6182,30 @@ def _exercise_main_worker_answer(
                     id=world.turn_id,
                 )
             )
-            assert turn == {"outcome_run_id": world.run_id, "outcome": "success"}
+            assert turn == {
+                "outcome_run_id": world.run_id,
+                "outcome": "partial" if finalization == "closing" else "success",
+            }
+        if finalization is not None:
+            kinds = (
+                {"reserve", "adjust", "settle"}
+                if finalization == "closing"
+                else {
+                    "reserve",
+                    "release",
+                }
+            )
+            for kind in kinds:
+                assert count(world, "budget_entry", "kind=:kind", kind=kind) == 1
+            assert count(world, "budget_entry") == len(kinds)
+            held = run(
+                lambda: _row(
+                    world,
+                    "SELECT reserved FROM budget_allocation WHERE id=:id",
+                    id=budget_id,
+                )
+            )["reserved"]
+            assert all(value == 0 for value in held.values())
     finally:
         run(engine.dispose)
 
@@ -6051,6 +6213,11 @@ def _exercise_main_worker_answer(
 @pytest.mark.parametrize("completion_policy", ["on_response", "model_review"])
 def test_main_worker_commits_answer(world: World, completion_policy: str) -> None:
     _exercise_main_worker_answer(world, live=False, completion_policy=completion_policy)
+
+
+@pytest.mark.parametrize("finalization", ("unused", "closing"))
+def test_main_worker_purpose_budget_reaches_terminal_uow(world: World, finalization: str) -> None:
+    _exercise_main_worker_answer(world, live=False, finalization=finalization)
 
 
 @pytest.mark.parametrize("failure_kind", ("transient", "length", "empty"))

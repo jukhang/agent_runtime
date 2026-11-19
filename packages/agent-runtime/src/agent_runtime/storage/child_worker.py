@@ -37,6 +37,7 @@ from agent_runtime.contracts.tasks import ValidationEvidence
 from agent_runtime.contracts.tools import PendingExecution, ToolFailed, ToolInvocation, ToolOutcome
 from agent_runtime.contracts.transactions import ActorContext
 from agent_runtime.contracts.work_claims import ChildClaimedWork
+from agent_runtime.finalization import decision_budget
 from agent_runtime.loop_runner import RecoveredDecision
 from agent_runtime.ports import Policy, Provider
 from agent_runtime.provider import CapabilityResolver, ProviderInvoker
@@ -196,7 +197,7 @@ class SqlChildWorkerHandler:
             provider=ProviderInvoker(
                 self._provider,
                 capabilities=self._capabilities,
-                attempts=SqlModelAttemptStore(self._engine, self._schema),
+                attempts=SqlModelAttemptStore(self._engine, self._schema, child_guard=guard),
                 validate_options=self._validate_provider_options,
             ),
             setup=binding.setup,
@@ -257,8 +258,11 @@ class SqlChildWorkerHandler:
             if await self._park_execution(state, decisions, recovered):
                 return
             refs = recovered.require_next_model_sources()
-        for _ in range(self._max_decisions):
+        for decision_index in range(self._max_decisions):
             budget = await budgets.read(state)
+            budget = decision_budget(
+                budget, last_decision=decision_index + 1 == self._max_decisions
+            )
             frame = await loop.decide(state, inputs, budget, observation_refs=refs)
             if isinstance(frame.action, InvokeTools):
                 try:

@@ -50,6 +50,9 @@ async def finalize_root_failure(
     No external effect is retried or declared stopped here. Epoch invalidation and
     the failure are committed together with the captured output and notifications.
     """
+    from agent_runtime.storage.model_budget import release_closing
+
+    await release_closing(db, schema, run["scope_id"], run["id"])
     params = {"scope": run["scope_id"], "run": run["id"], "session": run["session_id"]}
     session_row = (
         (

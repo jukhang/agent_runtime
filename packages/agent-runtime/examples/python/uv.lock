@@ -10,7 +10,7 @@ resolution-markers = [
 
 [[package]]
 name = "agent-runtime"
-version = "0.2.5"
+version = "0.2.20rc20"
 source = { editable = "../../" }
 dependencies = [
     { name = "pydantic" },

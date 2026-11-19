@@ -5,7 +5,7 @@ import json
 import pytest
 from test_context_runtime import Estimator, Payloads, Reader, Snapshots, request
 
-from agent_runtime.compression import source_lines, verified_extraction
+from agent_runtime.compression import CompressionNoGain, source_lines, verified_extraction
 from agent_runtime.context_runtime import CompressedSource, ContextRuntime
 from agent_runtime.contracts.failure import AgentRuntimeError
 
@@ -15,7 +15,6 @@ from agent_runtime.contracts.failure import AgentRuntimeError
     [
         "",
         "{}",
-        '{"quotes":["A=100"]}',
         '{"quotes":["A=100","B=900"]}',
         '{"quotes":["A=100","B!=900"',
     ],
@@ -48,8 +47,37 @@ def test_structured_history_keeps_every_leaf_and_decodes_escaped_lines():
 
 
 def test_unique_text_is_not_claimed_as_compressed():
-    with pytest.raises(AgentRuntimeError):
+    with pytest.raises(CompressionNoGain):
         verified_extraction("A=1", '{"quotes":["A=1"]}')
+    with pytest.raises(CompressionNoGain):
+        verified_extraction("A=100\nB!=900\nA=100\n", '{"quotes":["A=100"]}')
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("no_gain", [True, False])
+async def test_optional_compression_cannot_abort_when_no_smaller_fitting_result(no_gain):
+    class Compression:
+        async def compress(self, req, source):
+            if no_gain:
+                raise CompressionNoGain("overhead exceeds original")
+            return CompressedSource(content="x" * 10000, summary_ref=source.resource)
+
+    class LongReader(Reader):
+        async def read(self, req, ref):
+            return (await super().read(req, ref)).model_copy(update={"content": "x" * 12000})
+
+    runtime = ContextRuntime(
+        reader=LongReader(required=False),
+        estimator=Estimator(),
+        payloads=Payloads(),
+        snapshots=Snapshots(),
+        compression=Compression(),
+    )
+    snapshot = await runtime.prepare(request(max_input_tokens=1800))
+    assert snapshot.sources[0].disposition == "omitted"
+    assert snapshot.sources[0].reason == (
+        "optional_compression_no_gain" if no_gain else "optional_summary_exceeds_budget"
+    )
 
 
 def test_model_selected_literal_subset_can_compress_unique_irrelevant_history():

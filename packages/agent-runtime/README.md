@@ -71,6 +71,17 @@ reads still remove analysis. Hosts must coordinate execution, audit and replay r
 before deleting Journal history: this method itself never prunes events. Result waiting
 and controls authorize the current Run directly and do not rebuild full history.
 
+Snapshot replay uses bounded sequence windows (at most 256 events, additionally
+bounded by `max_snapshot_events`) and a per-page byte budget in one MVCC read.
+`max_snapshot_events` limits a replay page, not the total retained history. The
+actual display snapshot and cached representation must still fit
+`max_snapshot_bytes`; an oversized representation or individual event raises
+`SNAPSHOT_TOO_LARGE`, not a version conflict. Restricted snapshot reads persist
+the canonical projection with a monotonic watermark; public-only reads never
+overwrite it. Hosts can also call `materialize` from maintenance. Repeated
+unchanged reads do not increment its revision. This does not prune the Journal
+or provide unlimited single-response history.
+
 ```python
 from agent_runtime import Agent, CapabilityKey, CapabilityRef
 
@@ -1087,3 +1098,11 @@ Package regression: 1246 passed / 313 skipped; separate live SQL Skill/capacity 
 and isolated wheel imports passed. Final evidence is local under
 `output/p04-03/r03-skill-combined-final.json`; review section 24 records scope and limits.
 R05 A2A and R06 combined acceptance remain separate, unfinished work packages.
+## Independent Decision Contexts
+
+Trusted hosts may set `DecisionSetup.observation_policy="isolate"` for a model
+stage that must not inherit the preceding tool transcript. Explicit context
+resources are preserved; ordinary stages default to `"include"`. Models cannot
+set this policy through a tool argument, and isolation never grants permissions.
+Journal and tool ledgers remain intact. Hosts must still supply appropriate
+evidence when validating completion; hiding an unresolved failure is not recovery.

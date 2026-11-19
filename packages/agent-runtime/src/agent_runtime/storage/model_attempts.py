@@ -15,8 +15,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 
 from agent_runtime.contracts.canonical import content_digest
 from agent_runtime.contracts.failure import runtime_failure
+from agent_runtime.contracts.ownership import ChildCommitGuard
 from agent_runtime.contracts.transactions import ActorContext, LeaseToken
 from agent_runtime.provider import AttemptStart, AttemptTerminal, ModelAttemptStore
+from agent_runtime.storage.child_authority import require_child
+from agent_runtime.storage.model_budget import authorize_attempt, closing_entries, entry
 from agent_runtime.storage.uow import facts, locks
 from agent_runtime.storage.uow.authority import revalidate_authority
 from agent_runtime.storage.uow.schema import require_schema, scoped
@@ -38,12 +41,16 @@ class SqlModelAttemptStore(ModelAttemptStore):
         actor: ActorContext | None = None,
         lease: Callable[[], LeaseToken] | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        child_guard: Callable[[], ChildCommitGuard] | None = None,
     ) -> None:
         if (actor is None) != (lease is None):
             raise ValueError("claim-bound attempts require both actor and lease")
         self._schema = require_schema(schema)
         self._actor, self._lease = actor, lease
         self._clock = clock
+        self._child_guard = child_guard
+        if child_guard is not None and lease is not None:
+            raise ValueError("model attempts cannot use both root and child fences")
         self._locks = locks.build_lock_statements(self._schema)
         self._sessions = async_sessionmaker(engine, expire_on_commit=False)
         self._select = scoped(
@@ -72,6 +79,19 @@ class SqlModelAttemptStore(ModelAttemptStore):
     async def begin(self, request: ProviderRequest, *, started_at: datetime) -> AttemptStart:
         _aware(started_at, "started_at")
         async with self._sessions() as session, session.begin():
+            if self._child_guard is not None:
+                guard = self._child_guard()
+                if (request.scope_id, request.session_id, request.run_id) != (
+                    guard.actor.scope_id,
+                    guard.lease.session_id,
+                    guard.lease.run_id,
+                ):
+                    raise runtime_failure(
+                        "FORBIDDEN",
+                        category="authorization",
+                        public_message="Model call belongs to another child.",
+                    )
+                await require_child(session, self._schema, guard, now=self._clock())
             if self._lease is not None and self._actor is not None:
                 lease = self._lease()
                 if (request.scope_id, request.session_id, request.run_id) != (
@@ -121,6 +141,26 @@ class SqlModelAttemptStore(ModelAttemptStore):
                         category="concurrency",
                         public_message="Model execution is no longer active.",
                     )
+            existing = (
+                (await session.execute(self._select, {"id": request.attempt_id}))
+                .mappings()
+                .one_or_none()
+            )
+            if existing is not None:
+                self._verify_existing(request, existing)
+                if existing["status"] != "running":
+                    raise runtime_failure(
+                        "VERSION_CONFLICT",
+                        category="concurrency",
+                        public_message="The model attempt is already terminal.",
+                    )
+                return "already_running"
+            await authorize_attempt(
+                session,
+                self._schema,
+                request,
+                fenced=self._lease is not None or self._child_guard is not None,
+            )
             inserted = cast(
                 "CursorResult[Any]",
                 await session.execute(
@@ -152,6 +192,30 @@ class SqlModelAttemptStore(ModelAttemptStore):
     async def finish(self, request: ProviderRequest, terminal: AttemptTerminal) -> None:
         _validate_terminal(terminal)
         async with self._sessions() as session, session.begin():
+            # Same Allocation -> Attempt order as begin, including duplicate finish.
+            history = {}
+            if request.purpose == "closing":
+                await session.execute(
+                    scoped(
+                        "SELECT id FROM {t}budget_allocation "
+                        "WHERE scope_id=:scope AND id=:id FOR UPDATE",
+                        self._schema,
+                    ),
+                    {"scope": request.scope_id, "id": request.budget_allocation_id},
+                )
+                history = await closing_entries(
+                    session,
+                    self._schema,
+                    request.scope_id,
+                    request.budget_allocation_id,
+                    request.run_id,
+                )
+                if history.get("adjust", {}).get("reconciliation_ref") != str(request.attempt_id):
+                    raise runtime_failure(
+                        "FORBIDDEN",
+                        category="authorization",
+                        public_message="Closing attempt has no matching purpose claim.",
+                    )
             row = (
                 (
                     await session.execute(
@@ -213,6 +277,23 @@ class SqlModelAttemptStore(ModelAttemptStore):
                     public_message="The model attempt lost its terminal write race.",
                     attempt_id=str(request.attempt_id),
                 )
+            if request.purpose == "closing" and "settle" not in history:
+                await entry(
+                    session,
+                    self._schema,
+                    scope=request.scope_id,
+                    allocation=request.budget_allocation_id,
+                    run=request.run_id,
+                    kind="settle",
+                    quantities={"model_calls": 1}
+                    | (
+                        {"tokens": int(terminal.usage.total_tokens)}
+                        if terminal.usage.total_tokens is not None
+                        else {}
+                    ),
+                    receipt=str(request.attempt_id),
+                    usage=terminal.usage,
+                )
 
     def _key(self, request: ProviderRequest) -> str:
         key = _request_key(request)
@@ -242,6 +323,8 @@ def claim_attempt_suffix(lease: LeaseToken) -> str:
 
 def _request_key(request: ProviderRequest) -> str:
     payload = request.model_dump(mode="json", by_alias=True)
+    if request.purpose == "ordinary":
+        payload.pop("purpose", None)  # Preserve old persisted request hashes.
     return f"model-attempt:{request.attempt_id}:{content_digest(payload)}"
 
 

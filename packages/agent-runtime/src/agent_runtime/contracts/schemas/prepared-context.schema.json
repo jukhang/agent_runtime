@@ -279,6 +279,15 @@
     "prompt": {
       "$ref": "#/$defs/CapabilityRef"
     },
+    "purpose": {
+      "default": "ordinary",
+      "enum": [
+        "ordinary",
+        "closing"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
     "runId": {
       "format": "uuid",
       "title": "Runid",

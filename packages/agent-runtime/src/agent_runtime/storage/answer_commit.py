@@ -88,12 +88,36 @@ class SqlAnswerActionCommitter:
             checkpoint = await self._decisions.prepare_next_checkpoint(
                 state, frame, result={"answerItemIds": [str(item) for item in ids]}
             )
-            outcome = "success" if self._completion_policy == "on_response" else None
+            outcome = (
+                "partial"
+                if frame.context.purpose == "closing"
+                else "success"
+                if self._completion_policy == "on_response"
+                else None
+            )
             refs = ()
         else:
             ids = action.payload.final_item_ids
             outcome = action.payload.outcome
             refs = action.payload.evidence_refs
+            visible = {
+                source.resource.resource_id
+                for source in frame.context.sources
+                if source.resource.resource_type == "tool_call_result"
+                and source.disposition in {"included", "summarized"}
+            }
+            claimed = {
+                str(identity)
+                for assessment in action.payload.recovered_tool_failures
+                for identity in (
+                    assessment.failed_tool_call_id,
+                    *assessment.recovery_tool_call_ids,
+                )
+            }
+            if not claimed <= visible:
+                from agent_runtime.storage.tool_recovery_evidence import invalid_evidence
+
+                invalid_evidence("Tool recovery assessment lacks visible context evidence.")
             checkpoint = await self._decisions.prepare_next_checkpoint(state, frame)
         updated = await self._state.commit_answer(
             guard=CommitGuard(
@@ -105,7 +129,14 @@ class SqlAnswerActionCommitter:
             evidence_refs=refs,
             journal=self._journal,
             resources=self._resources,
-            auto_finish=isinstance(action, Respond) and outcome is not None,
+            auto_finish=(
+                isinstance(action, Respond)
+                and outcome is not None
+                and frame.context.purpose != "closing"
+            ),
+            recovered_tool_failures=(
+                action.payload.recovered_tool_failures if isinstance(action, Finish) else ()
+            ),
         )
         return state.model_copy(
             update={

@@ -33,8 +33,14 @@ ERROR_CODES: Mapping[str, str] = MappingProxyType(
         ),
         "INTERNAL": "An unexpected internal failure with no safer public classification.",
         "INVALID_INPUT": "Input violates a contract, digest or shape rule.",
+        "INVALID_EVIDENCE": (
+            "A model completion candidate cites unavailable or incompatible evidence."
+        ),
         "PROVIDER_TIMEOUT": "The model provider did not answer within its deadline.",
         "SIDE_EFFECT_UNKNOWN": "An external side effect may have happened and cannot be confirmed.",
+        "SNAPSHOT_TOO_LARGE": (
+            "A display snapshot or individual replay event exceeds its size limit."
+        ),
         "TOOL_TIMEOUT": "A tool did not finish within its deadline.",
         "USAGE_UNRESOLVED": "Unknown model usage reservations block further paid calls.",
         "VERSION_CONFLICT": "An expected version, revision or generation no longer matches.",

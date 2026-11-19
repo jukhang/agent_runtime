@@ -6,6 +6,7 @@ import json
 from typing import TYPE_CHECKING, Any, Literal
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+from agent_runtime.contracts.decisions import RecoveredToolFailure
 from agent_runtime.contracts.payloads import (
     ChannelDigest,
     ChannelIndex,
@@ -25,6 +26,7 @@ from agent_runtime.contracts.state_events import (
 )
 from agent_runtime.contracts.transactions import CommitGuard
 from agent_runtime.contracts.transitions import StateWriteGuard, UpdatedStateRef
+from agent_runtime.storage.tool_recovery_evidence import verify_tool_recoveries
 from agent_runtime.storage.uow import errors
 from agent_runtime.storage.uow.schema import scoped
 from agent_runtime.terminal_guidance import terminal_guidance
@@ -48,6 +50,7 @@ async def commit_answer(
     journal: SqlJournal,
     resources: TransactionalResourceAccess,
     auto_finish: bool = False,
+    recovered_tool_failures: tuple[RecoveredToolFailure, ...] = (),
 ) -> UpdatedStateRef:
     if journal.schema != store.schema:
         errors.invalid_input("answer Journal uses another schema")
@@ -80,19 +83,21 @@ async def commit_answer(
                 session, guard.actor, ref, session_id=run["session_id"]
             )
         params = {"scope": run["scope_id"], "run": run["id"]}
+        unsuccessful = await session.execute(
+            scoped(
+                "SELECT id FROM {t}tool_call WHERE scope_id=:scope AND run_id=:run "
+                "AND status IN ('failed','cancelled','not_executed')",
+                store.schema,
+            ),
+            params,
+        )
+        failures = set(unsuccessful.scalars())
         if auto_finish:
             if outcome != "success":
                 errors.invalid_input("automatic completion requires a successful answer candidate")
-            failed = await session.execute(
-                scoped(
-                    "SELECT id FROM {t}tool_call WHERE scope_id=:scope AND run_id=:run "
-                    "AND status IN ('failed','cancelled','not_executed') LIMIT 1",
-                    store.schema,
-                ),
-                params,
-            )
-            if failed.first() is not None:
-                outcome = "partial"
+            if failures:
+                # Persisted answer, then a conditional review; do not infer recovery or failure.
+                outcome = None
             plan_steps = await session.execute(
                 scoped(
                     "SELECT step->>'status' FROM {t}plan p JOIN {t}plan_revision pr "
@@ -109,6 +114,31 @@ async def commit_answer(
                 outcome = None
             elif any(status in {"failed", "cancelled"} for status in statuses):
                 outcome = "partial"
+        elif outcome is not None:
+            recovered = await verify_tool_recoveries(
+                session,
+                store.schema,
+                scope_id=run["scope_id"],
+                run_id=run["id"],
+                failures=failures,
+                assessments=recovered_tool_failures,
+            )
+            if outcome == "success" and not recovered:
+                outcome = "partial"
+            if outcome == "success":
+                plan_steps = await session.execute(
+                    scoped(
+                        "SELECT step->>'status' FROM {t}plan p JOIN {t}plan_revision pr "
+                        "ON pr.scope_id=p.scope_id AND pr.plan_id=p.id "
+                        "AND pr.revision=p.current_revision "
+                        "CROSS JOIN LATERAL jsonb_array_elements(pr.steps) step "
+                        "WHERE p.scope_id=:scope AND p.task_id=:task",
+                        store.schema,
+                    ),
+                    {**params, "task": run["task_id"]},
+                )
+                if any(status != "completed" for status in plan_steps.scalars()):
+                    outcome = "partial"
 
         if outcome is None:
             other_work = await session.execute(
@@ -273,6 +303,10 @@ async def commit_answer(
                 if published.scalar_one_or_none() is None:
                     errors.invalid_input("final answer has no durable completion event")
         status = RunStatus.COMPLETED if outcome is not None else RunStatus.QUEUED
+        if outcome is not None:
+            from agent_runtime.storage.model_budget import release_closing
+
+            await release_closing(session, store.schema, run["scope_id"], run["id"])
         guidance = (
             terminal_guidance("partial", retained_count=len(item_ids))
             if outcome == "partial"

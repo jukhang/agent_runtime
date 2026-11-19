@@ -11,6 +11,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from agent_runtime.agent_loop import DecisionFrame
+from agent_runtime.candidate_repair import CandidateRejected
 from agent_runtime.context_payloads import BlobContextPayloadStore
 from agent_runtime.contracts.canonical import content_digest
 from agent_runtime.contracts.decisions import Respond
@@ -241,6 +242,11 @@ class SqlMainStream:
     async def finalize_tool(self, frame: DecisionFrame) -> None:
         await self._finish(frame, answer_required=False)
 
+    async def finalize_rejection(self, rejection: CandidateRejected) -> None:
+        await self._finish_attempt(
+            rejection.attempt_id, rejection.snapshot_id, expected_answer=None
+        )
+
     async def _item_id(self, db: AsyncSession, attempt_id: UUID) -> UUID:
         """The first public output uses Admission's reserved identity; retries do not."""
         lease = self._lease.current()
@@ -269,11 +275,24 @@ class SqlMainStream:
         return uuid5(NAMESPACE_URL, f"main-output:{attempt_id}")
 
     async def _finish(self, frame: DecisionFrame, *, answer_required: bool) -> tuple[UUID, ...]:
-        await self._flush(frame.attempt_id)
+        expected = None
+        if answer_required:
+            if not isinstance(frame.action, Respond):
+                errors.invalid_input("root answer publication requires Respond")
+            expected = frame.action.payload.answer_request_ref
+        return await self._finish_attempt(
+            frame.attempt_id, frame.context.snapshot_id, expected_answer=expected
+        )
+
+    async def _finish_attempt(
+        self, attempt_id: UUID, snapshot_id: UUID, *, expected_answer: str | None
+    ) -> tuple[UUID, ...]:
+        answer_required = expected_answer is not None
+        await self._flush(attempt_id)
         lease = self._lease.current()
         async with self._sessions() as db, db.begin():
             await self._require_main(db)
-            item_id = await self._item_id(db, frame.attempt_id)
+            item_id = await self._item_id(db, attempt_id)
             item = (
                 (
                     await db.execute(
@@ -289,8 +308,8 @@ class SqlMainStream:
                             "scope": lease.scope_id,
                             "run": lease.run_id,
                             "item": item_id,
-                            "attempt": frame.attempt_id,
-                            "snapshot": frame.context.snapshot_id,
+                            "attempt": attempt_id,
+                            "snapshot": snapshot_id,
                         },
                     )
                 )
@@ -313,15 +332,13 @@ class SqlMainStream:
                         "scope": lease.scope_id,
                         "run": lease.run_id,
                         "item": item_id,
-                        "attempt": frame.attempt_id,
+                        "attempt": attempt_id,
                     },
                 )
             ).scalar_one()
         digest = content_digest({"runId": str(lease.run_id), "text": text})
         if answer_required:
-            if not isinstance(frame.action, Respond):
-                errors.invalid_input("root answer publication requires Respond")
-            if frame.action.payload.answer_request_ref != f"answer-{digest}":
+            if expected_answer != f"answer-{digest}":
                 errors.version_conflict("root answer differs from streamed content")
         ref = await self._payloads.put(
             lease.scope_id, {"runId": str(lease.run_id), "text": text}, digest
@@ -329,9 +346,9 @@ class SqlMainStream:
         proof = await self._journal.seal_output(
             SealOutputRequest(
                 lease=self._lease.current(),
-                attempt_id=frame.attempt_id,
+                attempt_id=attempt_id,
                 item_id=item_id,
-                proof_id=uuid5(NAMESPACE_URL, f"main-seal:{frame.attempt_id}"),
+                proof_id=uuid5(NAMESPACE_URL, f"main-seal:{attempt_id}"),
                 sealed_revision="1",
             )
         )
@@ -370,7 +387,7 @@ class SqlMainStream:
                 StateEventBatch(
                     authority=self._authority(run),
                     session_id=lease.session_id,
-                    trace_id=str(frame.attempt_id),
+                    trace_id=str(attempt_id),
                     events=(
                         ItemCompletedDraft(
                             kind="item.completed",
@@ -381,7 +398,7 @@ class SqlMainStream:
                             parent_run_id=None,
                             step_id=None,
                             item_id=item_id,
-                            model_attempt_id=frame.attempt_id,
+                            model_attempt_id=attempt_id,
                             payload=ItemCompleted(
                                 item_revision="1",
                                 status="completed",

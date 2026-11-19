@@ -50,6 +50,232 @@ def sse(*chunks):
     return "".join(f"data: {json.dumps(chunk)}\n\n" for chunk in chunks) + "data: [DONE]\n\n"
 
 
+@pytest.mark.asyncio
+async def test_bad_tool_json_is_retryable_diagnosed_and_never_completed(caplog):
+    request = ProviderRequest.model_validate(request_data())
+    provider, client = build_provider(
+        sse(
+            {
+                "choices": [
+                    {
+                        "delta": {
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "id": "secret-call",
+                                    "function": {
+                                        "name": "secret-tool",
+                                        "arguments": "secret-broken-json",
+                                    },
+                                }
+                            ]
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ]
+            }
+        ),
+        request,
+    )
+    diagnostics = []
+
+    async def record(call, detail):
+        diagnostics.append(detail)
+        return "private-diagnostic"
+
+    provider._diagnostics = record
+    try:
+        events = await collect(provider, request)
+    finally:
+        await client.aclose()
+    assert not any(e.kind == "tool.complete" for e in events)
+    assert events[-1].kind == "error" and events[-1].failure.retryable
+    assert events[-1].failure.detail_ref == "private-diagnostic"
+    assert diagnostics[0]["exception"] == "JSONDecodeError"
+    assert "secret" not in json.dumps(diagnostics) and "secret" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_failed_candidate_drains_usage_but_never_resumes_tool_parsing():
+    request = ProviderRequest.model_validate(request_data())
+    response = sse(
+        {
+            "choices": [
+                {
+                    "delta": {
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "bad",
+                                "function": {"name": "tool", "arguments": "{"},
+                            }
+                        ]
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ]
+        },
+        {
+            "choices": [
+                {
+                    "delta": {
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "good",
+                                "function": {"name": "tool", "arguments": "{}"},
+                            }
+                        ]
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ]
+        },
+        {"choices": [], "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}},
+    )
+    provider, client = build_provider(response, request)
+    try:
+        events = await collect(provider, request)
+    finally:
+        await client.aclose()
+    assert not any(e.kind in {"tool.complete", "finish"} for e in events)
+    assert events[-2].kind == "usage" and events[-2].usage.total_tokens == "15"
+    assert events[-1].kind == "error"
+
+
+@pytest.mark.asyncio
+async def test_empty_continuation_tool_identity_is_not_a_changed_name():
+    request = ProviderRequest.model_validate(request_data())
+    provider, client = build_provider(
+        sse(
+            {
+                "choices": [
+                    {
+                        "delta": {
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "id": "call-1",
+                                    "function": {"name": "read", "arguments": "{"},
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "choices": [
+                    {
+                        "delta": {
+                            "tool_calls": [
+                                {"index": 0, "id": "", "function": {"name": "", "arguments": "}"}}
+                            ]
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ]
+            },
+        ),
+        request,
+    )
+    try:
+        events = await collect(provider, request)
+    finally:
+        await client.aclose()
+    completed = [e for e in events if e.kind == "tool.complete"]
+    assert len(completed) == 1 and completed[0].name == "read" and completed[0].arguments == {}
+    assert events[-1].kind == "finish"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("profile", [OpenAIAdapterProfile.deepseek(), OpenAIAdapterProfile.qwen()])
+async def test_explicit_structured_output_capability_preserves_bound_schema(profile):
+    request = ProviderRequest.model_validate(request_data())
+    schema = {
+        "type": "object",
+        "properties": {"answer": {"type": "string"}},
+        "required": ["answer"],
+        "additionalProperties": False,
+    }
+    resolved = ResolvedProviderInput(
+        input_ref=request.input_ref,
+        input_digest=request.input_digest,
+        messages=({"role": "user", "content": "hello"},),
+        response_format={
+            "type": "json_schema",
+            "json_schema": {"name": "answer", "strict": True, "schema": schema},
+        },
+    )
+    provider, client = build_provider(sse(), request, profile=profile)
+    try:
+        body = provider._request_body(request, resolved)
+        if profile.structured_output_style == "json_object":
+            assert body["response_format"] == {"type": "json_object"}
+            assert json.dumps(schema, ensure_ascii=False) in body["messages"][0]["content"]
+            assert len(body["messages"]) == 2
+        else:
+            assert body["response_format"] == resolved.response_format
+            assert len(body["messages"]) == 1
+        assert resolved.messages == ({"role": "user", "content": "hello"},)
+    finally:
+        await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_json_object_profile_rejects_missing_output_schema():
+    request = ProviderRequest.model_validate(request_data())
+    provider, client = build_provider(sse(), request, profile=OpenAIAdapterProfile.deepseek())
+    try:
+        with pytest.raises(ValueError, match="bound output schema"):
+            provider._request_body(
+                request,
+                ResolvedProviderInput(
+                    input_ref=request.input_ref,
+                    input_digest=request.input_digest,
+                    messages=({"role": "user", "content": "hello"},),
+                    response_format={"type": "json_schema"},
+                ),
+            )
+    finally:
+        await client.aclose()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("thinking", ["enabled", "disabled", "default"])
+@pytest.mark.parametrize("profile", [OpenAIAdapterProfile.deepseek(), OpenAIAdapterProfile.qwen()])
+async def test_required_tool_respects_thinking_provider_capability(profile, thinking):
+    ref = {"key": {"namespace": "test", "key": "required"}, "revision": "1"}
+    request = ProviderRequest.model_validate(request_data(thinking=thinking, tools=(ref,)))
+    required = request.tools[0]
+    resolved = ResolvedProviderInput(
+        input_ref=request.input_ref,
+        input_digest=request.input_digest,
+        messages=({"role": "user", "content": "Use the required tool."},),
+        tools=(
+            ResolvedTool(
+                ref=required,
+                definition={
+                    "type": "function",
+                    "function": {"name": "required", "parameters": {"type": "object"}},
+                },
+            ),
+        ),
+        required_tool=required,
+    )
+    provider, client = build_provider(sse(), request, profile=profile)
+    try:
+        body = provider._request_body(request, resolved)
+        if thinking != "disabled" and not profile.supports_forced_tool_thinking:
+            assert body["tool_choice"] == "auto"
+            if thinking == "enabled":
+                assert body["thinking"] == {"type": "enabled"}
+        else:
+            assert body["tool_choice"]["type"] == "function"
+        assert resolved.required_tool == required
+    finally:
+        await client.aclose()
+
+
 async def collect(provider, request, *, cancel=None):
     return [event async for event in provider.stream(request, cancel=cancel)]
 

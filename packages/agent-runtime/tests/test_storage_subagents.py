@@ -204,7 +204,16 @@ async def install_tool_revision(engine, world, spec):
         "child_execution_wait",
     ],
 )
-def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request):
+def test_durable_delegate_propose_collect(
+    world,
+    monkeypatch,
+    scenario,
+    request,
+    *,
+    closing_floors: bool = False,
+    closing_crash_marker: str | None = None,
+):
+    floor_tokens = 4096 if scenario == "child_worker_closing" else 128
     if scenario == "child_worker_network" and os.getenv("AGENT_RUNTIME_LIVE_MODEL") != "1":
         pytest.skip("opt in to real model and SQL Worker integration")
     if (
@@ -213,6 +222,31 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
     ):
         pytest.skip("opt in to real MCP and SQL external effect integration")
     attempt = run(lambda: _seed_attempt(world))
+
+    async def complete_parent_usage():
+        # This fixture is synthetic, not evidence of real Provider billing.
+        engine = engine_for(world.schema)
+        try:
+            async with engine.begin() as db:
+                await db.execute(
+                    sa.text("UPDATE model_attempt SET usage=CAST(:usage AS jsonb) WHERE id=:id"),
+                    {
+                        "id": attempt,
+                        "usage": json.dumps(
+                            {
+                                "status": "complete",
+                                "reason": "provider_reported",
+                                "inputTokens": "1",
+                                "outputTokens": "1",
+                                "totalTokens": "2",
+                            }
+                        ),
+                    },
+                )
+        finally:
+            await engine.dispose()
+
+    run(complete_parent_usage)
     snapshot = run(
         lambda: _row(
             world, "SELECT context_snapshot_id FROM model_attempt WHERE id=:id", id=attempt
@@ -248,9 +282,10 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
         agent=target,
         agent_revision_id=world.agent_revision_id,
         parent_allocation_id=parent_budget,
-        model_calls=5,
+        model_calls=1 if scenario == "child_worker_closing" else 5,
         tool_calls=8,
-        tokens=1000,
+        # This fixture counts every character as a token, including tool JSON.
+        tokens=8192 if closing_floors else 1000,
         tools=(CapabilityRef.model_validate(tool_action()["payload"]["validatedCalls"][0]["tool"]),)
         if scenario
         in {
@@ -328,11 +363,36 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
                         {
                             "model_calls": 10,
                             "tool_calls": 16,
-                            "tokens": 500 if scenario == "insufficient" else 2000,
+                            "tokens": 500
+                            if scenario == "insufficient"
+                            else (16384 if closing_floors else 2000),
                         }
                     ),
                 },
             )
+            if closing_floors:
+                from agent_runtime.storage.model_budget import reserve_closing
+
+                manifest = {"budget": {"finalizationTokens": floor_tokens}}
+                await conn.execute(
+                    sa.text(
+                        f'UPDATE "{world.schema}".agent_revision '
+                        "SET manifest=CAST(:manifest AS jsonb),content_hash=:hash WHERE id=:id"
+                    ),
+                    {
+                        "id": world.agent_revision_id,
+                        "manifest": json.dumps(manifest),
+                        "hash": content_digest(manifest),
+                    },
+                )
+                await reserve_closing(
+                    conn,
+                    world.schema,
+                    scope=world.scope,
+                    allocation=parent_budget,
+                    run=world.run_id,
+                    tokens=floor_tokens,
+                )
             await conn.execute(
                 sa.text(
                     f'UPDATE "{world.schema}".capability_grant '
@@ -473,7 +533,7 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
         assert committed.status == "waiting_user" and committed.state_version == "2"
     assert count(world, "run") == baseline[0] + 1
     assert count(world, "budget_allocation") == 2
-    assert count(world, "budget_entry") == 1
+    assert count(world, "budget_entry") == (3 if closing_floors else 1)
     assert count(world, "agent_message", "kind='task.assign' AND status='applied'") == 1
     assert count(world, "outbox") == baseline[3] + 2
     with pytest.raises(AgentRuntimeError):
@@ -553,6 +613,50 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
         workspace_owner_run_id=claimed.lease.run_id,
         workspace_generation=claimed.workspace_generation,
     )
+
+    async def verify_floor_settlement():
+        child_ref = ChildRunRef(
+            scope_id=world.scope,
+            session_id=world.session_id,
+            parent_run_id=world.run_id,
+            child_run_id=child_row["id"],
+            task_id=child_row["task_id"],
+            agent=target,
+            budget_allocation_id=child_budget,
+            workspace_id=UUID(claimed.workspace_ref.resource_id),
+        )
+        assert await runtime.reconcile_budget(child_ref) is True
+        assert await runtime.reconcile_budget(child_ref) is True
+        parent_balance = await _row(
+            world,
+            "SELECT reserved FROM budget_allocation WHERE id=:id",
+            id=parent_budget,
+        )
+        assert parent_balance["reserved"] == {
+            "model_calls": 1,
+            "tool_calls": 0,
+            "tokens": floor_tokens,
+        }
+        child_balance = await _row(
+            world,
+            "SELECT reserved,unknown_reserved FROM budget_allocation WHERE id=:id",
+            id=child_budget,
+        )
+        assert all(v == 0 for v in child_balance["reserved"].values())
+        assert all(v == 0 for v in child_balance["unknown_reserved"].values())
+        released = await _row(
+            world,
+            "SELECT count(*) AS n FROM budget_entry WHERE kind='release' AND allocation_id=:id",
+            id=child_budget,
+        )
+        assert released["n"] == (0 if scenario == "child_worker_closing" else 1)
+        claimed_floor = await _row(
+            world,
+            "SELECT count(*) AS n FROM budget_entry WHERE kind='adjust' AND allocation_id=:id",
+            id=parent_budget,
+        )
+        assert claimed_floor["n"] == 0
+
     proposed = ChildProposalRequest(
         guard=child_guard, task_id=child_row["task_id"], proposal=proposal
     )
@@ -600,6 +704,7 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
         return
     if scenario in {
         "child_worker",
+        "child_worker_closing",
         "child_worker_tool",
         "child_worker_resume",
         "child_worker_network",
@@ -623,6 +728,8 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
                 effect_mode=scenario in {"child_worker_effect", "child_worker_external_unknown"},
                 external_mode=scenario == "child_worker_external_unknown",
                 resolve_claim_actor=scenario == "child_worker",
+                force_closing=scenario == "child_worker_closing",
+                crash_marker=closing_crash_marker,
             )
         )
         if scenario == "child_worker_external_unknown":
@@ -631,6 +738,8 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
             return
         assert count(world, "agent_message", "kind='result.proposed'") == 1
         assert count(world, "output_seal", "run_id IS NOT NULL") >= 1
+        if closing_floors:
+            run(verify_floor_settlement)
         run(engine.dispose)
         return
     if scenario == "child_worker_uncommitted":
@@ -784,6 +893,8 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
         )
         with pytest.raises(AgentRuntimeError):
             run(lambda: runtime.report_failure(child_guard, failure))
+        if closing_floors:
+            run(verify_floor_settlement)
         run(engine.dispose)
         return
     if scenario == "pause":
@@ -1055,11 +1166,12 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
     balance = run(
         lambda: _row(world, "SELECT reserved FROM budget_allocation WHERE id=:id", id=parent_budget)
     )["reserved"]
-    assert (
-        balance == policy.limits
-        if scenario == "unknown_usage"
-        else all(value == 0 for value in balance.values())
-    )
+    floor = {"model_calls": 1, "tokens": floor_tokens} if closing_floors else {}
+    expected_balance = {
+        key: (amount if scenario == "unknown_usage" else 0) + floor.get(key, 0)
+        for key, amount in policy.limits.items()
+    }
+    assert balance == expected_balance
     if scenario != "unknown_usage":
         assert run(
             lambda: _row(
@@ -1109,6 +1221,43 @@ def test_durable_delegate_propose_collect(world, monkeypatch, scenario, request)
     with pytest.raises(AgentRuntimeError):
         run(lambda: runtime.collect(collect))
     run(engine.dispose)
+
+
+@pytest.mark.parametrize(
+    "scenario", ("child_worker_tool", "child_failed", "child_cancelled", "unknown_usage")
+)
+def test_parent_child_closing_floors_survive_execution_and_settlement(
+    world, monkeypatch, request, scenario
+):
+    test_durable_delegate_propose_collect(
+        world, monkeypatch, scenario, request, closing_floors=True
+    )
+    parent = run(
+        lambda: _row(
+            world,
+            "SELECT reserved FROM budget_allocation WHERE parent_id IS NULL",
+        )
+    )
+    assert parent["reserved"] == {"model_calls": 1, "tool_calls": 0, "tokens": 128}
+    child = run(
+        lambda: _row(
+            world,
+            "SELECT id,reserved,unknown_reserved FROM budget_allocation "
+            "WHERE parent_id IS NOT NULL",
+        )
+    )
+    assert all(n == 0 for n in child["reserved"].values())
+    assert all(n == 0 for n in child["unknown_reserved"].values())
+    assert count(world, "budget_entry", "kind='release' AND allocation_id=:id", id=child["id"]) == 1
+
+
+def test_child_worker_executes_its_reserved_closing_attempt(world, monkeypatch, request):
+    test_durable_delegate_propose_collect(
+        world, monkeypatch, "child_worker_closing", request, closing_floors=True
+    )
+    assert count(world, "budget_entry", "kind='adjust'") == 1
+    assert count(world, "budget_entry", "kind='settle'") >= 1
+    assert count(world, "model_attempt", "status='completed'") >= 1
 
 
 async def _check_child_execution_wait(world, engine, current_actor, child, guard):
@@ -1358,6 +1507,8 @@ async def _run_child_worker(
     effect_mode=False,
     external_mode=False,
     resolve_claim_actor=False,
+    force_closing=False,
+    crash_marker=None,
 ):
     from test_context_runtime import Estimator
     from test_provider_invoker import capabilities, make_request
@@ -1427,6 +1578,21 @@ async def _run_child_worker(
     class Setup:
         async def resolve(self, state, inputs, budget):
             assert inputs.messages[0].kind == "task.assign"
+            if force_closing:
+                from agent_runtime.storage.closing_setup import closing_setup
+
+                assert budget.closing
+                return await closing_setup(
+                    engine,
+                    world.schema,
+                    actor=current_actor,
+                    state=state,
+                    budget=budget,
+                    model=model,
+                    profile=req.profile,
+                    prompt=req.prompt,
+                    objective=inputs.messages[0].payload.objective,
+                )
             return DecisionSetup(req, model)
 
     class Backend:
@@ -1434,6 +1600,21 @@ async def _run_child_worker(
 
         async def stream(self, request, *, cancel=None):
             self.calls += 1
+            if force_closing:
+                assert request.purpose == "closing" and not request.tools
+                if crash_marker is not None:
+                    Path(crash_marker).write_text(
+                        json.dumps(
+                            {
+                                "schema": world.schema,
+                                "scope": world.scope,
+                                "actor": current_actor.model_dump(mode="json"),
+                                "guard": guard.model_dump(mode="json"),
+                                "request": request.model_dump(mode="json"),
+                            }
+                        )
+                    )
+                    await asyncio.sleep(3600)
             if with_tool and self.calls == 1:
                 yield ToolCallComplete(
                     attempt_id=request.attempt_id,

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 from agent_runtime.contracts.loop import BudgetCounter, BudgetView, RunState
 from agent_runtime.contracts.results import Usage
 from agent_runtime.contracts.transactions import ActorContext, LeaseToken
+from agent_runtime.storage.model_budget import closing_entries
 from agent_runtime.storage.uow import errors, facts, locks
 from agent_runtime.storage.uow.authority import revalidate_authority
 from agent_runtime.storage.uow.schema import require_schema, scoped
@@ -159,6 +160,17 @@ class SqlMainBudgetReader:
                     reserved=str(held),
                     unknown_reserved=str(unknown_held),
                 )
+            closing = await closing_entries(
+                db, self._schema, state.scope_id, self._allocation_id, state.run_id
+            )
+            closing_tokens = (
+                closing["reserve"]["quantities"]["tokens"]
+                if "reserve" in closing
+                and "adjust" not in closing
+                and "release" not in closing
+                and not unknown
+                else 0
+            )
             return BudgetView(
                 allocation_id=self._allocation_id,
                 revision=str(allocation["version"]),
@@ -166,6 +178,7 @@ class SqlMainBudgetReader:
                 tool_calls=counters["tool_calls"],
                 tokens=counters["tokens"],
                 deadline_at=run["deadline_at"],
+                closing_tokens=str(closing_tokens),
             )
 
 

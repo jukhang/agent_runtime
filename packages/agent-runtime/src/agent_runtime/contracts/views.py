@@ -71,6 +71,7 @@ class RunView(Contract):
     id: UUID
     parent_run_id: UUID | None = None
     status: RunStatus
+    outcome: Literal["success", "partial"] | None = None
     state_version: Revision
     phase: Phase
     phase_started_at: AwareDatetime
@@ -82,6 +83,8 @@ class RunView(Contract):
 
     @model_validator(mode="after")
     def consistent_controls(self) -> Self:
+        if self.outcome is not None and self.status != RunStatus.COMPLETED:
+            raise ValueError("only completed runs have a completion outcome")
         validate_phase(self.status, self.phase)
         if len(self.allowed_controls) != len(set(self.allowed_controls)):
             raise ValueError("duplicate control")

@@ -30,11 +30,16 @@ class ContextRequest(Contract):
     prompt_text: str | None = None
     user_input: str | None = None
     required_tool: CapabilityRef | None = None
+    require_tool_call: bool = Field(default=False, strict=True)
+    candidate_feedback: str | None = Field(default=None, max_length=4096)
+    purpose: Literal["ordinary", "closing"] = "ordinary"
 
     @model_validator(mode="after")
     def valid_required_tool(self) -> Self:
         if self.required_tool is not None and self.required_tool not in self.tools:
             raise ValueError("required tool must be a pinned context capability")
+        if self.require_tool_call and not self.tools:
+            raise ValueError("required tool call needs visible pinned tools")
         return self
 
 
@@ -66,6 +71,7 @@ class ContextSourceRecord(Contract):
 
 
 class PreparedContext(Contract):
+    purpose: Literal["ordinary", "closing"] = "ordinary"
     scope_id: Identifier
     session_id: UUID
     run_id: UUID

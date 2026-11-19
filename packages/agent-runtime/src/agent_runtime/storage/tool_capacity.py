@@ -130,7 +130,7 @@ class SqlToolCapacity:
     async def settle_operation_in_transaction(
         self, db: AsyncSession, scope_id: str, operation_id: UUID, spec: ToolSpec
     ) -> None:
-        """Release one verified terminal operation, without a live Run lease."""
+        """Release one verified terminal operation in its owning effect transaction."""
         key = self.key(scope_id, spec)
         row = await self._store.reservation_by_request_in_transaction(
             db, key, f"tool:{operation_id}"

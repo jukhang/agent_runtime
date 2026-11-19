@@ -11,6 +11,7 @@ from agent_runtime.contracts.loop import BudgetCounter, BudgetView, RunState
 from agent_runtime.contracts.ownership import ChildCommitGuard
 from agent_runtime.contracts.results import Usage
 from agent_runtime.storage.child_authority import require_child
+from agent_runtime.storage.model_budget import closing_entries
 from agent_runtime.storage.uow import errors
 from agent_runtime.storage.uow.schema import require_schema, scoped
 
@@ -99,14 +100,24 @@ class SqlChildBudgetReader:
             ).scalar_one()
             spent = {"model_calls": len(attempts), "tool_calls": tools, "tokens": tokens}
             limits = allocation["limits"]
-            held_tokens = max(0, limits["tokens"] - tokens) if unknown else 0
-            held_calls = max(0, limits["model_calls"] - len(attempts)) if unknown else 0
-            held = {"tokens": held_tokens, "model_calls": held_calls}
+            history = await closing_entries(
+                db, self._schema, state.scope_id, self._allocation, state.run_id
+            )
+            known = (
+                dict(history["reserve"]["quantities"])
+                if ("reserve" in history and "adjust" not in history and "release" not in history)
+                else {}
+            )
+            unknown_held = {
+                key: max(0, limits[key] - spent[key] - int(known.get(key, 0))) if unknown else 0
+                for key in ("tokens", "model_calls")
+            }
+            held = {key: int(known.get(key, 0)) + unknown_held[key] for key in unknown_held}
             # These are audit projections. Parent settlement still has its own unique ledger key.
             await db.execute(
                 scoped(
                     "UPDATE {t}budget_allocation SET settled=CAST(:spent AS jsonb),"
-                    "reserved=CAST(:held AS jsonb),unknown_reserved=CAST(:held AS jsonb),"
+                    "reserved=CAST(:held AS jsonb),unknown_reserved=CAST(:unknown_held AS jsonb),"
                     "usage_status=:status,unsettled_count=:unknown,version=version+1,"
                     "updated_at=CURRENT_TIMESTAMP WHERE scope_id=:scope AND id=:allocation",
                     self._schema,
@@ -115,6 +126,7 @@ class SqlChildBudgetReader:
                     **params,
                     "spent": json.dumps(spent),
                     "held": json.dumps(held),
+                    "unknown_held": json.dumps(unknown_held),
                     "status": "unknown" if unknown else "complete",
                     "unknown": unknown,
                 },
@@ -124,7 +136,7 @@ class SqlChildBudgetReader:
                     limit=str(limits[key]),
                     spent=str(spent[key]),
                     reserved=str(held.get(key, 0)),
-                    unknown_reserved=str(held.get(key, 0)),
+                    unknown_reserved=str(unknown_held.get(key, 0)),
                 )
                 for key in spent
             }
@@ -135,6 +147,7 @@ class SqlChildBudgetReader:
                 tool_calls=counters["tool_calls"],
                 tokens=counters["tokens"],
                 deadline_at=row["deadline_at"],
+                closing_tokens=str(known.get("tokens", 0) if not unknown else 0),
             )
 
 

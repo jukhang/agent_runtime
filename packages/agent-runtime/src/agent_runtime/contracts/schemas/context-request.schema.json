@@ -214,6 +214,19 @@
     "budget": {
       "$ref": "#/$defs/ContextBudget"
     },
+    "candidateFeedback": {
+      "anyOf": [
+        {
+          "maxLength": 4096,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Candidatefeedback"
+    },
     "model": {
       "$ref": "#/$defs/CapabilityRef"
     },
@@ -234,6 +247,20 @@
       ],
       "default": null,
       "title": "Prompttext"
+    },
+    "purpose": {
+      "default": "ordinary",
+      "enum": [
+        "ordinary",
+        "closing"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "requireToolCall": {
+      "default": false,
+      "title": "Requiretoolcall",
+      "type": "boolean"
     },
     "requiredTool": {
       "anyOf": [

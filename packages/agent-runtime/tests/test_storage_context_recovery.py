@@ -164,11 +164,15 @@ def test_sql_context_limit_rebuilds_snapshot_and_preserves_required_history(
                 profile=capability("profile"),
                 prompt=capability("prompt"),
                 max_input_tokens=24000,
+                allow_user_questions=not explicit,
             )
             context = build_sql_context_components(
                 engine, schema, estimator=Estimator(), optional_history=True
             ).runtime
             initial = await setup.resolve(state, inputs, budget)
+            from agent_runtime.native_controls import ASK_USER_CONTROL
+
+            assert (ASK_USER_CONTROL in initial.context_request.tools) is not explicit
             before = await context.prepare(initial.context_request)
             old_source = next(
                 s for s in before.sources if s.resource.resource_id == str(old.turn_id)

@@ -16,12 +16,143 @@ from agent_runtime.contracts.model import ProviderRequest
 from agent_runtime.contracts.references import CapabilityRef
 from agent_runtime.providers.context_input import ContextOpenAIInputResolver
 from agent_runtime.providers.openai_compatible import (
+    OpenAIAdapterProfile,
     OpenAICompatibleProvider,
     ResolvedProviderInput,
 )
 from agent_runtime.tool_names import provider_tool_name
 
 REF = CapabilityRef.model_validate(TOOL)
+
+
+@pytest.mark.parametrize(
+    "required,known,reason",
+    [
+        (True, True, "stop"),
+        (True, False, "stop"),
+        (True, True, "length"),
+        (False, True, "stop"),
+    ],
+)
+def test_any_required_tool_stop_never_accepts_unknown_name_or_truncation(required, known, reason):
+    from agent_runtime.providers.openai_compatible import _OpenAIStreamParser
+
+    req = ProviderRequest.model_validate(request_data(tools=[TOOL]))
+    parser = _OpenAIStreamParser(req, OpenAIAdapterProfile.qwen(), require_tool_call=required)
+    events = parser.feed(
+        {
+            "choices": [
+                {
+                    "delta": {
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call1",
+                                "type": "function",
+                                "function": {
+                                    "name": provider_tool_name(REF) if known else "unknown_tool",
+                                    "arguments": '{"value":1}',
+                                },
+                            }
+                        ]
+                    },
+                    "finish_reason": reason,
+                }
+            ]
+        }
+    )
+    completed = any(e.kind == "tool.complete" for e in events)
+    assert completed == (required and known and reason == "stop")
+    assert parser.pending_finish.reason == ("tool_calls" if completed else reason)
+
+
+@pytest.mark.asyncio
+async def test_required_selection_is_snapshot_bound_and_renderer_cannot_remove_it():
+    context, _, _ = runtime()
+    req = request(refs=0).model_copy(update={"tools": (REF,), "require_tool_call": True})
+    prepared = await context.prepare(req)
+    _, payload = await context.load(req.actor.scope_id, prepared.snapshot_id)
+    assert payload["requireToolCall"] is True
+    with pytest.raises(ValidationError):
+        ContextRequest.model_validate({**request(refs=0).model_dump(), "require_tool_call": True})
+    context._payload_renderer = lambda p: {k: v for k, v in p.items() if k != "requireToolCall"}
+    with pytest.raises(AgentRuntimeError, match="native tool requirement"):
+        await context.prepare(req)
+
+
+@pytest.mark.parametrize("forced", [True, False])
+def test_required_selection_wire_and_default_are_separate(forced):
+    from agent_runtime.providers.openai_compatible import ResolvedTool
+
+    req = ProviderRequest.model_validate(request_data(thinking="disabled", tools=[TOOL]))
+    resolved = ResolvedProviderInput(
+        req.input_ref,
+        req.input_digest,
+        ({"role": "user", "content": "save"},),
+        tools=(ResolvedTool(REF, definition(REF)),),
+        require_tool_call=True,
+    )
+    provider = OpenAICompatibleProvider(
+        None,
+        inputs=None,
+        connections=None,
+        profile=replace(OpenAIAdapterProfile.qwen(), supports_forced_tool_choice=forced),
+    )
+    assert provider._request_body(req, resolved)["tool_choice"] == (
+        "required" if forced else "auto"
+    )
+    assert "tool_choice" not in provider._request_body(
+        req, replace(resolved, require_tool_call=False)
+    )
+
+
+@pytest.mark.asyncio
+async def test_loop_does_not_save_prose_when_any_visible_tool_is_required():
+    loop, state, inputs, budget, backend, answers = build("answer")
+    original = loop._setup.resolve
+
+    class RequiredSetup:
+        async def resolve(self, *args):
+            setup = await original(*args)
+            return replace(
+                setup,
+                context_request=setup.context_request.model_copy(
+                    update={"tools": (REF,), "require_tool_call": True}
+                ),
+            )
+
+    loop._setup = RequiredSetup()
+    with pytest.raises(AgentRuntimeError):
+        await loop.decide(state, inputs, budget)
+    assert not answers.saved
+
+
+@pytest.mark.parametrize("thinking", ["enabled", "disabled", "default"])
+def test_explicit_auto_selection_preserves_the_required_tool_contract(thinking):
+    req = ProviderRequest.model_validate(request_data(thinking=thinking, tools=[TOOL]))
+    resolved = ResolvedProviderInput(
+        req.input_ref,
+        req.input_digest,
+        ({"role": "user", "content": "Use the tool."},),
+        tools=(),
+    )
+    from agent_runtime.providers.openai_compatible import ResolvedTool
+
+    resolved = replace(resolved, tools=(ResolvedTool(REF, definition(REF)),), required_tool=REF)
+    provider = OpenAICompatibleProvider(
+        None,
+        inputs=None,
+        connections=None,
+        profile=replace(OpenAIAdapterProfile.qwen(), supports_forced_tool_choice=False),
+    )
+    body = provider._request_body(req, resolved)
+    assert body["tool_choice"] == "auto"
+    assert resolved.required_tool == REF
+    assert (
+        body["chat_template_kwargs"].get("enable_thinking") == (thinking == "enabled")
+        if thinking != "default"
+        else "chat_template_kwargs" not in body
+    )
 
 
 def definition(ref):

@@ -539,6 +539,9 @@ async def cancel_child_in_transaction(
         ),
         {**params, "id": command, "ref": str(cp)},
     )
+    from agent_runtime.storage.model_budget import release_closing
+
+    await release_closing(db, schema, child["scope_id"], child["id"])
     await db.execute(
         scoped(
             "UPDATE {t}run SET status='cancelled',phase='terminal',waiting_spec=NULL,"

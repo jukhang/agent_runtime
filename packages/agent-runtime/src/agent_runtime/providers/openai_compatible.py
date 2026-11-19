@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
 
 InputResolver = Callable[[ProviderRequest], Awaitable["ResolvedProviderInput"]]
 ConnectionResolver = Callable[[ProviderRequest], Awaitable["ProviderConnection"]]
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,8 +59,13 @@ class ResolvedProviderInput:
     tools: tuple[ResolvedTool, ...] = ()
     response_format: Mapping[str, JsonValue] | None = None
     required_tool: CapabilityRef | None = None
+    require_tool_call: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.require_tool_call) is not bool:
+            raise ValueError("require tool call must be boolean")
+        if self.require_tool_call and (not self.tools or self.response_format is not None):
+            raise ValueError("required tool call needs visible native tools")
         if not self.messages:
             raise ValueError("provider input requires at least one message")
         for message in self.messages:
@@ -101,14 +108,19 @@ class OpenAIAdapterProfile:
     max_tokens_field: Literal["max_tokens", "max_completion_tokens"] = "max_tokens"
     analysis_fields: tuple[str, ...] = ("reasoning_content", "reasoning")
     thinking_style: Literal["none", "qwen_chat_template", "deepseek"] = "none"
+    structured_output_style: Literal["json_schema", "json_object"] = "json_schema"
+    supports_forced_tool_thinking: bool = True
     include_usage: bool = True
     context_error_codes: tuple[str, ...] = (
         "context_length_exceeded",
         "max_context_length_exceeded",
     )
     context_error_format: Literal["structured", "vllm"] = "structured"
+    supports_forced_tool_choice: bool = True
 
     def __post_init__(self) -> None:
+        if type(self.supports_forced_tool_choice) is not bool:
+            raise ValueError("supports_forced_tool_choice must be boolean")
         if not self.endpoint_path.startswith("/"):
             raise ValueError("endpoint_path must be absolute within the provider base URL")
         if not self.analysis_fields or len(set(self.analysis_fields)) != len(self.analysis_fields):
@@ -117,6 +129,8 @@ class OpenAIAdapterProfile:
             raise ValueError("context error codes must be non-empty strings")
         if self.context_error_format not in {"structured", "vllm"}:
             raise ValueError("unknown provider context error format")
+        if self.structured_output_style not in {"json_schema", "json_object"}:
+            raise ValueError("unknown structured output style")
 
     @classmethod
     def qwen(cls) -> OpenAIAdapterProfile:
@@ -128,7 +142,12 @@ class OpenAIAdapterProfile:
 
     @classmethod
     def deepseek(cls) -> OpenAIAdapterProfile:
-        return cls(name="deepseek", thinking_style="deepseek")
+        return cls(
+            name="deepseek",
+            thinking_style="deepseek",
+            structured_output_style="json_object",
+            supports_forced_tool_thinking=False,
+        )
 
     def validate_options(self, model: ModelConfig, options: dict[str, JsonValue]) -> None:
         _finite_json(options)
@@ -198,12 +217,14 @@ class OpenAICompatibleProvider(Provider):
         connections: ConnectionResolver,
         profile: OpenAIAdapterProfile | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        diagnostics: Callable[[ProviderRequest, dict[str, object]], Awaitable[str]] | None = None,
     ) -> None:
         self._client = client
         self._inputs = inputs
         self._connections = connections
         self.profile = profile or OpenAIAdapterProfile()
         self._clock = clock
+        self._diagnostics = diagnostics
 
     def stream(
         self,
@@ -309,10 +330,22 @@ class OpenAICompatibleProvider(Provider):
                     )
                     return
                 parser = _OpenAIStreamParser(
-                    request, self.profile, required_tool=resolved.required_tool
+                    request,
+                    self.profile,
+                    required_tool=resolved.required_tool,
+                    require_tool_call=resolved.require_tool_call,
                 )
+                stream_failure: FailureEnvelope | None = None
                 async for payload in _sse_payloads(response, cancel=cancel):
                     if payload == "[DONE]":
+                        if stream_failure is not None:
+                            yield ProviderError(
+                                attempt_id=request.attempt_id,
+                                sequence=str(sequence),
+                                kind="error",
+                                failure=stream_failure,
+                            )
+                            return
                         parser.done_seen = True
                         terminal = parser.finalize()
                         if terminal is not None:
@@ -322,37 +355,76 @@ class OpenAICompatibleProvider(Provider):
                     try:
                         chunk = json.loads(payload)
                     except (json.JSONDecodeError, RecursionError):
-                        yield ProviderError(
-                            attempt_id=request.attempt_id,
-                            sequence=str(sequence),
-                            kind="error",
-                            failure=_failure(
-                                request,
-                                code="INCOMPLETE_MODEL_OUTPUT",
-                                message="The model provider returned malformed stream data.",
-                                retryable=False,
-                            ),
+                        stream_failure = _failure(
+                            request,
+                            code="INCOMPLETE_MODEL_OUTPUT",
+                            message="The model provider returned malformed stream data.",
+                            retryable=True,
                         )
-                        return
+                        continue
+                    if stream_failure is not None:
+                        # Drain only trusted accounting fields after failure. Never
+                        # resume parsing/executing a damaged tool-call candidate.
+                        if isinstance(chunk, dict) and chunk.get("usage") is not None:
+                            try:
+                                usage_event = parser._usage(chunk["usage"])
+                            except ValueError:
+                                continue
+                            yield _with_sequence(usage_event, sequence)
+                            sequence += 1
+                        continue
                     try:
                         events = parser.feed(chunk)
-                    except (TypeError, ValueError, KeyError):
-                        yield ProviderError(
-                            attempt_id=request.attempt_id,
-                            sequence=str(sequence),
-                            kind="error",
-                            failure=_failure(
-                                request,
-                                code="INCOMPLETE_MODEL_OUTPUT",
-                                message="The model provider returned an invalid stream event.",
-                                retryable=False,
-                            ),
+                    except (TypeError, ValueError, KeyError) as exc:
+                        # Never log raw tokens/arguments or arbitrary exception text:
+                        # JSONDecodeError messages can contain provider output.
+                        logger.warning(
+                            "provider_stream_invalid attempt=%s model=%s sequence=%s "
+                            "exception=%s structure=%s",
+                            request.attempt_id,
+                            request.model.model_name,
+                            sequence,
+                            type(exc).__name__,
+                            _stream_shape(chunk),
                         )
-                        return
+                        detail = None
+                        if self._diagnostics is not None:
+                            detail = await self._diagnostics(
+                                request,
+                                {
+                                    "kind": "provider_stream_invalid",
+                                    "attemptId": str(request.attempt_id),
+                                    "sequence": sequence,
+                                    "exception": type(exc).__name__,
+                                    "reason": _stream_error_code(exc),
+                                    "structure": _stream_shape(chunk),
+                                },
+                            )
+                        stream_failure = _failure(
+                            request,
+                            code="INCOMPLETE_MODEL_OUTPUT",
+                            message="The model provider returned an invalid stream event.",
+                            retryable=True,
+                        ).model_copy(update={"detail_ref": detail})
+                        if isinstance(chunk, dict) and chunk.get("usage") is not None:
+                            try:
+                                usage_event = parser._usage(chunk["usage"])
+                            except ValueError:
+                                continue
+                            yield _with_sequence(usage_event, sequence)
+                            sequence += 1
+                        continue
                     for event in events:
                         yield _with_sequence(event, sequence)
                         sequence += 1
-                if parser.pending_finish is not None and not parser.finished:
+                if stream_failure is not None:
+                    yield ProviderError(
+                        attempt_id=request.attempt_id,
+                        sequence=str(sequence),
+                        kind="error",
+                        failure=stream_failure,
+                    )
+                elif parser.pending_finish is not None and not parser.finished:
                     terminal = parser.finalize()
                     if terminal is not None:
                         yield _with_sequence(terminal, sequence)
@@ -442,13 +514,45 @@ class OpenAICompatibleProvider(Provider):
             body["stream_options"] = {"include_usage": True}
         if resolved.tools:
             body["tools"] = [dict(tool.definition) for tool in resolved.tools]
-        if resolved.required_tool is not None:
-            body["tool_choice"] = {
-                "type": "function",
-                "function": {"name": provider_tool_name(resolved.required_tool)},
-            }
+        if resolved.required_tool is not None or resolved.require_tool_call:
+            thinking_disabled = request.model.thinking == "disabled" or (
+                request.model.thinking == "default"
+                and options.get("thinking") == {"type": "disabled"}
+            )
+            if not self.profile.supports_forced_tool_choice or (
+                not thinking_disabled and not self.profile.supports_forced_tool_thinking
+            ):
+                # Some private endpoints distort arguments under named constrained
+                # decoding. The trusted Loop still enforces the pinned required tool.
+                body["tool_choice"] = "auto"
+            elif resolved.required_tool is None:
+                body["tool_choice"] = "required"
+            else:
+                body["tool_choice"] = {
+                    "type": "function",
+                    "function": {"name": provider_tool_name(resolved.required_tool)},
+                }
         if resolved.response_format is not None:
             body["response_format"] = dict(resolved.response_format)
+            if (
+                self.profile.structured_output_style == "json_object"
+                and resolved.response_format.get("type") == "json_schema"
+            ):
+                definition = resolved.response_format.get("json_schema")
+                if not isinstance(definition, Mapping) or not isinstance(
+                    definition.get("schema"), Mapping
+                ):
+                    raise ValueError("JSON object mode requires a bound output schema")
+                # Explicit provider capability, not a retry/downgrade after HTTP 400.
+                # The Loop still validates the full bound schema before any commit.
+                instruction = {
+                    "role": "system",
+                    "content": "Return one JSON object matching this output schema. "
+                    "Do not include Markdown fences or extra fields.\n"
+                    + json.dumps(definition["schema"], ensure_ascii=False, allow_nan=False),
+                }
+                body["messages"] = [instruction, *(dict(message) for message in resolved.messages)]
+                body["response_format"] = {"type": "json_object"}
         body.update(options)
         if (
             self.profile.thinking_style == "qwen_chat_template"
@@ -480,6 +584,7 @@ class _OpenAIStreamParser:
         profile: OpenAIAdapterProfile,
         *,
         required_tool: CapabilityRef | None = None,
+        require_tool_call: bool = False,
     ) -> None:
         self.request = request
         self.profile = profile
@@ -488,6 +593,13 @@ class _OpenAIStreamParser:
         self.done_seen = False
         self.pending_finish: ProviderFinish | None = None
         self.required_name = provider_tool_name(required_tool) if required_tool else None
+        self.required_names = (
+            {self.required_name}
+            if self.required_name
+            else {provider_tool_name(tool) for tool in request.tools}
+            if require_tool_call
+            else set()
+        )
 
     def feed(self, value: object) -> list[ProviderEvent]:
         if self.finished:
@@ -538,9 +650,10 @@ class _OpenAIStreamParser:
                 raise ValueError("provider finish reason must be text")
             named_stop = (
                 finish_reason == "stop"
-                and self.required_name is not None
-                and len(self.tools) == 1
-                and all(tool.name == self.required_name for tool in self.tools.values())
+                and bool(self.required_names)
+                and bool(self.tools)
+                and (self.required_name is None or len(self.tools) == 1)
+                and all(tool.name in self.required_names for tool in self.tools.values())
             )
             if finish_reason == "tool_calls" or named_stop:
                 events.extend(self._complete_tools())
@@ -608,7 +721,7 @@ class _OpenAIStreamParser:
             raise ValueError("provider tool index must be non-negative")
         state = self.tools.setdefault(index, _ToolBuffer())
         call_id = value.get("id")
-        if call_id is not None:
+        if call_id not in (None, ""):
             if not isinstance(call_id, str) or not call_id:
                 raise ValueError("provider tool id must be non-empty text")
             if state.call_id is not None and state.call_id != call_id:
@@ -618,7 +731,7 @@ class _OpenAIStreamParser:
         if not isinstance(function, dict):
             raise ValueError("provider tool function must be an object")
         name = function.get("name")
-        if name is not None:
+        if name not in (None, ""):
             if not isinstance(name, str) or not name:
                 raise ValueError("provider tool name must be non-empty text")
             if state.name is not None and state.name != name:
@@ -689,6 +802,61 @@ def _unique_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
             raise ValueError("duplicate JSON object key")
         result[key] = value
     return result
+
+
+def _stream_shape(value: object, depth: int = 0) -> object:
+    """Bounded structural diagnostic; no provider-controlled keys or scalar content."""
+    if depth >= 4:
+        return type(value).__name__
+    if isinstance(value, dict):
+        known = {
+            "choices",
+            "delta",
+            "content",
+            "reasoning_content",
+            "reasoning",
+            "tool_calls",
+            "function",
+            "arguments",
+            "name",
+            "id",
+            "index",
+            "finish_reason",
+            "usage",
+            "prompt_tokens",
+            "completion_tokens",
+            "total_tokens",
+            "error",
+        }
+        return {
+            key: _stream_shape(child, depth + 1) for key, child in value.items() if key in known
+        }
+    if isinstance(value, list):
+        return [_stream_shape(child, depth + 1) for child in value[:2]]
+    return type(value).__name__
+
+
+def _stream_error_code(error: Exception) -> str:
+    if isinstance(error, json.JSONDecodeError):
+        return "invalid_tool_arguments_json"
+    known = {
+        "provider emitted data after finish": "data_after_finish",
+        "provider chunk must be an object": "invalid_chunk_type",
+        "provider error object": "provider_error_event",
+        "provider must return one streamed choice": "invalid_choices",
+        "provider emitted another choice after finish reason": "choice_after_finish",
+        "provider tool id changed within one index": "tool_id_changed",
+        "provider tool name changed within one index": "tool_name_changed",
+        "provider tool delta requires an integer index": "tool_index_missing",
+        "provider tool call is missing id or name": "tool_identity_missing",
+        "provider tool arguments must be text": "tool_arguments_type",
+        "provider tool arguments must decode to an object": "tool_arguments_not_object",
+        "duplicate JSON object key": "duplicate_tool_argument_key",
+        "provider usage counts must be non-negative integers": "invalid_usage_counts",
+        "provider content delta must be text": "invalid_content_type",
+        "provider analysis delta must be text": "invalid_analysis_type",
+    }
+    return known.get(str(error), "invalid_stream_field")
 
 
 def _with_sequence(event: ProviderEvent, sequence: int) -> ProviderEvent:

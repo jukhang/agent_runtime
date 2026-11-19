@@ -6,7 +6,9 @@ model_review is explicit for hosts requiring model verification. Tool execution 
 recovery stay behind existing ports; no model request holds a SQL transaction.
 Message completion is not Turn completion. The client must await the durable Run
 terminal event. All existing lease, pending input, live child, execution, authorization
-and output seal checks remain mandatory. Failed tool calls yield partial, not success.
+and output seal checks remain mandatory. Unsuccessful tools trigger a durable
+completion review: success requires persisted and verified recovery evidence for
+every failure; unresolved failures remain partial. The failure audit is preserved.
 An unfinished persisted Plan continues through the normal loop rather than being
 silently completed by Respond. Closed failed/cancelled steps yield partial.
 
@@ -101,6 +103,10 @@ preserve normalized reasoning_content in the analysis channel. A generic profile
 must not claim to control thinking. Provider connection and secrets remain host-owned.
 For tool continuation the SQL source reader may explicitly include native model
 history from the same call's sealed model attempt, after normal source ACL checks.
+Completed tool-only attempts with no analysis/content events have no text producer
+to seal. They retain call/result/attempt identity without manufactured text; any
+existing text still requires sealed evidence. Bind lookup to the authorized source
+Run, which need not be the consuming Run.
 Group calls produced by one attempt into one assistant message, preserve its exact
 analysis/content and pair all tool results. Never invent blank reasoning to replace
 missing persisted data, and never export that history into public browser events.

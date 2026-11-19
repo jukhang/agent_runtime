@@ -1,5 +1,7 @@
 """Build a child model request from its durable assignment and installed Agent."""
 
+from sqlalchemy.ext.asyncio import AsyncEngine
+
 from agent_runtime.agent import Agent
 from agent_runtime.agent_loop import DecisionSetup
 from agent_runtime.contracts.context import ContextBudget, ContextRequest
@@ -8,6 +10,7 @@ from agent_runtime.contracts.loop import AppliedInputs, BudgetView, RunState
 from agent_runtime.contracts.model import ModelConfig
 from agent_runtime.contracts.references import CapabilityRef
 from agent_runtime.contracts.transactions import ActorContext
+from agent_runtime.finalization import budget_guidance
 from agent_runtime.storage.context_sources import SqlRuntimeSourceReader
 from agent_runtime.storage.uow import errors
 
@@ -26,12 +29,15 @@ class SqlChildLoopSetup:
         prompt: CapabilityRef,
         reader: SqlRuntimeSourceReader,
         max_input_tokens: int = 16384,
+        engine: AsyncEngine | None = None,
+        schema: str | None = None,
     ) -> None:
         if max_input_tokens < 1 or agent_ref.key.key != agent.id or agent.model != model.ref:
             raise ValueError("invalid child Agent binding")
         self._actor, self._agent_ref, self._agent = actor, agent_ref, agent
         self._model, self._profile, self._prompt = model, profile, prompt
         self._reader, self._max_input = reader, max_input_tokens
+        self._engine, self._schema = engine, schema
 
     async def resolve(
         self, state: RunState, inputs: AppliedInputs, budget: BudgetView
@@ -42,9 +48,23 @@ class SqlChildLoopSetup:
         if not inputs.messages or inputs.messages[0].kind != "task.assign":
             errors.version_conflict("child has no durable task assignment")
         assignment = inputs.messages[0]
-        available = min(
-            self._max_input, budget.tokens.available - self._model.max_output_tokens
-        )
+        if budget.closing:
+            from agent_runtime.storage.closing_setup import closing_setup
+
+            if self._engine is None or self._schema is None:
+                errors.forbidden("child closing requires an explicit SQL context owner")
+            return await closing_setup(
+                self._engine,
+                self._schema,
+                actor=self._actor,
+                state=state,
+                budget=budget,
+                model=self._model,
+                profile=self._profile,
+                prompt=self._prompt,
+                objective=assignment.payload.objective,
+            )
+        available = min(self._max_input, budget.tokens.available - self._model.max_output_tokens)
         if available < 1:
             raise runtime_failure(
                 "BUDGET_EXHAUSTED",
@@ -83,7 +103,7 @@ class SqlChildLoopSetup:
                     max_input_tokens=available,
                     reserved_output_tokens=self._model.max_output_tokens,
                 ),
-                prompt_text=prompt,
+                prompt_text=prompt + budget_guidance(budget),
                 user_input=user_input,
             ),
             self._model,

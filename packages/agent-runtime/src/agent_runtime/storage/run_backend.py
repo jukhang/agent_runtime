@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from agent_runtime.context_payloads import context_blob_key
 from agent_runtime.contracts.canonical import canonical_json, content_digest
 from agent_runtime.contracts.events import CursorFrame, ResyncFrame
-from agent_runtime.contracts.failure import runtime_failure
+from agent_runtime.contracts.failure import AgentRuntimeError, runtime_failure
 from agent_runtime.contracts.journal import JournalPage
 from agent_runtime.contracts.payloads import RunCancelled, RunCompleted, RunFailed
 from agent_runtime.contracts.requests import CommandReceipt, ControlRequest, StreamRequest
@@ -132,17 +132,12 @@ class SqlRunBackend:
             projection = await self._restore_projection(db, actor, session_id, watermark)
             after = projection.cursor
             params["after"] = after
-            if watermark - after > self._maximum:
-                errors.version_conflict("Session requires the host's archived snapshot reader")
             bounds = (
                 (
                     await db.execute(
                         scoped(
                             "SELECT count(*) AS n,min(session_seq) AS first,"
-                            "max(session_seq) AS last,"
-                            "COALESCE(sum(CASE WHEN visibility='public' OR "
-                            "(:analysis AND kind='analysis.delta') THEN "
-                            "octet_length(payload::text)+512 ELSE 0 END),0) AS bytes "
+                            "max(session_seq) AS last "
                             "FROM {t}event WHERE scope_id=:scope AND session_id=:session "
                             "AND session_seq>:after",
                             self._schema,
@@ -157,31 +152,8 @@ class SqlRunBackend:
                 watermark > after and (bounds["first"] != after + 1 or bounds["last"] != watermark)
             ):
                 errors.version_conflict("Retained history requires a materialized snapshot rebuild")
-            if int(bounds["bytes"]) > self._maximum_bytes:
-                errors.version_conflict(
-                    "Snapshot exceeds the configured byte budget; archive it first"
-                )
-            rows = (
-                (
-                    await db.execute(
-                        scoped(
-                            "SELECT * FROM {t}event WHERE scope_id=:scope AND session_id=:session "
-                            "AND session_seq>:after "
-                            "AND (visibility='public' OR (:analysis AND kind='analysis.delta')) "
-                            "ORDER BY session_seq LIMIT :limit",
-                            self._schema,
-                        ),
-                        {**params, "limit": self._maximum, "analysis": self._analysis},
-                    )
-                )
-                .mappings()
-                .all()
-            )
             try:
-                for row in rows:
-                    event = display_event(_row_event(dict(row)), include_analysis=self._analysis)
-                    if event is not None:
-                        projection.apply(event)
+                await self._replay(db, params, projection, after=after, watermark=watermark)
             except ValueError as exc:
                 raise runtime_failure(
                     "AUDIT_UNAVAILABLE",
@@ -261,7 +233,93 @@ class SqlRunBackend:
                 input_requests=tuple(projection.input_requests.values()),
                 approvals=tuple(projection.approvals.values()),
             )
+            if len(snapshot.model_dump_json(by_alias=True).encode()) > self._maximum_bytes:
+                raise self._too_large()
             return snapshot, projection, runs
+
+    @staticmethod
+    def _too_large() -> AgentRuntimeError:
+        return runtime_failure(
+            "SNAPSHOT_TOO_LARGE",
+            category="delivery",
+            public_message="Session display state exceeds its size limit; history was preserved.",
+        )
+
+    async def _replay(
+        self,
+        db: AsyncSession,
+        params: dict[str, Any],
+        projection: SessionProjection,
+        *,
+        after: int,
+        watermark: int,
+    ) -> None:
+        """Read bounded pages at one MVCC watermark, including private sequence gaps."""
+        while after < watermark:
+            end = min(watermark, after + min(256, self._maximum))
+            bound = {
+                **params,
+                "after": after,
+                "end": end,
+                "analysis": self._analysis,
+                "bytes": self._maximum_bytes,
+            }
+            rows = (
+                (
+                    await db.execute(
+                        scoped(
+                            "WITH page AS (SELECT e.*,sum(octet_length(payload::text)+512) "
+                            "OVER (ORDER BY session_seq) AS replay_bytes FROM {t}event e "
+                            "WHERE scope_id=:scope AND session_id=:session "
+                            "AND session_seq>:after AND session_seq<=:end "
+                            "AND (visibility='public' OR (:analysis AND kind='analysis.delta'))) "
+                            "SELECT * FROM page WHERE replay_bytes<=:bytes ORDER BY session_seq",
+                            self._schema,
+                        ),
+                        bound,
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            if not rows:
+                exists = await db.scalar(
+                    scoped(
+                        "SELECT 1 FROM {t}event WHERE scope_id=:scope AND session_id=:session "
+                        "AND session_seq>:after AND session_seq<=:end "
+                        "AND (visibility='public' OR (:analysis AND kind='analysis.delta')) "
+                        "LIMIT 1",
+                        self._schema,
+                    ),
+                    bound,
+                )
+                if exists:
+                    raise self._too_large()
+                after = end
+                continue
+            for row in rows:
+                event = display_event(_row_event(dict(row)), include_analysis=self._analysis)
+                if event is not None:
+                    projection.apply(event)
+            # Bound accumulated view data as well as each page, before loading more history.
+            views = (
+                projection.items,
+                projection.plans,
+                projection.tools,
+                projection.artifact_views,
+                projection.input_requests,
+                projection.approvals,
+            )
+            if (
+                sum(
+                    len(value.model_dump_json(by_alias=True).encode())
+                    for collection in views
+                    for value in collection.values()
+                )
+                > self._maximum_bytes
+            ):
+                raise self._too_large()
+            after = int(rows[-1]["session_seq"])
 
     async def _restore_projection(
         self, db: AsyncSession, actor: ActorContext, session_id: UUID, watermark: int
@@ -286,7 +344,7 @@ class SqlRunBackend:
             db, actor.scope_id, str(row["state_ref"])
         )
         if len(raw) > self._maximum_bytes:
-            errors.version_conflict("Materialized snapshot exceeds the configured byte budget")
+            raise self._too_large()
         try:
             cached = ProjectionState.model_validate_json(raw)
             snapshot = cached.snapshot
@@ -325,6 +383,13 @@ class SqlRunBackend:
             poll_seconds=self._poll,
         )
         snapshot, projection, _ = await reader._load(actor, session_id)
+        await self._store_projection(actor, snapshot, projection)
+        return snapshot
+
+    async def _store_projection(
+        self, actor: ActorContext, snapshot: SnapshotEnvelope, projection: SessionProjection
+    ) -> None:
+        session_id = snapshot.session_id
         state = ProjectionState(
             snapshot=snapshot,
             item_runs=projection.item_runs,
@@ -334,7 +399,7 @@ class SqlRunBackend:
         digest = content_digest(body)
         raw = canonical_json(body).encode()
         if len(raw) > self._maximum_bytes:
-            errors.version_conflict("Materialized snapshot exceeds the configured byte budget")
+            raise self._too_large()
         ref = context_blob_key(actor.scope_id, digest)
         async with self._sessions() as db, db.begin():
             session = (
@@ -365,7 +430,9 @@ class SqlRunBackend:
                     "projection_revision={t}projection.projection_revision+1,"
                     "applied_seq=EXCLUDED.applied_seq,state_ref=EXCLUDED.state_ref,"
                     "content_hash=EXCLUDED.content_hash,updated_at=CURRENT_TIMESTAMP "
-                    "WHERE {t}projection.applied_seq<=EXCLUDED.applied_seq",
+                    "WHERE {t}projection.applied_seq<EXCLUDED.applied_seq OR "
+                    "({t}projection.applied_seq=EXCLUDED.applied_seq "
+                    "AND {t}projection.content_hash<>EXCLUDED.content_hash)",
                     self._schema,
                 ),
                 {
@@ -376,7 +443,6 @@ class SqlRunBackend:
                     "hash": digest,
                 },
             )
-        return snapshot
 
     @staticmethod
     def _view(
@@ -396,6 +462,7 @@ class SqlRunBackend:
             id=row["id"],
             parent_run_id=row.get("parent_run_id"),
             status=status,
+            outcome=row.get("outcome"),
             state_version=str(row["state_version"]),
             phase=row["phase"],
             phase_started_at=row["phase_started_at"],
@@ -407,7 +474,10 @@ class SqlRunBackend:
         )
 
     async def snapshot(self, actor: ActorContext, session_id: UUID) -> SnapshotEnvelope:
-        return (await self._load(actor, session_id))[0]
+        snapshot, projection, _ = await self._load(actor, session_id)
+        if self._analysis:
+            await self._store_projection(actor, snapshot, projection)
+        return snapshot
 
     async def _authorized_run(
         self, actor: ActorContext, session_id: UUID, run_id: UUID, *, restricted: bool

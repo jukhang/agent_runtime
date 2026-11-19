@@ -176,9 +176,12 @@ def test_approval_rolls_back_when_journal_cannot_commit(world, monkeypatch, path
                         await db.execute(
                             sa.text(
                                 f'UPDATE "{world.schema}".approval '
-                                "SET expires_at=CURRENT_TIMESTAMP-INTERVAL '1 second' WHERE id=:id"
+                                "SET expires_at=:expired WHERE id=:id"
                             ),
-                            {"id": approval.approval_id},
+                            {
+                                "id": approval.approval_id,
+                                "expired": datetime.now(UTC) - timedelta(seconds=60),
+                            },
                         )
                 with pytest.raises(RuntimeError, match="injected Journal"):
                     if path == "decision":

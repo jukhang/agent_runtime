@@ -3,6 +3,13 @@
     "Budget": {
       "additionalProperties": false,
       "properties": {
+        "finalizationTokens": {
+          "default": 0,
+          "maximum": 65536,
+          "minimum": 0,
+          "title": "Finalizationtokens",
+          "type": "integer"
+        },
         "maxModelCalls": {
           "default": 32,
           "minimum": 1,

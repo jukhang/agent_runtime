@@ -172,9 +172,12 @@ class ProviderRequest(Contract):
     model: ModelConfig
     tools: tuple[CapabilityRef, ...]
     output_schema: CapabilityRef | None
+    purpose: Literal["ordinary", "closing"] = "ordinary"
 
     @model_validator(mode="after")
     def unique_tools(self) -> Self:
+        if self.purpose == "closing" and (self.tools or self.output_schema is not None):
+            raise ValueError("closing calls cannot use tools or structured actions")
         keys = [tool.key for tool in self.tools]
         if len(keys) != len(set(keys)):
             raise ValueError("duplicate requested tool")

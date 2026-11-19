@@ -62,7 +62,8 @@ class SqlRuntimeSourceReader:
             schema,
         )
         self._tool_result = scoped(
-            "SELECT tc.status, tc.result_ref, r.session_id, s.owner_actor_id, "
+            "SELECT tc.status, tc.result_ref, r.id AS source_run_id, "
+            "r.session_id, s.owner_actor_id, "
             "s.auth_revision, s.deleted_at FROM {t}tool_call tc "
             "JOIN {t}run r ON r.scope_id = tc.scope_id AND r.id = tc.run_id "
             "JOIN {t}session s ON s.scope_id = r.scope_id AND s.id = r.session_id "
@@ -159,7 +160,9 @@ class SqlRuntimeSourceReader:
             blob = await self._blobs.get(request.actor.scope_id, str(row["result_ref"]))
             content = blob.decode("utf-8")
             if resource.resource_type == "tool_call_result" and self._native_tool_history:
-                content = await self._with_native_history(request, resource, content)
+                content = await self._with_native_history(
+                    request, resource, content, source_run_id=UUID(str(row["source_run_id"]))
+                )
         required = True
         if (
             self._optional_history
@@ -208,16 +211,25 @@ class SqlRuntimeSourceReader:
         )
 
     async def _with_native_history(
-        self, request: ContextRequest, resource: ResourceRef, content: str
+        self,
+        request: ContextRequest,
+        resource: ResourceRef,
+        content: str,
+        *,
+        source_run_id: UUID,
     ) -> str:
         transcript = NativeToolTranscript.model_validate_json(content)
         async with self._sessions() as session:
             result = await session.execute(
                 scoped(
-                    "SELECT tc.attempt_id,e.kind,e.payload FROM {t}tool_call tc "
+                    "SELECT tc.attempt_id,s.id AS seal_id,e.kind,e.payload,"
+                    "EXISTS (SELECT 1 FROM {t}event emitted WHERE emitted.scope_id=m.scope_id "
+                    "AND emitted.run_id=m.run_id AND emitted.model_attempt_id=m.id "
+                    "AND emitted.kind IN ('assistant.delta','analysis.delta')) AS has_output "
+                    "FROM {t}tool_call tc "
                     "JOIN {t}model_attempt m ON m.scope_id=tc.scope_id "
                     "AND m.id=tc.attempt_id AND m.run_id=tc.run_id AND m.status='completed' "
-                    "JOIN {t}output_seal s ON s.scope_id=m.scope_id "
+                    "LEFT JOIN {t}output_seal s ON s.scope_id=m.scope_id "
                     "AND s.model_attempt_id=m.id AND s.run_id=m.run_id "
                     "LEFT JOIN {t}event e ON e.scope_id=s.scope_id AND e.run_id=s.run_id "
                     "AND e.model_attempt_id=s.model_attempt_id AND e.item_id=s.item_id "
@@ -229,20 +241,28 @@ class SqlRuntimeSourceReader:
                 {
                     "scope": request.actor.scope_id,
                     "call": UUID(resource.resource_id),
-                    "run": request.run_id,
+                    "run": source_run_id,
                 },
             )
             rows = result.mappings().all()
         if not rows:
             raise self._stale()
+        # A completed tool-only attempt has no text producer to seal. Existing text
+        # must still be sealed before it can enter private provider history.
+        if rows[0]["seal_id"] is None and rows[0]["has_output"]:
+            raise self._stale()
         return canonical_json(
             transcript.model_copy(
                 update={
                     "model_attempt_id": rows[0]["attempt_id"],
-                    "reasoning_content": "".join(
+                    "reasoning_content": None
+                    if rows[0]["seal_id"] is None
+                    else "".join(
                         row["payload"]["text"] for row in rows if row["kind"] == "analysis.delta"
                     ),
-                    "assistant_content": "".join(
+                    "assistant_content": None
+                    if rows[0]["seal_id"] is None
+                    else "".join(
                         row["payload"]["text"] for row in rows if row["kind"] == "assistant.delta"
                     ),
                 }

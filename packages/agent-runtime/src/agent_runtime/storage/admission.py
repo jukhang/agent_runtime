@@ -26,6 +26,7 @@ from agent_runtime.contracts.transactions import ActorContext
 from agent_runtime.contracts.views import ChannelState, TimelineItem
 from agent_runtime.storage.context_blobs import SqlContextBlobBackend
 from agent_runtime.storage.journal import SqlJournal
+from agent_runtime.storage.model_budget import reserve_closing
 from agent_runtime.storage.models.provider import BudgetAllocationRow
 from agent_runtime.storage.models.session import RunRow, TimelineItemRow, TurnRow
 from agent_runtime.storage.models.tools import CapabilityGrantRow
@@ -306,10 +307,11 @@ class SqlAdmission:
                 content_hash=state_ref.rsplit("-", 1)[1],
             )
         )
+        allocation_id = uuid4()
         await db.execute(
             sa.insert(BudgetAllocationRow).values(
                 **common,
-                id=uuid4(),
+                id=allocation_id,
                 root_run_id=run_id,
                 limits={
                     "model_calls": binding.agent.budget.max_model_calls,
@@ -323,6 +325,14 @@ class SqlAdmission:
                 unsettled_count=0,
                 version=0,
             )
+        )
+        await reserve_closing(
+            db,
+            self._schema,
+            scope=actor.scope_id,
+            allocation=allocation_id,
+            run=run_id,
+            tokens=binding.agent.budget.finalization_tokens,
         )
         await db.execute(
             sa.insert(CapabilityGrantRow).values(

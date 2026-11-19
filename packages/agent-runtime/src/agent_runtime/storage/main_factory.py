@@ -16,6 +16,7 @@ from agent_runtime.action_dispatch import (
     ToolSpecResolver,
 )
 from agent_runtime.agent_loop import LoopSetup
+from agent_runtime.context_payloads import BlobContextPayloadStore
 from agent_runtime.context_runtime import TokenEstimator
 from agent_runtime.contracts.canonical import content_digest
 from agent_runtime.contracts.context import PreparedContext
@@ -42,12 +43,14 @@ from agent_runtime.skills.git import VerifiedSkillBundle
 from agent_runtime.storage.admission import AdmissionAgent
 from agent_runtime.storage.approvals import SqlApprovalService
 from agent_runtime.storage.context_access import TransactionalResourceAccess
+from agent_runtime.storage.context_blobs import SqlContextBlobBackend
 from agent_runtime.storage.context_factory import SqlContextComponents, build_sql_context_components
 from agent_runtime.storage.journal import SqlJournal
 from agent_runtime.storage.main_run_loader import MainAgentBinding
 from agent_runtime.storage.main_setup import MAIN_DECISION_SCHEMA, SqlMainLoopSetup
 from agent_runtime.storage.main_stream import SqlMainOutputFactory
 from agent_runtime.storage.main_worker import SqlMainWorkerHandler
+from agent_runtime.storage.provider_diagnostics import BlobProviderDiagnostics
 from agent_runtime.storage.scheduler import SqlScheduler
 from agent_runtime.storage.subagents import SqlSubagentRuntime
 from agent_runtime.storage.tool_assembly import SqlToolRuntimeAssembly
@@ -83,6 +86,8 @@ class MainAgentProfile:
     prompt: CapabilityRef
     max_input_tokens: int = 16384
     history_items: int = 12
+    allow_user_questions: bool = True
+    candidate_repair: bool = False
 
 
 class MainPortsFactory(Protocol):
@@ -265,6 +270,9 @@ class SqlMainHandlerFactory:
             ),
             connections=self._connections,
             profile=self._adapter,
+            diagnostics=BlobProviderDiagnostics(
+                BlobContextPayloadStore(SqlContextBlobBackend(self._engine, self._schema))
+            ),
         )
         bindings = {
             revision: MainAgentBinding(
@@ -282,6 +290,7 @@ class SqlMainHandlerFactory:
                     prompt=profile.prompt,
                     max_input_tokens=profile.max_input_tokens,
                     history_items=profile.history_items,
+                    allow_user_questions=profile.allow_user_questions,
                     skill_instructions=instructions[revision],
                 ),
                 manifest_hash=content_digest(
@@ -319,6 +328,8 @@ class SqlMainHandlerFactory:
             message_predicate=self._message,
             execution_predicate=self._execution_predicate,
             max_decisions=max(p.installed.agent.budget.max_model_calls for p in profiles.values()),
+            candidate_repair=isinstance(work, ClaimedWork)
+            and all(p.candidate_repair for p in profiles.values()),
         )
 
     async def _profile_for_run(self, actor: ActorContext, run_id: UUID) -> MainAgentProfile:
@@ -365,7 +376,15 @@ class SqlMainHandlerFactory:
                 .scalars()
                 .all()
             )
+            from agent_runtime.storage.completion_schema import completion_recovery_choices
+
+            recovery_choices = await completion_recovery_choices(
+                db, self._schema, request, snapshot
+            )
+        from agent_runtime.storage.completion_schema import bind_completion_recoveries
+
         schema = CONTROL_DECISIONS.json_schema(by_alias=True)
+        bind_completion_recoveries(schema, recovery_choices)
         finish = schema["$defs"]["FinishPayload"]["properties"]
         finish["finalItemIds"]["items"] = (
             {"type": "string", "enum": [str(id) for id in ids]} if ids else False

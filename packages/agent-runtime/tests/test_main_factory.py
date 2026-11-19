@@ -94,7 +94,10 @@ async def test_unbound_agent_capabilities_fail_before_execution(binding):
 
 
 @pytest.mark.asyncio
-async def test_main_worker_installs_pinned_skill_and_rejects_unbound_hook(monkeypatch):
+@pytest.mark.parametrize("candidate_repair", (False, True))
+async def test_main_worker_installs_pinned_skill_and_rejects_unbound_hook(
+    monkeypatch, candidate_repair
+):
     ref = CapabilityRef(key=CapabilityKey(namespace="host", key="assistant"), revision="1")
     skill_ref = CapabilityRef(key=CapabilityKey(namespace="host", key="skill"), revision="1")
     hook_ref = CapabilityRef(key=CapabilityKey(namespace="host", key="hook"), revision="1")
@@ -163,7 +166,11 @@ async def test_main_worker_installs_pinned_skill_and_rejects_unbound_hook(monkey
 
             def factory(configured_agent, configured_ports=None):
                 profile = MainAgentProfile(
-                    AdmissionAgent(ref, revision_id, configured_agent, 100000), model, ref, ref
+                    AdmissionAgent(ref, revision_id, configured_agent, 100000),
+                    model,
+                    ref,
+                    ref,
+                    candidate_repair=candidate_repair,
                 )
                 result = SqlMainHandlerFactory(
                     engine,
@@ -187,6 +194,7 @@ async def test_main_worker_installs_pinned_skill_and_rejects_unbound_hook(monkey
                 return result
 
             handler = await open_handler(factory(agent))
+            assert handler._candidate_repair is candidate_repair
             assert handler._approvals is approval_port
             assert handler._context is context_port
             assert handler._provider._inputs._context is context_port.runtime

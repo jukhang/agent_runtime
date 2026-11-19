@@ -45,6 +45,18 @@
       "title": "Allocationid",
       "type": "string"
     },
+    "closing": {
+      "default": false,
+      "title": "Closing",
+      "type": "boolean"
+    },
+    "closingTokens": {
+      "default": "0",
+      "maxLength": 19,
+      "pattern": "^(0|[1-9][0-9]*)$",
+      "title": "Closingtokens",
+      "type": "string"
+    },
     "deadlineAt": {
       "format": "date-time",
       "title": "Deadlineat",

@@ -38,7 +38,7 @@ class SqlContextSnapshotStore:
             "estimated_input_tokens, schema_revision, task_type, payload_ref, content_hash, "
             "source_refs, degradation, model_ref, prompt_ref, tool_refs, budget) "
             "VALUES (:id, :scope_id, :session_id, :run_id, :auth_revision, :context_version, "
-            ":estimated_input_tokens, 1, 'model', :payload_ref, :content_hash, "
+            ":estimated_input_tokens, 1, :task_type, :payload_ref, :content_hash, "
             "CAST(:source_refs AS jsonb), CAST(:degradation AS jsonb), "
             "CAST(:model_ref AS jsonb), CAST(:prompt_ref AS jsonb), "
             "CAST(:tool_refs AS jsonb), CAST(:budget AS jsonb))",
@@ -110,6 +110,7 @@ class SqlContextSnapshotStore:
                     "context_version": version,
                     "estimated_input_tokens": snapshot.estimated_input_tokens,
                     "payload_ref": snapshot.payload_ref,
+                    "task_type": "model.closing" if snapshot.purpose == "closing" else "model",
                     "content_hash": snapshot.content_hash,
                     "source_refs": _json(
                         [s.model_dump(mode="json", by_alias=True) for s in snapshot.sources]
@@ -148,6 +149,7 @@ class SqlContextSnapshotStore:
             )
         return PreparedContext.model_validate(
             {
+                "purpose": "closing" if row["task_type"] == "model.closing" else "ordinary",
                 "scope_id": row["scope_id"],
                 "session_id": row["session_id"],
                 "run_id": row["run_id"],
