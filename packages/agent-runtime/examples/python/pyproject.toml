@@ -4,7 +4,7 @@ version = "0.1.1"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
-dependencies = ["agent-runtime[provider,storage,mcp]>=0.1.0,<0.2"]
+dependencies = ["agent-runtime[provider,storage,mcp]>=0.2.20,<0.3"]
 
 [project.optional-dependencies]
 host = ["centn-runtime-example>=0.1.0,<0.2"]

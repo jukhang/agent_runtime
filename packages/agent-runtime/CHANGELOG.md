@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.20
+
+- Promote the SDK code from 0.2.20rc20 unchanged. Release metadata and the Python
+  example's SDK constraint now target the stable version.
+- Bound model working sets and recover from provider and tool failures without
+  treating incomplete streams or unverified effects as successful.
+- Reserve and settle finalization budget for root and child Runs; validate
+  terminal evidence before reporting a task complete.
+- Negotiate supported MCP protocol versions rather than requiring one specific
+  server version; preserve host authorization and effect recovery boundaries.
+- Back up the Runtime schema and drain active runs before upgrading a host.
+  The release adds no SDK schema migration; do not assume unfinished Runs
+  can be moved between arbitrary SDK/host versions.
+- Published on GitHub under Apache-2.0; no PyPI release or A2A certification.
+
 ## 0.2.20rc20 (Local Candidate)
 
 - Preserve the first Worker/recovery failure even when sibling cleanup also

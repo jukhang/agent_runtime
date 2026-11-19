@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-runtime"
-version = "0.2.20rc20"
+version = "0.2.20"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 description = "Reusable Agent Runtime contracts for centn and independent hosts"
