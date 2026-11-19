@@ -78,6 +78,16 @@ def main() -> None:
         run("uv", "venv", "--python", "3.12", str(environment))
         run("uv", "pip", "install", "--python", str(python), str(wheel))
         run(str(python), "-I", "-c", CORE_SMOKE)
+        run("uv", "pip", "install", "--python", str(python), f"{wheel}[storage]")
+        run(
+            str(python),
+            "-I",
+            "-c",
+            "from agent_runtime.storage.run_backend import SqlRunBackend;"
+            "from agent_runtime.migrate_cli import main;"
+            "assert SqlRunBackend and main;"
+            "print('storage-only-wheel-isolated')",
+        )
         run(
             "uv",
             "pip",

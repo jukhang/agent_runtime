@@ -33,6 +33,7 @@ storage = [
   "sqlalchemy[asyncio]>=2.0.45,<3",
   "alembic>=1.16.2,<2",
   "asyncpg>=0.31.0,<1",
+  "httpx>=0.28.1,<1",
 ]
 
 [project.scripts]

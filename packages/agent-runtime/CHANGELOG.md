@@ -2,8 +2,9 @@
 
 ## 0.2.20
 
-- Promote the SDK code from 0.2.20rc20 unchanged. Release metadata and the Python
-  example's SDK constraint now target the stable version.
+- Promote the SDK runtime code from 0.2.20rc20. The Python example now targets
+  the stable version, and `[storage]` includes the HTTP client required by
+  the SQL Worker assembly without requiring an explicit `[provider]` extra.
 - Bound model working sets and recover from provider and tool failures without
   treating incomplete streams or unverified effects as successful.
 - Reserve and settle finalization budget for root and child Runs; validate

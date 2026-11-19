@@ -18,6 +18,7 @@ provider = [
 storage = [
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "httpx" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
 
@@ -28,6 +29,7 @@ requires-dist = [
     { name = "asyncpg", marker = "extra == 'storage'", specifier = ">=0.31.0,<1" },
     { name = "httpcore", marker = "extra == 'broker'", specifier = ">=1.0.9,<2" },
     { name = "httpx", marker = "extra == 'provider'", specifier = ">=0.28.1,<1" },
+    { name = "httpx", marker = "extra == 'storage'", specifier = ">=0.28.1,<1" },
     { name = "jsonschema", marker = "extra == 'mcp'", specifier = ">=4.23,<5" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.27,<2" },
     { name = "opensandbox", marker = "extra == 'sandbox'", specifier = "==0.1.16" },
